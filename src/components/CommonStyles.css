@@ -1,0 +1,53 @@
+.container {
+    padding: 2rem;
+  }
+  
+  .tarjeta {
+    background-color: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tarjeta button {
+    margin-right: 1rem;
+  }
+  
+  .aceptar {
+    background-color: green;
+    color: white;
+  }
+  
+  .rechazar {
+    background-color: red;
+    color: white;
+  }
+  
+  .pendiente {
+    background-color: orange;
+    color: white;
+  }
+  
+  .señada {
+    background-color: lightblue;
+    color: white;
+  }
+  
+  .pagada {
+    background-color: green;
+    color: white;
+  }
+  
+  .vencida {
+    background-color: grey;
+    color: white;
+  }
+  
+  button {
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
