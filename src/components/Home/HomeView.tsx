@@ -1,67 +1,169 @@
 // src/components/Home/HomeView.tsx
 import React from 'react';
-import { Card } from '../../components/ui/card';
-// or if you prefer relative imports:
-// import { Card } from '@/components/ui/card';
-
-type Reservation = {
-  id: number;
-  court: string;
-  date: string;
-  time: string;
-};
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useCourts } from '@/context/CourtsContext';
 
 export const HomeView = () => {
-  const pendingReservations: Reservation[] = [
-    { id: 1, court: "Cancha 6", date: "21 de Diciembre 2024", time: "17:30hs" },
-    { id: 2, court: "Cancha 1", date: "21 de Diciembre 2024", time: "17:45hs" }
-  ];
+  const { courts, updateReservationStatus } = useCourts();
 
-  const upcomingReservations: Reservation[] = [
-    { id: 3, court: "Cancha 3", date: "27 de Noviembre 2024", time: "11:30hs" },
-    { id: 4, court: "Cancha 1", date: "01 de Diciembre 2024", time: "19:00hs" },
-    { id: 5, court: "Cancha 2", date: "24 de Noviembre 2024", time: "20:00hs" }
-  ];
+  // Get all pending reservations with court details
+  const pendingReservations = courts.flatMap(court =>
+    court.reservations
+      .filter(r => r.status === 'pending')
+      .map(r => ({ 
+        ...r, 
+        courtName: court.name, 
+        courtId: court.id 
+      }))
+      .sort((a, b) => {
+        // Sort by date and time
+        const dateA = new Date(`${a.date} ${a.time}`);
+        const dateB = new Date(`${b.date} ${b.time}`);
+        return dateA.getTime() - dateB.getTime();
+      })
+  );
+
+  // Get upcoming (accepted) reservations
+  const upcomingReservations = courts.flatMap(court =>
+    court.reservations
+      .filter(r => r.status === 'accepted')
+      .map(r => ({
+        ...r,
+        courtName: court.name,
+        courtId: court.id
+      }))
+      .sort((a, b) => {
+        const dateA = new Date(`${a.date} ${a.time}`);
+        const dateB = new Date(`${b.date} ${b.time}`);
+        return dateA.getTime() - dateB.getTime();
+      })
+      .slice(0, 5) // Show only next 5 reservations
+  );
+
+  const handleAccept = async (courtId: number, reservationId: number) => {
+    const success = await updateReservationStatus(courtId, reservationId, 'accepted');
+    if (!success) {
+      alert('No se puede aceptar la reserva porque el horario ya no está disponible');
+    }
+  };
+
+  const handleReject = (courtId: number, reservationId: number) => {
+    updateReservationStatus(courtId, reservationId, 'rejected');
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (time: string) => {
+    return time.replace(':00', 'hs');
+  };
+
+  const isToday = (dateStr: string) => {
+    const today = new Date();
+    const date = new Date(dateStr);
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isTomorrow = (dateStr: string) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const date = new Date(dateStr);
+    return date.toDateString() === tomorrow.toDateString();
+  };
+
+  const getRelativeDate = (dateStr: string) => {
+    if (isToday(dateStr)) return 'Hoy';
+    if (isTomorrow(dateStr)) return 'Mañana';
+    return formatDate(dateStr);
+  };
 
   return (
     <div className="p-6">
-      <h1 className="text-xl mb-6">Inicio</h1>
+      <h1 className="text-xl font-semibold mb-6">Inicio</h1>
       
+      {/* Pending Reservations Section */}
       <div className="mb-8">
-        <h2 className="text-lg mb-4">Reservas pendientes de aprobación</h2>
+        <h2 className="text-lg font-medium mb-4">Reservas pendientes de aprobación</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {pendingReservations.map(reservation => (
-            <Card key={reservation.id} className="p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-bold">{reservation.court}</p>
-                  <p className="text-gray-600">{reservation.date}</p>
-                  <p className="text-gray-600">{reservation.time}</p>
+          {pendingReservations.length === 0 ? (
+            <div className="col-span-full">
+              <Card className="p-6 text-center text-gray-500">
+                No hay reservas pendientes
+              </Card>
+            </div>
+          ) : (
+            pendingReservations.map(reservation => (
+              <Card key={reservation.id} className="p-4 hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">{reservation.courtName}</h3>
+                    <div className="space-y-1">
+                      <p className="text-gray-600">
+                        {getRelativeDate(reservation.date)}
+                      </p>
+                      <p className="text-gray-600">
+                        {formatTime(reservation.time)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      className="text-green-600 border-green-600 hover:bg-green-50"
+                      onClick={() => handleAccept(reservation.courtId, reservation.id)}
+                    >
+                      Aceptar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="text-red-600 border-red-600 hover:bg-red-50"
+                      onClick={() => handleReject(reservation.courtId, reservation.id)}
+                    >
+                      Rechazar
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex space-x-2">
-                  <button className="px-4 py-2 text-green-600 border border-green-600 rounded hover:bg-green-50">
-                    Aceptar
-                  </button>
-                  <button className="px-4 py-2 text-red-600 border border-red-600 rounded hover:bg-red-50">
-                    Rechazar
-                  </button>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))
+          )}
         </div>
       </div>
 
+      {/* Upcoming Reservations Section */}
       <div>
-        <h2 className="text-lg mb-4">Próximas reservas</h2>
+        <h2 className="text-lg font-medium mb-4">Próximas reservas</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {upcomingReservations.map(reservation => (
-            <Card key={reservation.id} className="p-4">
-              <p className="font-bold">{reservation.court}</p>
-              <p className="text-gray-600">{reservation.date}</p>
-              <p className="text-gray-600">{reservation.time}</p>
-            </Card>
-          ))}
+          {upcomingReservations.length === 0 ? (
+            <div className="col-span-full">
+              <Card className="p-6 text-center text-gray-500">
+                No hay próximas reservas
+              </Card>
+            </div>
+          ) : (
+            upcomingReservations.map(reservation => (
+              <Card 
+                key={reservation.id} 
+                className="p-4 hover:shadow-md transition-shadow"
+              >
+                <h3 className="font-semibold text-lg mb-1">{reservation.courtName}</h3>
+                <div className="space-y-1">
+                  <p className="text-gray-600">
+                    {getRelativeDate(reservation.date)}
+                  </p>
+                  <p className="text-gray-600">
+                    {formatTime(reservation.time)}
+                  </p>
+                </div>
+              </Card>
+            ))
+          )}
         </div>
       </div>
     </div>

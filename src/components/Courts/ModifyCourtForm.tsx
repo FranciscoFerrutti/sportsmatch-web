@@ -1,5 +1,5 @@
-// src/components/Courts/NewCourtForm.tsx
-import React, { useState } from 'react';
+// src/components/Courts/ModifyCourtForm.tsx
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -8,16 +8,18 @@ import type { Court } from '@/context/CourtsContext';
 
 type CourtFormData = Omit<Court, 'id'>;
 
-export interface NewCourtFormProps {
+export interface ModifyCourtFormProps {
+  courtId: number;
   onSuccess?: () => void;
   onFormChange?: () => void;
 }
 
-export const NewCourtForm: React.FC<NewCourtFormProps> = ({ 
+export const ModifyCourtForm: React.FC<ModifyCourtFormProps> = ({ 
+  courtId, 
   onSuccess,
   onFormChange 
 }) => {
-  const { addCourt } = useCourts();
+  const { updateCourt, getCourtById } = useCourts();
   const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   const timeOptions = Array.from({ length: 14 }, (_, i) => 
     `${String(i + 8).padStart(2, '0')}:00`
@@ -35,9 +37,17 @@ export const NewCourtForm: React.FC<NewCourtFormProps> = ({
     reservations: []
   });
 
+  useEffect(() => {
+    const court = getCourtById(courtId);
+    if (court) {
+      const { id, ...courtData } = court;
+      setFormData(courtData);
+    }
+  }, [courtId, getCourtById]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addCourt(formData);
+    updateCourt(courtId, formData);
     if (onSuccess) {
       onSuccess();
     }
@@ -70,7 +80,7 @@ export const NewCourtForm: React.FC<NewCourtFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl">Nueva cancha</h1>
+        <h1 className="text-xl">Modificar cancha</h1>
         <Button 
           type="submit" 
           className="bg-[#000066] hover:bg-[#000088]"
@@ -203,6 +213,24 @@ export const NewCourtForm: React.FC<NewCourtFormProps> = ({
               ))}
             </div>
           </div>
+
+          {formData.reservations.length > 0 && (
+            <div>
+              <label className="block mb-2">Reservas actuales:</label>
+              <div className="space-y-2">
+                {formData.reservations.map(reservation => (
+                  <div 
+                    key={reservation.id} 
+                    className="p-2 bg-gray-50 rounded border"
+                  >
+                    <p>Fecha: {reservation.date}</p>
+                    <p>Hora: {reservation.time}</p>
+                    <p>Estado: {reservation.status}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </form>
