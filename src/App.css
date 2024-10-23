@@ -1,18 +1,21 @@
-.App {
-  text-align: center;
-  background-color: #f0f4fa;
+.app {
   min-height: 100vh;
-}
-
-.App-header {
-  background-color: #002d6b;
-  color: white;
-  padding: 20px;
-}
-
-.card-container {
   display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  padding: 20px;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #e5eff9;
+  overflow-x: hidden;
 }
+
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #e5eff9;
+  overflow-x: hidden;
+}
+
+* {
+  cursor: pointer;
+}
+
