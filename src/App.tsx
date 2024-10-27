@@ -5,6 +5,7 @@ import { HomeView } from './components/Home/HomeView';
 import { CourtsView } from './components/Courts/CourtsView';
 import { NewCourtForm } from './components/Courts/NewCourtForm';
 import { ModifyCourtForm } from './components/Courts/ModifyCourtForm';
+import { ReservationsView } from './components/Reservations/ReservationsView'; // Added this import
 import CalendarView from './components/Calendar/CalendarView';
 import { View } from './types/navigation';
 import { CourtsProvider } from './context/CourtsContext';
@@ -72,6 +73,8 @@ function App() {
           onNewCourt={handleNewCourt} 
           onModifyCourt={handleModifyCourt}
         />;
+      case 'reservas': // Added this case
+        return <ReservationsView />;
       case 'calendario':
         return <CalendarView />;
       case 'nueva-cancha':

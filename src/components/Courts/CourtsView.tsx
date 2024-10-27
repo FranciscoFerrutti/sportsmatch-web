@@ -102,7 +102,7 @@ export const CourtsView: React.FC<CourtsViewProps> = ({ onNewCourt, onModifyCour
       />
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl">Mis canchas</h1>
+        <h1 className="text-xl font-semibold">Mis canchas</h1>
         <Button 
           className="bg-[#000066] hover:bg-[#000088]"
           onClick={onNewCourt}

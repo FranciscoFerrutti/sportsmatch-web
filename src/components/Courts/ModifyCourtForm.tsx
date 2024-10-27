@@ -1,4 +1,3 @@
-// src/components/Courts/ModifyCourtForm.tsx
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +33,8 @@ export const ModifyCourtForm: React.FC<ModifyCourtFormProps> = ({
     schedule: Object.fromEntries(
       days.map(day => [day, { start: '08:00', end: '21:00', closed: false }])
     ),
-    reservations: []
+    reservations: [],
+    slotStatuses: [] // Add this new field with empty array as default
   });
 
   useEffect(() => {
@@ -213,6 +213,41 @@ export const ModifyCourtForm: React.FC<ModifyCourtFormProps> = ({
               ))}
             </div>
           </div>
+
+          {/* Display current slot statuses */}
+          {formData.slotStatuses.length > 0 && (
+            <div>
+              <label className="block mb-2">Estados manuales de horarios:</label>
+              <div className="space-y-2">
+                {formData.slotStatuses.map((slot, index) => (
+                  <div 
+                    key={`${slot.date}-${slot.time}`} 
+                    className="p-2 bg-gray-50 rounded border flex justify-between items-center"
+                  >
+                    <div>
+                      <p>Fecha: {slot.date}</p>
+                      <p>Hora: {slot.time}</p>
+                      <p>Estado: {slot.status}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="text-red-600 hover:bg-red-50"
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          slotStatuses: prev.slotStatuses.filter((_, i) => i !== index)
+                        }));
+                        onFormChange?.();
+                      }}
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {formData.reservations.length > 0 && (
             <div>

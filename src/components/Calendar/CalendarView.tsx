@@ -1,16 +1,64 @@
-// src/components/Calendar/CalendarView.tsx
 import React, { useState } from 'react';
 import { Select } from '@/components/ui/select';
 import { useCourts } from '@/context/CourtsContext';
+import type { TimeSlotStatus } from '@/context/CourtsContext';
 
-type TimeSlotStatus = 'Disponible' | 'Ocupado' | 'Pendiente' | 'No disponible';
+interface SlotModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (status: TimeSlotStatus) => void;
+  currentSlot: {
+    day: string;
+    hour: number;
+  } | null;
+}
+
+const SlotModal: React.FC<SlotModalProps> = ({ isOpen, onClose, onConfirm, currentSlot }) => {
+  if (!isOpen || !currentSlot) return null;
+
+  const formatHour = (hour: number) => `${hour.toString().padStart(2, '0')}:00`;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h3 className="text-lg font-semibold mb-4">
+          {currentSlot.day} - {formatHour(currentSlot.hour)}
+        </h3>
+        <div className="space-y-4">
+          <button 
+            className="w-full p-2 text-left border rounded hover:bg-gray-50"
+            onClick={() => onConfirm('Ocupado')}
+          >
+            Marcar como Ocupado
+          </button>
+          <button 
+            className="w-full p-2 text-left border rounded hover:bg-gray-50"
+            onClick={() => onConfirm('No disponible')}
+          >
+            Marcar como No disponible
+          </button>
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 border rounded hover:bg-gray-50 mt-4"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CalendarView = () => {
-  const { courts } = useCourts();
+  const { courts, updateSlotStatus } = useCourts();
   const [selectedCourt, setSelectedCourt] = useState(courts[0]?.id.toString() || '');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<{day: string; hour: number} | null>(null);
   
   const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-  const hours = Array.from({ length: 14 }, (_, i) => i + 8); // 8:00 to 21:00
+  const hours = Array.from({ length: 14 }, (_, i) => i + 8);
 
   const selectedCourtData = courts.find(court => court.id.toString() === selectedCourt);
 
@@ -18,13 +66,8 @@ const CalendarView = () => {
     const today = new Date();
     const currentDay = today.getDay();
     const daysMap: Record<string, number> = {
-      'Domingo': 0,
-      'Lunes': 1,
-      'Martes': 2,
-      'Miércoles': 3,
-      'Jueves': 4,
-      'Viernes': 5,
-      'Sábado': 6
+      'Domingo': 0, 'Lunes': 1, 'Martes': 2, 'Miércoles': 3,
+      'Jueves': 4, 'Viernes': 5, 'Sábado': 6
     };
 
     let targetDay = daysMap[day];
@@ -50,7 +93,16 @@ const CalendarView = () => {
 
     const dateString = getWeekDayDate(day);
 
-    // Check if there's an accepted reservation for this slot
+    // Check for manual status override
+    const manualStatus = selectedCourtData.slotStatuses?.find(
+      slot => slot.date === dateString && slot.time === currentTime
+    );
+
+    if (manualStatus) {
+      return manualStatus.status;
+    }
+
+    // Check for reservations
     const isOccupied = selectedCourtData.reservations.some(
       reservation =>
         reservation.status === 'accepted' &&
@@ -63,17 +115,42 @@ const CalendarView = () => {
 
   const getStatusClass = (status: TimeSlotStatus) => {
     const classes = {
-      'Disponible': 'bg-green-100 text-green-800',
+      'Disponible': 'bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer',
       'Ocupado': 'bg-red-100 text-red-800',
       'Pendiente': 'bg-yellow-100 text-yellow-800',
       'No disponible': 'bg-gray-100 text-gray-800'
     };
-    return classes[status];
+    return classes[status] || 'bg-gray-100 text-gray-800'; // Default fallback
+  };
+
+  const handleSlotClick = (day: string, hour: number, status: TimeSlotStatus) => {
+    if (status === 'Disponible') {
+      setSelectedSlot({ day, hour });
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleStatusChange = (newStatus: TimeSlotStatus) => {
+    if (!selectedSlot || !selectedCourtData) return;
+
+    const dateString = getWeekDayDate(selectedSlot.day);
+    const timeString = `${selectedSlot.hour.toString().padStart(2, '0')}:00`;
+
+    console.log('Updating slot status:', {
+      courtId: selectedCourtData.id,
+      date: dateString,
+      time: timeString,
+      newStatus: newStatus
+    });
+
+    updateSlotStatus(selectedCourtData.id, dateString, timeString, newStatus);
+    setIsModalOpen(false);
+    setSelectedSlot(null);
   };
 
   return (
     <div className="p-6">
-      <h1 className="text-xl mb-6">Calendario semanal</h1>
+      <h1 className="text-xl font-semibold">Calendario semanal</h1>
       
       <div className="mb-4">
         <Select
@@ -113,6 +190,7 @@ const CalendarView = () => {
                     <td key={`${day}-${hour}`} className="border p-2">
                       <div 
                         className={`text-center p-1 rounded ${getStatusClass(status)}`}
+                        onClick={() => handleSlotClick(day, hour, status)}
                         title={status === 'No disponible' ? 'Fuera de horario' : status}
                       >
                         {status}
@@ -125,6 +203,16 @@ const CalendarView = () => {
           </tbody>
         </table>
       </div>
+
+      <SlotModal 
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedSlot(null);
+        }}
+        onConfirm={handleStatusChange}
+        currentSlot={selectedSlot}
+      />
 
       {selectedCourtData && (
         <div className="mt-4 text-sm text-gray-600">

@@ -32,7 +32,8 @@ export const NewCourtForm: React.FC<NewCourtFormProps> = ({
     schedule: Object.fromEntries(
       days.map(day => [day, { start: '08:00', end: '21:00', closed: false }])
     ),
-    reservations: []
+    reservations: [],
+    slotStatuses: []
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -79,46 +80,49 @@ export const NewCourtForm: React.FC<NewCourtFormProps> = ({
         </Button>
       </div>
 
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm">
         <div className="space-y-4">
           <div>
-            <label className="block mb-2">Nombre:</label>
+            <label className="block mb-2 font-medium">Nombre:</label>
             <Input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
               className="w-full"
+              placeholder="Ingrese el nombre de la cancha"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-2">Deporte:</label>
+            <label className="block mb-2 font-medium">Deporte:</label>
             <Input
               type="text"
               name="sport"
               value={formData.sport}
               onChange={handleInputChange}
               className="w-full"
+              placeholder="Ingrese el deporte"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-2">Material:</label>
+            <label className="block mb-2 font-medium">Material:</label>
             <Input
               type="text"
               name="material"
               value={formData.material}
               onChange={handleInputChange}
               className="w-full"
+              placeholder="Ingrese el material de la cancha"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-2">Cubierta:</label>
+            <label className="block mb-2 font-medium">Cubierta:</label>
             <div className="flex gap-4">
               <label className="flex items-center">
                 <input
@@ -151,23 +155,25 @@ export const NewCourtForm: React.FC<NewCourtFormProps> = ({
           </div>
 
           <div>
-            <label className="block mb-2">Precio:</label>
+            <label className="block mb-2 font-medium">Precio:</label>
             <Input
               type="number"
               name="price"
               value={formData.price}
               onChange={handleInputChange}
               className="w-full"
+              placeholder="Ingrese el precio por hora"
+              min="0"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-2">Horarios:</label>
-            <div className="space-y-4">
+            <label className="block mb-2 font-medium">Horarios:</label>
+            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
               {days.map(day => (
                 <div key={day} className="flex items-center gap-4">
-                  <span className="w-24">{day}:</span>
+                  <span className="w-24 font-medium">{day}:</span>
                   <Select
                     value={formData.schedule[day].start}
                     onChange={(e) => handleScheduleChange(day, 'start', e.target.value)}
@@ -195,7 +201,7 @@ export const NewCourtForm: React.FC<NewCourtFormProps> = ({
                       'closed', 
                       !formData.schedule[day].closed
                     )}
-                    className={formData.schedule[day].closed ? 'bg-gray-100' : ''}
+                    className={`min-w-[100px] ${formData.schedule[day].closed ? 'bg-gray-100' : ''}`}
                   >
                     {formData.schedule[day].closed ? 'Cerrado' : 'Abierto'}
                   </Button>

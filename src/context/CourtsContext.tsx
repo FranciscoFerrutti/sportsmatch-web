@@ -1,7 +1,7 @@
-// src/context/CourtsContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type ReservationStatus = 'pending' | 'accepted' | 'rejected';
+export type TimeSlotStatus = 'Disponible' | 'Ocupado' | 'Pendiente' | 'No disponible';
 
 export interface Reservation {
   id: number;
@@ -9,6 +9,12 @@ export interface Reservation {
   date: string;
   time: string;
   status: ReservationStatus;
+}
+
+export interface SlotStatus {
+  date: string;
+  time: string;
+  status: TimeSlotStatus;
 }
 
 export interface Court {
@@ -24,6 +30,7 @@ export interface Court {
     closed: boolean;
   }>;
   reservations: Reservation[];
+  slotStatuses: SlotStatus[];
 }
 
 interface CourtsContextType {
@@ -34,11 +41,12 @@ interface CourtsContextType {
   getCourtById: (id: number) => Court | undefined;
   updateReservationStatus: (courtId: number, reservationId: number, status: ReservationStatus) => boolean;
   isTimeSlotAvailable: (courtId: number, date: string, time: string) => boolean;
+  updateSlotStatus: (courtId: number, date: string, time: string, status: TimeSlotStatus) => void;
+  addReservation: (courtId: number, date: string, time: string) => void;
 }
 
 const CourtsContext = createContext<CourtsContextType | undefined>(undefined);
 
-// Initial data
 const initialCourts: Court[] = [
   {
     id: 1,
@@ -56,25 +64,21 @@ const initialCourts: Court[] = [
       'Sábado': { start: '08:00', end: '21:00', closed: false },
       'Domingo': { start: '08:00', end: '21:00', closed: false },
     },
-    reservations: [
-      {
-        id: 1,
-        courtId: 1,
-        date: '2024-10-24',
-        time: '17:00',
-        status: 'pending'
-      }
-    ]
+    reservations: [],
+    slotStatuses: []
   }
 ];
 
 export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize state from localStorage or use initial data
   const [courts, setCourts] = useState<Court[]>(() => {
     const savedCourts = localStorage.getItem('courts');
     if (savedCourts) {
       try {
-        return JSON.parse(savedCourts);
+        const parsed = JSON.parse(savedCourts);
+        return parsed.map((court: any) => ({
+          ...court,
+          slotStatuses: Array.isArray(court.slotStatuses) ? court.slotStatuses : []
+        }));
       } catch (error) {
         console.error('Error parsing courts from localStorage:', error);
         return initialCourts;
@@ -83,19 +87,31 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return initialCourts;
   });
 
-  // Save to localStorage whenever courts change
   useEffect(() => {
     localStorage.setItem('courts', JSON.stringify(courts));
   }, [courts]);
 
   const addCourt = (newCourt: Omit<Court, 'id'>) => {
     const nextId = Math.max(0, ...courts.map(c => c.id)) + 1;
-    setCourts(prev => [...prev, { ...newCourt, id: nextId, reservations: [] }]);
+    setCourts(prev => [
+      ...prev,
+      {
+        ...newCourt,
+        id: nextId,
+        reservations: [],
+        slotStatuses: []
+      }
+    ]);
   };
 
   const updateCourt = (id: number, updatedCourt: Omit<Court, 'id'>) => {
     setCourts(prev => prev.map(court => 
-      court.id === id ? { ...updatedCourt, id, reservations: court.reservations } : court
+      court.id === id ? {
+        ...updatedCourt,
+        id,
+        reservations: court.reservations,
+        slotStatuses: Array.isArray(court.slotStatuses) ? court.slotStatuses : []
+      } : court
     ));
   };
 
@@ -111,7 +127,6 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const court = courts.find(c => c.id === courtId);
     if (!court) return false;
 
-    // Check if the court is open at this time
     const dayOfWeek = new Date(date).toLocaleDateString('es-ES', { weekday: 'long' });
     const daySchedule = court.schedule[dayOfWeek];
     
@@ -123,7 +138,15 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     if (timeHour < startHour || timeHour >= endHour) return false;
 
-    // Check if there's no accepted reservation for this slot
+    // Check manual status first
+    const manualStatus = court.slotStatuses.find(
+      slot => slot.date === date && slot.time === time
+    );
+    if (manualStatus) {
+      return manualStatus.status === 'Disponible';
+    }
+
+    // Then check reservations
     return !court.reservations.some(
       reservation => 
         reservation.status === 'accepted' &&
@@ -132,14 +155,17 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   };
 
-  const updateReservationStatus = (courtId: number, reservationId: number, status: ReservationStatus): boolean => {
+  const updateReservationStatus = (
+    courtId: number,
+    reservationId: number,
+    status: ReservationStatus
+  ): boolean => {
     const court = courts.find(c => c.id === courtId);
     if (!court) return false;
 
     const reservation = court.reservations.find(r => r.id === reservationId);
     if (!reservation) return false;
 
-    // If trying to accept, check if slot is available
     if (status === 'accepted') {
       const isAvailable = isTimeSlotAvailable(courtId, reservation.date, reservation.time);
       if (!isAvailable) return false;
@@ -162,15 +188,71 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return true;
   };
 
+  const updateSlotStatus = (
+    courtId: number,
+    date: string,
+    time: string,
+    status: TimeSlotStatus
+  ) => {
+    setCourts(prevCourts =>
+      prevCourts.map(court => {
+        if (court.id === courtId) {
+          const currentSlotStatuses = Array.isArray(court.slotStatuses) ? court.slotStatuses : [];
+          const existingIndex = currentSlotStatuses.findIndex(
+            slot => slot.date === date && slot.time === time
+          );
+
+          let newSlotStatuses;
+          if (existingIndex >= 0) {
+            newSlotStatuses = [...currentSlotStatuses];
+            newSlotStatuses[existingIndex] = { date, time, status };
+          } else {
+            newSlotStatuses = [...currentSlotStatuses, { date, time, status }];
+          }
+
+          return {
+            ...court,
+            slotStatuses: newSlotStatuses
+          };
+        }
+        return court;
+      })
+    );
+  };
+
+  const addReservation = (courtId: number, date: string, time: string) => {
+    setCourts(prevCourts => prevCourts.map(court => {
+      if (court.id === courtId) {
+        const nextId = Math.max(0, ...court.reservations.map(r => r.id)) + 1;
+        return {
+          ...court,
+          reservations: [
+            ...court.reservations,
+            {
+              id: nextId,
+              courtId,
+              date,
+              time,
+              status: 'accepted'
+            }
+          ]
+        };
+      }
+      return court;
+    }));
+  };
+
   return (
-    <CourtsContext.Provider value={{ 
-      courts, 
-      addCourt, 
-      updateCourt, 
-      deleteCourt, 
+    <CourtsContext.Provider value={{
+      courts,
+      addCourt,
+      updateCourt,
+      deleteCourt,
       getCourtById,
       updateReservationStatus,
-      isTimeSlotAvailable
+      isTimeSlotAvailable,
+      updateSlotStatus,
+      addReservation
     }}>
       {children}
     </CourtsContext.Provider>
