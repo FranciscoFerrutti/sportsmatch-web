@@ -1,52 +1,42 @@
 // src/components/Navigation.tsx
 import React from 'react';
-import { View } from '@/types/navigation';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AppContext';
 
-export interface NavigationProps {
-  onViewChange: (view: View) => void;
-  currentView: View;
-}
+export const Navigation = () => {
+  const location = useLocation();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
-export const Navigation: React.FC<NavigationProps> = ({ onViewChange, currentView }) => {
-  const navItems: Array<{ view: View; label: string }> = [
-    { view: 'inicio', label: 'Inicio' },
-    { view: 'mis-canchas', label: 'Mis canchas' },
-    { view: 'reservas', label: 'Reservas' },
-    { view: 'calendario', label: 'Calendario' }
+  const handleLogout = () => {
+    logout(); // Resetea el estado de autenticación
+    navigate('/login'); // Redirige al usuario a la página de login
+  };
+
+  const navItems = [
+    { path: '/home', label: 'Inicio' },
+    { path: '/courts', label: 'Mis canchas' },
+    { path: '/reservations', label: 'Reservas' },
+    { path: '/calendar', label: 'Calendario' }
   ];
-
-  const isFormView = (view: View) => 
-    view === 'nueva-cancha' || view === 'modificar-cancha';
 
   return (
     <nav className="bg-[#000066] px-6 py-4 flex justify-between items-center text-white shadow-md">
       <div className="flex items-center space-x-6">
         {navItems.map(item => (
-          <a
-            key={item.view}
-            href="#"
-            className={`
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) => `
               text-white hover:text-gray-200 transition-colors duration-200
-              ${currentView === item.view ? 'font-semibold border-b-2 border-white pb-1' : 'pb-1 border-b-2 border-transparent'}
-              ${isFormView(currentView) && item.view === 'mis-canchas' ? 'font-semibold' : ''}
+              ${isActive ? 'font-semibold border-b-2 border-white pb-1' : 'pb-1 border-b-2 border-transparent'}
             `}
-            onClick={(e) => {
-              e.preventDefault();
-              onViewChange(item.view);
-            }}
           >
             {item.label}
-          </a>
+          </NavLink>
         ))}
       </div>
-      
-      <button 
-        className="text-white hover:text-gray-200 transition-colors duration-200 px-4 py-2 rounded-md hover:bg-[#000088]"
-        onClick={() => {
-          // Here you would typically handle logout
-          console.log('Logout clicked');
-        }}
-      >
+      <button className="text-white hover:text-gray-200 transition-colors duration-200" onClick={handleLogout}>
         Cerrar sesión
       </button>
     </nav>

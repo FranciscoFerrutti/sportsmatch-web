@@ -1,59 +1,45 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Court, Reservation } from '@/types';
+// src/context/AppContext.tsx
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type AppContextType = {
-  courts: Court[];
-  setCourts: (courts: Court[]) => void;
-  reservations: Reservation[];
-  setReservations: (reservations: Reservation[]) => void;
-  loading: boolean;
-  error: string | null;
+type AuthContextType = {
+  isAuthenticated: boolean;
+  login: () => void;
+  logout: () => void;
 };
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [courts, setCourts] = useState<Court[]>([]);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    // Load initial state from localStorage
+    const savedAuthState = localStorage.getItem('isAuthenticated');
+    return savedAuthState === 'true';
+  });
+
+  const login = () => {
+    setIsAuthenticated(true);
+    localStorage.setItem('isAuthenticated', 'true'); // Save login state to localStorage
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('isAuthenticated'); // Remove login state from localStorage
+  };
 
   useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        setLoading(true);
-        // Fetch initial data
-        // await Promise.all([fetchCourts(), fetchReservations()]);
-      } catch (err) {
-        setError('Error loading initial data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeApp();
-  }, []);
+    // Sync state with localStorage on changes (in case you want more complex auth)
+    localStorage.setItem('isAuthenticated', isAuthenticated.toString());
+  }, [isAuthenticated]);
 
   return (
-    <AppContext.Provider
-      value={{
-        courts,
-        setCourts,
-        reservations,
-        setReservations,
-        loading,
-        error
-      }}
-    >
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       {children}
-    </AppContext.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export const useApp = () => {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

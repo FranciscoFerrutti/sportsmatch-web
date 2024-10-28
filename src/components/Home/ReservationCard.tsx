@@ -1,27 +1,52 @@
+// src/components/Reservations/ReservationCard.tsx
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Reservation } from '@/types';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'; 
+import timezone from 'dayjs/plugin/timezone';
+import { useCourts } from '@/context/CourtsContext';
 
-type ReservationCardProps = {
-  reservation: Reservation;
-  isPending?: boolean;
-};
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-export const ReservationCard = ({ reservation, isPending }: ReservationCardProps) => (
-  <Card className="p-4">
-    <div className="flex justify-between items-center">
-      <div>
-        <p className="font-bold">{reservation.court}</p>
-        <p className="text-gray-600">{reservation.date}</p>
-        <p className="text-gray-600">{reservation.time}</p>
-      </div>
-      {isPending && (
-        <div className="flex space-x-2">
-          <Button variant="outline" className="text-green-600">Aceptar</Button>
-          <Button variant="outline" className="text-red-600">Rechazar</Button>
-        </div>
-      )}
+interface ReservationCardProps {
+  reservation: {
+    id: number;
+    courtId: number;
+    courtName: string;
+    date: string;
+    time: string;
+    status: string;
+  };
+}
+
+export const ReservationCard: React.FC<ReservationCardProps> = ({ reservation }) => {
+  const { cancelReservation } = useCourts();
+
+  // Formatea la fecha en la zona horaria local
+  const formattedDate = dayjs.tz(reservation.date, dayjs.tz.guess()).format('dddd, D [de] MMMM [de] YYYY');
+  console.log('Fecha guardada en reserva:', reservation.date);
+  console.log('Fecha formateada para mostrar (formattedDate):', formattedDate);
+
+  const handleCancel = () => {
+    cancelReservation(reservation.courtId, reservation.id);
+  };
+
+  return (
+    <div className="reservation-card border p-4 rounded-lg shadow-md">
+      <h2 className="font-semibold">{reservation.courtName}</h2>
+      <p>{formattedDate}</p>
+      <p>{reservation.time}hs</p>
+      <p className="text-gray-500">
+        {reservation.status === 'accepted' ? 'Aceptada' : reservation.status}
+      </p>
+
+      {/* Show "Cancelar reserva" button only if the reservation is accepted */}
+      <button
+          onClick={handleCancel}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Cancelar reserva
+        </button>
     </div>
-  </Card>
-);
+  );
+};

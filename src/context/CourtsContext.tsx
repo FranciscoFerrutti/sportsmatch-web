@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'; 
+import timezone from 'dayjs/plugin/timezone';
 
 export type ReservationStatus = 'pending' | 'accepted' | 'rejected';
 export type TimeSlotStatus = 'Disponible' | 'Ocupado' | 'Pendiente' | 'No disponible';
@@ -43,6 +46,7 @@ interface CourtsContextType {
   isTimeSlotAvailable: (courtId: number, date: string, time: string) => boolean;
   updateSlotStatus: (courtId: number, date: string, time: string, status: TimeSlotStatus) => void;
   addReservation: (courtId: number, date: string, time: string) => void;
+  cancelReservation: (courtId: number, reservationId: number) => void; // Added cancelReservation
 }
 
 const CourtsContext = createContext<CourtsContextType | undefined>(undefined);
@@ -126,67 +130,65 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const isTimeSlotAvailable = (courtId: number, date: string, time: string) => {
     const court = courts.find(c => c.id === courtId);
     if (!court) return false;
-
+  
     const dayOfWeek = new Date(date).toLocaleDateString('es-ES', { weekday: 'long' });
     const daySchedule = court.schedule[dayOfWeek];
-    
+  
+    // Ensure the court is open on the specified day
     if (!daySchedule || daySchedule.closed) return false;
-
-    const timeHour = parseInt(time.split(':')[0]);
-    const startHour = parseInt(daySchedule.start.split(':')[0]);
-    const endHour = parseInt(daySchedule.end.split(':')[0]);
-
+  
+    const timeHour = parseInt(time.split(':')[0], 10);
+    const startHour = parseInt(daySchedule.start.split(':')[0], 10);
+    const endHour = parseInt(daySchedule.end.split(':')[0], 10);
+  
+    // Ensure the selected time is within the court's open hours
     if (timeHour < startHour || timeHour >= endHour) return false;
-
-    // Check manual status first
+  
+    // Check for any manually blocked slots
     const manualStatus = court.slotStatuses.find(
       slot => slot.date === date && slot.time === time
     );
     if (manualStatus) {
       return manualStatus.status === 'Disponible';
     }
-
-    // Then check reservations
+  
+    // Check if the slot is already reserved
     return !court.reservations.some(
-      reservation => 
+      reservation =>
         reservation.status === 'accepted' &&
         reservation.date === date &&
         reservation.time === time
     );
   };
-
+  
   const updateReservationStatus = (
     courtId: number,
     reservationId: number,
     status: ReservationStatus
   ): boolean => {
     const court = courts.find(c => c.id === courtId);
-    if (!court) return false;
-
-    const reservation = court.reservations.find(r => r.id === reservationId);
-    if (!reservation) return false;
-
-    if (status === 'accepted') {
-      const isAvailable = isTimeSlotAvailable(courtId, reservation.date, reservation.time);
-      if (!isAvailable) return false;
+    if (!court) {
+      console.error('No court found with ID:', courtId);
+      return false;
     }
-
-    setCourts(prevCourts => 
-      prevCourts.map(c => {
-        if (c.id === courtId) {
-          return {
-            ...c,
-            reservations: c.reservations.map(r => 
-              r.id === reservationId ? { ...r, status } : r
-            )
-          };
-        }
-        return c;
-      })
+  
+    const reservation = court.reservations.find(r => r.id === reservationId);
+    if (!reservation) {
+      console.error('No reservation found with ID:', reservationId);
+      return false;
+    }
+  
+    console.log('Reservation before update:', reservation);
+    reservation.status = status;
+    console.log('Reservation after update:', reservation);
+  
+    setCourts(prevCourts =>
+      prevCourts.map(c => (c.id === courtId ? { ...c, reservations: [...c.reservations] } : c))
     );
-
+  
     return true;
   };
+  
 
   const updateSlotStatus = (
     courtId: number,
@@ -220,7 +222,17 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   };
 
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+
   const addReservation = (courtId: number, date: string, time: string) => {
+    const localDate = dayjs.tz(date, 'YYYY-MM-DD', dayjs.tz.guess()).format('YYYY-MM-DD');
+  
+    console.log('Reserva - ID de la cancha:', courtId);
+    console.log('Fecha de reserva recibida (date):', date);
+    console.log('Fecha de reserva en local (localDate):', localDate);
+    console.log('Hora de reserva (time):', time);
+  
     setCourts(prevCourts => prevCourts.map(court => {
       if (court.id === courtId) {
         const nextId = Math.max(0, ...court.reservations.map(r => r.id)) + 1;
@@ -231,9 +243,9 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             {
               id: nextId,
               courtId,
-              date,
+              date: localDate,
               time,
-              status: 'accepted'
+              status: 'pending'
             }
           ]
         };
@@ -241,6 +253,26 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return court;
     }));
   };
+  
+
+  const cancelReservation = (courtId: number, reservationId: number) => {
+    setCourts(prevCourts => 
+      prevCourts.map(court => {
+        if (court.id === courtId) {
+          return {
+            ...court,
+            reservations: court.reservations.map(reservation => 
+              reservation.id === reservationId 
+                ? { ...reservation, status: 'rejected' } 
+                : reservation
+            )
+          };
+        }
+        return court;
+      })
+    );
+  };
+  
 
   return (
     <CourtsContext.Provider value={{
@@ -252,10 +284,12 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       updateReservationStatus,
       isTimeSlotAvailable,
       updateSlotStatus,
-      addReservation
+      addReservation,
+      cancelReservation // Include cancelReservation here
     }}>
       {children}
     </CourtsContext.Provider>
+
   );
 };
 

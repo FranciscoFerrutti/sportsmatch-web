@@ -3,6 +3,9 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCourts } from '@/context/CourtsContext';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
 export const HomeView = () => {
   const { courts, updateReservationStatus } = useCourts();
@@ -43,22 +46,25 @@ export const HomeView = () => {
 
   const handleAccept = async (courtId: number, reservationId: number) => {
     const success = await updateReservationStatus(courtId, reservationId, 'accepted');
+    
     if (!success) {
       alert('No se puede aceptar la reserva porque el horario ya no está disponible');
+      console.error('Error al aceptar la reserva:', { courtId, reservationId });
+    } else {
+      console.log('Reserva aceptada:', { courtId, reservationId });
     }
   };
+  
 
   const handleReject = (courtId: number, reservationId: number) => {
     updateReservationStatus(courtId, reservationId, 'rejected');
   };
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
+    dayjs.locale('es');
+    dayjs.extend(utc);
+    dayjs.extend(timezone);
+    return dayjs.tz(dateStr, dayjs.tz.guess()).format('dddd, D [de] MMMM [de] YYYY');
   };
 
   const formatTime = (time: string) => {

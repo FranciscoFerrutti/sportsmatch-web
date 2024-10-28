@@ -1,8 +1,15 @@
 // src/components/Reservations/ReservationModal.tsx
 import React, { useState } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'; 
+import timezone from 'dayjs/plugin/timezone';
+import 'dayjs/locale/es';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCourts } from '@/context/CourtsContext';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 interface ReservationModalProps {
   isOpen: boolean;
@@ -14,30 +21,22 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
   const [selectedCourt, setSelectedCourt] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [formattedDate, setFormattedDate] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const selectedCourtData = courts.find(court => court.id.toString() === selectedCourt);
 
-  // Get tomorrow's date as minimum date for reservations
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
-
-  // Get date 30 days from now as maximum date
-  const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 30);
-  const maxDateStr = maxDate.toISOString().split('T')[0];
+  // Configura las fechas mínima y máxima en tiempo local
+  const minDate = dayjs().add(1, 'day').format('YYYY-MM-DD');
+  const maxDate = dayjs().add(30, 'day').format('YYYY-MM-DD');
 
   const getAvailableTimes = () => {
     if (!selectedCourtData || !selectedDate) return [];
 
-    const dayOfWeek = new Date(selectedDate)
-      .toLocaleDateString('es-ES', { weekday: 'long' });
-
-    // Capitalize first letter to match court schedule keys
+    const dayOfWeek = dayjs(selectedDate).locale('es').format('dddd');
     const day = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
-    
+
     const schedule = selectedCourtData.schedule[day];
     if (!schedule || schedule.closed) return [];
 
@@ -48,15 +47,13 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
     for (let hour = startHour; hour < endHour; hour++) {
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
 
-      // Check if this time slot is already taken
       const isReserved = selectedCourtData.reservations.some(
-        reservation => 
-          reservation.date === selectedDate && 
+        reservation =>
+          reservation.date === selectedDate &&
           reservation.time === timeString &&
           reservation.status === 'accepted'
       );
 
-      // Check if this time slot is manually blocked
       const isBlocked = selectedCourtData.slotStatuses.some(
         slot =>
           slot.date === selectedDate &&
@@ -72,26 +69,32 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
     return times;
   };
 
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const date = e.target.value;
+    const localDate = dayjs(date).tz(dayjs.tz.guess()); // Forzar a la zona horaria local
+    setSelectedDate(localDate.format('YYYY-MM-DD'));
+    setFormattedDate(localDate.locale('es').format('dddd, D [de] MMMM [de] YYYY'));
+    setSelectedTime(''); // Resetea la hora cuando cambia la fecha
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedCourt && selectedDate && selectedTime) {
-      addReservation(parseInt(selectedCourt), selectedDate, selectedTime);
+      const localDate = dayjs.tz(selectedDate, 'YYYY-MM-DD', dayjs.tz.guess()).format('YYYY-MM-DD'); 
+      const localTime = dayjs(`${selectedDate}T${selectedTime}`).format('HH:mm');
+  
+      console.log('Fecha seleccionada:', selectedDate); // Fecha inicial seleccionada
+      console.log('Fecha formateada en local (localDate):', localDate); // Fecha ajustada en local
+      console.log('Hora formateada en local (localTime):', localTime); // Hora ajustada en local
+  
+      addReservation(parseInt(selectedCourt), localDate, localTime);
       onClose();
-      // Reset form
       setSelectedCourt('');
       setSelectedDate('');
       setSelectedTime('');
     }
   };
-
-  const formatDateForDisplay = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -105,7 +108,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
               value={selectedCourt}
               onChange={(e) => {
                 setSelectedCourt(e.target.value);
-                setSelectedTime(''); // Reset time when court changes
+                setSelectedTime(''); // Resetea la hora cuando cambia la cancha
               }}
               className="w-full p-2 border rounded"
               required
@@ -124,19 +127,14 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
             <input
               type="date"
               value={selectedDate}
-              onChange={(e) => {
-                setSelectedDate(e.target.value);
-                setSelectedTime(''); // Reset time when date changes
-              }}
+              onChange={handleDateChange}
               min={minDate}
-              max={maxDateStr}
+              max={maxDate}
               className="w-full p-2 border rounded"
               required
             />
-            {selectedDate && (
-              <p className="text-sm text-gray-500 mt-1">
-                {formatDateForDisplay(selectedDate)}
-              </p>
+            {formattedDate && (
+              <p className="text-sm text-gray-500 mt-1">{formattedDate}</p>
             )}
           </div>
 
@@ -161,44 +159,9 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
             )}
           </div>
 
-          {/* Schedule information */}
-          {selectedCourtData && selectedDate && (
-            <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded">
-              <p>Horario de la cancha para {
-                new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long' })
-              }:</p>
-              <p>{
-                selectedCourtData.schedule[
-                  new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long' })
-                  .charAt(0).toUpperCase() + 
-                  new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long' }).slice(1)
-                ]?.closed ? 'Cerrado' : 
-                `${selectedCourtData.schedule[
-                  new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long' })
-                  .charAt(0).toUpperCase() + 
-                  new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long' }).slice(1)
-                ]?.start} - ${selectedCourtData.schedule[
-                  new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long' })
-                  .charAt(0).toUpperCase() + 
-                  new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long' }).slice(1)
-                ]?.end}`
-              }</p>
-            </div>
-          )}
-
           <div className="flex justify-end space-x-2 mt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="bg-[#000066] hover:bg-[#000088]"
-              disabled={!selectedCourt || !selectedDate || !selectedTime}
-            >
+            <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button type="submit" className="bg-[#000066] hover:bg-[#000088]" disabled={!selectedCourt || !selectedDate || !selectedTime}>
               Crear reserva
             </Button>
           </div>

@@ -5,6 +5,9 @@ import { Card } from '@/components/ui/card';
 import { useCourts } from '@/context/CourtsContext';
 import { ReservationModal } from './ReservationModal';
 import type { ReservationStatus } from '@/context/CourtsContext';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
 interface ReservationWithCourtName {
   id: number;
@@ -78,12 +81,10 @@ export const ReservationsView = () => {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    dayjs.locale('es');
+    dayjs.extend(utc);
+    dayjs.extend(timezone);
+    return dayjs.tz(dateStr, dayjs.tz.guess()).format('dddd, D [de] MMMM [de] YYYY');
   };
 
   const getStatusClass = (status: ReservationStatus) => {

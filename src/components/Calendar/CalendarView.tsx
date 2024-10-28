@@ -213,17 +213,6 @@ const CalendarView = () => {
         onConfirm={handleStatusChange}
         currentSlot={selectedSlot}
       />
-
-      {selectedCourtData && (
-        <div className="mt-4 text-sm text-gray-600">
-          <p className="font-medium mb-2">Horarios de la cancha:</p>
-          {Object.entries(selectedCourtData.schedule).map(([day, schedule]) => (
-            <p key={day} className="mb-1">
-              {day}: {schedule.closed ? 'Cerrado' : `${schedule.start} - ${schedule.end}`}
-            </p>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

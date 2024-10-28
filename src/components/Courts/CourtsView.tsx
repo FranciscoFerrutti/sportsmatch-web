@@ -1,111 +1,40 @@
 // src/components/Courts/CourtsView.tsx
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCourts } from '@/context/CourtsContext';
-import type { Court } from '@/context/CourtsContext'; // Add this import
+import type { Court } from '@/context/CourtsContext';
 
-interface DeleteConfirmationProps {
-  isOpen: boolean;
-  courtName: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
+export const CourtsView = () => {
+  const navigate = useNavigate();
+  const { courts, deleteCourt } = useCourts(); // Add deleteCourt to the destructuring
 
-const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
-  isOpen,
-  courtName,
-  onConfirm,
-  onCancel,
-}) => {
-  if (!isOpen) return null;
+  const handleNewCourt = () => {
+    navigate('/courts/new');
+  };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h3 className="text-lg font-semibold mb-4">Confirmar eliminación</h3>
-        <p className="mb-6">¿Estás seguro que deseas eliminar {courtName}?</p>
-        <div className="flex justify-end space-x-4">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-          >
-            Cancelar
-          </Button>
-          <Button
-            className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={onConfirm}
-          >
-            Eliminar
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
+  const handleModifyCourt = (courtId: number) => {
+    navigate(`/courts/${courtId}/edit`);
+  };
 
-export interface CourtsViewProps {
-  onNewCourt: () => void;
-  onModifyCourt: (courtId: number) => void;
-}
-
-export const CourtsView: React.FC<CourtsViewProps> = ({ onNewCourt, onModifyCourt }) => {
-  const { courts, deleteCourt } = useCourts();
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean;
-    courtId: number | null;
-    courtName: string;
-  }>({
-    isOpen: false,
-    courtId: null,
-    courtName: '',
-  });
+  const handleDeleteCourt = (courtId: number) => {
+    if (window.confirm('¿Está seguro que desea eliminar esta cancha?')) {
+      deleteCourt(courtId);
+    }
+  };
 
   const capitalize = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  const handleDeleteClick = (court: Court) => {
-    setDeleteConfirmation({
-      isOpen: true,
-      courtId: court.id,
-      courtName: court.name,
-    });
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deleteConfirmation.courtId !== null) {
-      deleteCourt(deleteConfirmation.courtId);
-    }
-    setDeleteConfirmation({
-      isOpen: false,
-      courtId: null,
-      courtName: '',
-    });
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteConfirmation({
-      isOpen: false,
-      courtId: null,
-      courtName: '',
-    });
-  };
-
   return (
     <div className="p-6">
-      <DeleteConfirmation
-        isOpen={deleteConfirmation.isOpen}
-        courtName={deleteConfirmation.courtName}
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
-      />
-
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-semibold">Mis canchas</h1>
+        <h1 className="text-xl">Mis canchas</h1>
         <Button 
           className="bg-[#000066] hover:bg-[#000088]"
-          onClick={onNewCourt}
+          onClick={handleNewCourt}
         >
           Nueva cancha
         </Button>
@@ -132,14 +61,14 @@ export const CourtsView: React.FC<CourtsViewProps> = ({ onNewCourt, onModifyCour
               <Button 
                 variant="outline" 
                 className="flex-1"
-                onClick={() => onModifyCourt(court.id)}
+                onClick={() => handleModifyCourt(court.id)}
               >
                 Modificar
               </Button>
               <Button 
                 variant="outline" 
                 className="flex-1 text-red-600 border-red-600 hover:bg-red-50"
-                onClick={() => handleDeleteClick(court)}
+                onClick={() => handleDeleteCourt(court.id)}
               >
                 Eliminar
               </Button>
