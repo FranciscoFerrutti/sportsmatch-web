@@ -1,14 +1,11 @@
-// src/components/Courts/CourtsView.tsx
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCourts } from '@/context/CourtsContext';
-import type { Court } from '@/context/CourtsContext';
 
 export const CourtsView = () => {
   const navigate = useNavigate();
-  const { courts, deleteCourt } = useCourts(); // Add deleteCourt to the destructuring
+  const { courts, deleteCourt } = useCourts();
 
   const handleNewCourt = () => {
     navigate('/courts/new');

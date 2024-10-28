@@ -5,7 +5,6 @@ export const useCourts = () => {
   const [courts, setCourts] = useState<Court[]>([]);
 
   useEffect(() => {
-    // Fetch courts from API
     setCourts([
       { id: 1, name: "Cancha 1", sport: "Tenis" },
       { id: 2, name: "Cancha 2", sport: "Tenis" },
@@ -17,7 +16,6 @@ export const useCourts = () => {
   }, []);
 
   const handleModifyCourt = (id: number) => {
-    // Handle court modification
     console.log('Modifying court:', id);
   };
 

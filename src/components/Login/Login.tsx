@@ -1,4 +1,3 @@
-// src/pages/LoginPage.tsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { useAuth } from '@/context/AppContext';
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // Importamos la función de login desde el contexto
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -19,10 +18,9 @@ export const Login = () => {
     e.preventDefault();
     setError(null);
 
-    // Aquí puedes agregar lógica de validación de usuario y contraseña si es necesario
     if (formData.email && formData.password) {
-      login(); // Llama a login para actualizar el estado de autenticación
-      navigate('/home'); // Redirige al usuario a la página de inicio después de iniciar sesión
+      login();
+      navigate('/home');
     } else {
       setError('Por favor, ingresa un email y contraseña válidos.');
     }

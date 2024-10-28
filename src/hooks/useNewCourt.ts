@@ -35,7 +35,6 @@ export const useNewCourt = () => {
 
   const handleSubmit = async () => {
     try {
-      // API call to save court
       console.log('Saving court:', formData);
     } catch (error) {
       console.error('Error saving court:', error);

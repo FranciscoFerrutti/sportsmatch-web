@@ -1,5 +1,3 @@
-// App.tsx
-import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { HomeView } from './components/Home/HomeView';
@@ -10,7 +8,7 @@ import { ReservationsView } from './components/Reservations/ReservationsView';
 import CalendarView from './components/Calendar/CalendarView';
 import { AuthProvider } from './context/AppContext';
 import { CourtsProvider } from './context/CourtsContext'; // Importa CourtsProvider
-import { Login } from './components/Login/Login';
+import { Login } from './components/Login/login';
 import { Signup } from './components/Login/Signup';
 import { PrivateRoute } from './components/Login/PrivateRoute';
 

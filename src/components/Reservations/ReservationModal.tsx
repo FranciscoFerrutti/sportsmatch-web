@@ -1,4 +1,3 @@
-// src/components/Reservations/ReservationModal.tsx
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc'; 
@@ -27,7 +26,6 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
 
   const selectedCourtData = courts.find(court => court.id.toString() === selectedCourt);
 
-  // Configura las fechas mínima y máxima en tiempo local
   const minDate = dayjs().add(1, 'day').format('YYYY-MM-DD');
   const maxDate = dayjs().add(30, 'day').format('YYYY-MM-DD');
 
@@ -71,10 +69,10 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const date = e.target.value;
-    const localDate = dayjs(date).tz(dayjs.tz.guess()); // Forzar a la zona horaria local
+    const localDate = dayjs(date).tz(dayjs.tz.guess()); 
     setSelectedDate(localDate.format('YYYY-MM-DD'));
     setFormattedDate(localDate.locale('es').format('dddd, D [de] MMMM [de] YYYY'));
-    setSelectedTime(''); // Resetea la hora cuando cambia la fecha
+    setSelectedTime(''); 
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,9 +81,9 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
       const localDate = dayjs.tz(selectedDate, 'YYYY-MM-DD', dayjs.tz.guess()).format('YYYY-MM-DD'); 
       const localTime = dayjs(`${selectedDate}T${selectedTime}`).format('HH:mm');
   
-      console.log('Fecha seleccionada:', selectedDate); // Fecha inicial seleccionada
-      console.log('Fecha formateada en local (localDate):', localDate); // Fecha ajustada en local
-      console.log('Hora formateada en local (localTime):', localTime); // Hora ajustada en local
+      console.log('Fecha seleccionada:', selectedDate); 
+      console.log('Fecha formateada en local (localDate):', localDate);
+      console.log('Hora formateada en local (localTime):', localTime);
   
       addReservation(parseInt(selectedCourt), localDate, localTime);
       onClose();
@@ -108,7 +106,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
               value={selectedCourt}
               onChange={(e) => {
                 setSelectedCourt(e.target.value);
-                setSelectedTime(''); // Resetea la hora cuando cambia la cancha
+                setSelectedTime(''); 
               }}
               className="w-full p-2 border rounded"
               required

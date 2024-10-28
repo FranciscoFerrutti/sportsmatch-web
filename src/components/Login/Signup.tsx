@@ -1,4 +1,3 @@
-// src/pages/SignupPage.tsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,10 +28,8 @@ export const Signup = () => {
       return;
     }
 
-    // TODO: Add actual signup logic here
     console.log('Signup attempt:', formData);
     
-    // For now, just redirect to login
     navigate('/login');
   };
 

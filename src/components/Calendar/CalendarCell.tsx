@@ -1,4 +1,3 @@
-import React from 'react';
 import { TimeSlot } from '@/types';
 
 type CalendarCellProps = {

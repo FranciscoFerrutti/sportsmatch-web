@@ -1,4 +1,3 @@
-// src/components/Reservations/ReservationCard.tsx
 import React from 'react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc'; 
@@ -22,7 +21,6 @@ interface ReservationCardProps {
 export const ReservationCard: React.FC<ReservationCardProps> = ({ reservation }) => {
   const { cancelReservation } = useCourts();
 
-  // Formatea la fecha en la zona horaria local
   const formattedDate = dayjs.tz(reservation.date, dayjs.tz.guess()).format('dddd, D [de] MMMM [de] YYYY');
   console.log('Fecha guardada en reserva:', reservation.date);
   console.log('Fecha formateada para mostrar (formattedDate):', formattedDate);
@@ -40,7 +38,6 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({ reservation })
         {reservation.status === 'accepted' ? 'Aceptada' : reservation.status}
       </p>
 
-      {/* Show "Cancelar reserva" button only if the reservation is accepted */}
       <button
           onClick={handleCancel}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"

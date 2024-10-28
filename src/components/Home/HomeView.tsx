@@ -1,5 +1,3 @@
-// src/components/Home/HomeView.tsx
-import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCourts } from '@/context/CourtsContext';
@@ -10,7 +8,6 @@ import timezone from 'dayjs/plugin/timezone';
 export const HomeView = () => {
   const { courts, updateReservationStatus } = useCourts();
 
-  // Get all pending reservations with court details
   const pendingReservations = courts.flatMap(court =>
     court.reservations
       .filter(r => r.status === 'pending')
@@ -20,14 +17,12 @@ export const HomeView = () => {
         courtId: court.id 
       }))
       .sort((a, b) => {
-        // Sort by date and time
         const dateA = new Date(`${a.date} ${a.time}`);
         const dateB = new Date(`${b.date} ${b.time}`);
         return dateA.getTime() - dateB.getTime();
       })
   );
 
-  // Get upcoming (accepted) reservations
   const upcomingReservations = courts.flatMap(court =>
     court.reservations
       .filter(r => r.status === 'accepted')
@@ -41,11 +36,11 @@ export const HomeView = () => {
         const dateB = new Date(`${b.date} ${b.time}`);
         return dateA.getTime() - dateB.getTime();
       })
-      .slice(0, 5) // Show only next 5 reservations
+      .slice(0, 5)
   );
 
   const handleAccept = async (courtId: number, reservationId: number) => {
-    const success = await updateReservationStatus(courtId, reservationId, 'accepted');
+    const success = updateReservationStatus(courtId, reservationId, 'accepted');
     
     if (!success) {
       alert('No se puede aceptar la reserva porque el horario ya no está disponible');
@@ -53,7 +48,7 @@ export const HomeView = () => {
     } else {
       console.log('Reserva aceptada:', { courtId, reservationId });
     }
-  };
+  };  
   
 
   const handleReject = (courtId: number, reservationId: number) => {
@@ -94,7 +89,6 @@ export const HomeView = () => {
     <div className="p-6">
       <h1 className="text-xl font-semibold mb-6">Inicio</h1>
       
-      {/* Pending Reservations Section */}
       <div className="mb-8">
         <h2 className="text-lg font-medium mb-4">Reservas pendientes de aprobación</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -142,7 +136,6 @@ export const HomeView = () => {
         </div>
       </div>
 
-      {/* Upcoming Reservations Section */}
       <div>
         <h2 className="text-lg font-medium mb-4">Próximas reservas</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

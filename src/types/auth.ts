@@ -1,4 +1,3 @@
-// src/types/auth.ts
 export interface Club {
     id: number;
     name: string;

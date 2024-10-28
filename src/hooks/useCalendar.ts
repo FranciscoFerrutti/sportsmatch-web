@@ -3,13 +3,12 @@ import { TimeSlot } from '@/types';
 
 export const useCalendar = () => {
   const [selectedCourt, setSelectedCourt] = useState<number>(1);
-  const [timeSlots, setTimeSlots] = useState<Record<string, TimeSlot>>({});
+  const [timeSlots] = useState<Record<string, TimeSlot>>({});
   
   const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   const hours = Array.from({ length: 14 }, (_, i) => i + 8);
 
   useEffect(() => {
-    // Fetch time slots from API based on selectedCourt
   }, [selectedCourt]);
 
   const handleCourtChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -18,7 +17,7 @@ export const useCalendar = () => {
 
   return {
     selectedCourt,
-    courts: [], // Add courts data
+    courts: [], 
     timeSlots,
     days,
     hours,

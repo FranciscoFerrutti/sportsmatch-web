@@ -1,4 +1,3 @@
-// src/components/Reservations/ReservationsView.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -22,7 +21,6 @@ export const ReservationsView = () => {
   const { courts, updateReservationStatus } = useCourts();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Get all reservations with court names
   const allReservations: ReservationWithCourtName[] = courts.flatMap(court =>
     court.reservations.map(reservation => ({
       ...reservation,
@@ -30,7 +28,6 @@ export const ReservationsView = () => {
     }))
   );
 
-  // Separate reservations by status
   const pendingReservations = allReservations
     .filter(r => r.status === 'pending')
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -41,7 +38,7 @@ export const ReservationsView = () => {
 
   const pastReservations = allReservations
     .filter(r => r.status === 'accepted' && new Date(`${r.date} ${r.time}`) < new Date())
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Note: reversed sort for past
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const handleAccept = async (courtId: number, reservationId: number) => {
         console.log('Attempting to accept reservation:', { courtId, reservationId });
@@ -155,7 +152,6 @@ export const ReservationsView = () => {
         </Button>
       </div>
 
-      {/* Pending Reservations */}
       <section className="mb-8">
         <h2 className="text-lg font-medium mb-4">Reservas pendientes</h2>
         <div className="space-y-4">
@@ -175,7 +171,6 @@ export const ReservationsView = () => {
         </div>
       </section>
 
-      {/* Upcoming Reservations */}
       <section className="mb-8">
         <h2 className="text-lg font-medium mb-4">Próximas reservas</h2>
         <div className="space-y-4">
@@ -194,7 +189,6 @@ export const ReservationsView = () => {
         </div>
       </section>
 
-      {/* Past Reservations */}
       <section>
         <h2 className="text-lg font-medium mb-4">Reservas pasadas</h2>
         <div className="space-y-4">

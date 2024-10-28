@@ -1,16 +1,13 @@
-// src/components/Navigation.tsx
-import React from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AppContext';
 
 export const Navigation = () => {
-  const location = useLocation();
   const { logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout(); // Resetea el estado de autenticación
-    navigate('/login'); // Redirige al usuario a la página de login
+    logout(); 
+    navigate('/login');
   };
 
   const navItems = [

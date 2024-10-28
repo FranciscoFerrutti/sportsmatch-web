@@ -51,27 +51,7 @@ interface CourtsContextType {
 
 const CourtsContext = createContext<CourtsContextType | undefined>(undefined);
 
-const initialCourts: Court[] = [
-  {
-    id: 1,
-    name: 'Cancha 1',
-    sport: 'Tenis',
-    material: 'Césped sintético',
-    covered: 'descubierta',
-    price: '5000',
-    schedule: {
-      'Lunes': { start: '08:00', end: '21:00', closed: false },
-      'Martes': { start: '08:00', end: '21:00', closed: false },
-      'Miércoles': { start: '08:00', end: '21:00', closed: false },
-      'Jueves': { start: '08:00', end: '21:00', closed: false },
-      'Viernes': { start: '08:00', end: '21:00', closed: false },
-      'Sábado': { start: '08:00', end: '21:00', closed: false },
-      'Domingo': { start: '08:00', end: '21:00', closed: false },
-    },
-    reservations: [],
-    slotStatuses: []
-  }
-];
+const initialCourts: Court[] = [];
 
 export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [courts, setCourts] = useState<Court[]>(() => {

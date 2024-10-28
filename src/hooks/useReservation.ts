@@ -6,7 +6,6 @@ export const useReservations = () => {
   const [upcomingReservations, setUpcomingReservations] = useState<Reservation[]>([]);
 
   useEffect(() => {
-    // Fetch reservations from API
     setPendingReservations([
       { id: 1, court: "Cancha 6", time: "17:30hs", date: "21 de Diciembre 2024" },
       { id: 2, court: "Cancha 1", time: "17:45hs", date: "21 de Diciembre 2024" }

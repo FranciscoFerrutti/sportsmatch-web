@@ -93,7 +93,6 @@ const CalendarView = () => {
 
     const dateString = getWeekDayDate(day);
 
-    // Check for manual status override
     const manualStatus = selectedCourtData.slotStatuses?.find(
       slot => slot.date === dateString && slot.time === currentTime
     );
@@ -102,7 +101,6 @@ const CalendarView = () => {
       return manualStatus.status;
     }
 
-    // Check for reservations
     const isOccupied = selectedCourtData.reservations.some(
       reservation =>
         reservation.status === 'accepted' &&
@@ -120,7 +118,7 @@ const CalendarView = () => {
       'Pendiente': 'bg-yellow-100 text-yellow-800',
       'No disponible': 'bg-gray-100 text-gray-800'
     };
-    return classes[status] || 'bg-gray-100 text-gray-800'; // Default fallback
+    return classes[status] || 'bg-gray-100 text-gray-800';
   };
 
   const handleSlotClick = (day: string, hour: number, status: TimeSlotStatus) => {
