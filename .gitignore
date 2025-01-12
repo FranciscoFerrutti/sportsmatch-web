@@ -1,1 +1,65 @@
-node_modules
+# Node.js dependencies
+node_modules/
+
+# Output directories
+dist/
+build/
+public/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Vite cache
+.vite/
+.cache/
+.parcel-cache/
+
+# Tailwind CSS generated files
+tailwind.config.js
+tailwind.config.cjs
+postcss.config.cjs
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+
+# Logs and debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Custom files (add/remove as needed)
+components.json
+eslint.config.js
+tsconfig.app.json
+tsconfig.node.json
+vite.config.ts
