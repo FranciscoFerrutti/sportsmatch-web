@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  login: () => void;
+  login: (apiKey?: string) => void;
   logout: () => void;
 };
 
@@ -14,14 +14,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return savedAuthState === 'true';
   });
 
-  const login = () => {
+  const login = (apiKey?: string) => {
     setIsAuthenticated(true);
-    localStorage.setItem('isAuthenticated', 'true'); 
+    localStorage.setItem('isAuthenticated', 'true');
+    if (apiKey) {
+      localStorage.setItem('c-api-key', apiKey);
+    }
   };
 
   const logout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('isAuthenticated'); 
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('c-api-key');
   };
 
   useEffect(() => {
@@ -29,9 +33,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [isAuthenticated]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+        {children}
+      </AuthContext.Provider>
   );
 };
 

@@ -46,7 +46,7 @@ interface CourtsContextType {
   isTimeSlotAvailable: (courtId: number, date: string, time: string) => boolean;
   updateSlotStatus: (courtId: number, date: string, time: string, status: TimeSlotStatus) => void;
   addReservation: (courtId: number, date: string, time: string) => void;
-  cancelReservation: (courtId: number, reservationId: number) => void; // Added cancelReservation
+  cancelReservation: (courtId: number, reservationId: number) => void;
 }
 
 const CourtsContext = createContext<CourtsContextType | undefined>(undefined);
@@ -113,26 +113,22 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   
     const dayOfWeek = new Date(date).toLocaleDateString('es-ES', { weekday: 'long' });
     const daySchedule = court.schedule[dayOfWeek];
-  
-    // Ensure the court is open on the specified day
+
     if (!daySchedule || daySchedule.closed) return false;
   
     const timeHour = parseInt(time.split(':')[0], 10);
     const startHour = parseInt(daySchedule.start.split(':')[0], 10);
     const endHour = parseInt(daySchedule.end.split(':')[0], 10);
-  
-    // Ensure the selected time is within the court's open hours
+
     if (timeHour < startHour || timeHour >= endHour) return false;
-  
-    // Check for any manually blocked slots
+
     const manualStatus = court.slotStatuses.find(
       slot => slot.date === date && slot.time === time
     );
     if (manualStatus) {
       return manualStatus.status === 'Disponible';
     }
-  
-    // Check if the slot is already reserved
+
     return !court.reservations.some(
       reservation =>
         reservation.status === 'accepted' &&
@@ -265,7 +261,7 @@ export const CourtsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       isTimeSlotAvailable,
       updateSlotStatus,
       addReservation,
-      cancelReservation // Include cancelReservation here
+      cancelReservation
     }}>
       {children}
     </CourtsContext.Provider>

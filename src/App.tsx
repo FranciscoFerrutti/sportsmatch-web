@@ -7,8 +7,8 @@ import { ModifyCourtForm } from './components/Courts/ModifyCourtForm';
 import { ReservationsView } from './components/Reservations/ReservationsView';
 import CalendarView from './components/Calendar/CalendarView';
 import { AuthProvider } from './context/AppContext';
-import { CourtsProvider } from './context/CourtsContext'; // Importa CourtsProvider
-import { Login } from './components/Login/login';
+import { CourtsProvider } from './context/CourtsContext';
+import { Login } from './components/Login/Login.tsx';
 import { Signup } from './components/Login/Signup';
 import { PrivateRoute } from './components/Login/PrivateRoute';
 
