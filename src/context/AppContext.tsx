@@ -2,7 +2,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  login: (apiKey?: string) => void;
+  clubId: number | null;
+  login: (apiKey?: string, clubId?: number) => void;
   logout: () => void;
 };
 
@@ -10,22 +11,34 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const savedAuthState = localStorage.getItem('isAuthenticated');
-    return savedAuthState === 'true';
+    return localStorage.getItem('isAuthenticated') === 'true';
   });
 
-  const login = (apiKey?: string) => {
+  const [clubId, setClubId] = useState<number | null>(() => {
+    const savedClubId = localStorage.getItem('clubId');
+    return savedClubId ? parseInt(savedClubId) : null;
+  });
+
+  const login = (apiKey?: string, clubId?: number) => {
     setIsAuthenticated(true);
     localStorage.setItem('isAuthenticated', 'true');
+
     if (apiKey) {
       localStorage.setItem('c-api-key', apiKey);
+    }
+
+    if (clubId) {
+      setClubId(clubId);
+      localStorage.setItem('clubId', clubId.toString());
     }
   };
 
   const logout = () => {
     setIsAuthenticated(false);
+    setClubId(null);
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('c-api-key');
+    localStorage.removeItem('clubId');
   };
 
   useEffect(() => {
@@ -33,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [isAuthenticated]);
 
   return (
-      <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+      <AuthContext.Provider value={{ isAuthenticated, clubId, login, logout }}>
         {children}
       </AuthContext.Provider>
   );

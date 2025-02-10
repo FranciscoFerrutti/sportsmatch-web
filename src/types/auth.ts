@@ -1,19 +1,19 @@
 export interface Club {
     id: number;
     name: string;
-    description: string;
-    address: string;
-    postalCode: string;
-    phone: string;
+    phoneNumber: string;
     email: string;
-  }
-  
-  export interface LoginCredentials {
+}
+
+export interface LoginCredentials {
     email: string;
     password: string;
-  }
-  
-  export interface SignupData extends Omit<Club, 'id'> {
+}
+
+export interface SignupData {
+    name: string;
+    phoneNumber: string;
+    email: string;
     password: string;
     confirmPassword: string;
-  }
+}
