@@ -35,7 +35,7 @@ export const Login = () => {
       if (apiKey) {
         const payloadBase64 = apiKey.split('.')[1];
         const decodedPayload = JSON.parse(atob(payloadBase64));
-        clubId = parseInt(decodedPayload.id) + 1;
+        clubId = parseInt(decodedPayload.id);
       }
 
       console.log("API Key:", apiKey);

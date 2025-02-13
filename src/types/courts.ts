@@ -5,8 +5,8 @@ export interface Court {
     description: string;
     capacity: number;
     slot_duration: number;
-    sportIds: number[];
+    sports: { id: number; name: string }[];
 }
 
-export type CourtUpdate = Partial<Court>;
-export type CourtCreate = Omit<Court, 'id'>;
+export type CourtCreate = Omit<Court, 'id' | 'sports'> & { sportIds: number[] };
+export type CourtUpdate = Partial<CourtCreate>;

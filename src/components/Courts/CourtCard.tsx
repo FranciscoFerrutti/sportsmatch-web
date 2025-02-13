@@ -8,7 +8,7 @@ type CourtCardProps = {
 };
 
 export const CourtCard = ({ court, onModify }: CourtCardProps) => {
-  const sportNames = court.sportIds.length > 0 ? court.sportIds.join(', ') : 'Sin deportes asignados';
+  const sportNames = court.sports.length > 0 ? court.sports.map(s => s.name).join(', ') : 'Sin deportes asignados';
 
   return (
       <Card className="p-4">

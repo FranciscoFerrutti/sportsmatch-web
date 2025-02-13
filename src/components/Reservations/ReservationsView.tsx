@@ -7,35 +7,52 @@ import apiClient from '@/apiClients';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { useAuth } from '@/context/AppContext';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export const ReservationsView = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [courts, setCourts] = useState<Record<number, string>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { clubId } = useAuth();
 
   useEffect(() => {
-    const fetchReservations = async () => {
+    const fetchReservationsAndCourts = async () => {
       const apiKey = localStorage.getItem('c-api-key');
 
-      if (!apiKey) {
-        console.error('Error: API Key no encontrada en localStorage');
+      if (!apiKey || !clubId) {
+        console.error('🚨 Error: Falta API Key o clubId', { apiKey, clubId });
         return;
       }
 
       try {
-        const response = await apiClient.get('/reservations', {
-          headers: { 'c-api-key': apiKey },
+        const [reservationsResponse, courtsResponse] = await Promise.all([
+          apiClient.get('/reservations', { headers: { 'c-api-key': apiKey } }),
+          apiClient.get(`/fields/${clubId}`, { headers: { 'c-api-key': apiKey } }),
+        ]);
+
+        console.log("✅ Reservas obtenidas:", reservationsResponse.data);
+        console.log("✅ Canchas obtenidas:", courtsResponse.data);
+
+        setReservations(reservationsResponse.data);
+
+        const courtsMap: Record<number, string> = {};
+        courtsResponse.data.forEach((court: { id: number; name: string }) => {
+          courtsMap[court.id] = court.name;
         });
-        setReservations(response.data);
+
+        console.log("🏟️ Mapeo de canchas generado:", courtsMap);
+        setCourts(courtsMap);
       } catch (error) {
-        console.error('Error fetching reservations:', error);
+        console.error("❌ Error al obtener reservas o canchas:", error);
       }
     };
 
-    fetchReservations();
-  }, []);
+    fetchReservationsAndCourts();
+  }, [clubId]);
+
 
   const handleAccept = async (reservationId: number) => {
     try {
@@ -80,7 +97,7 @@ export const ReservationsView = () => {
       <Card className="p-4 hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-semibold text-lg mb-1">{`Cancha ${reservation.courtId}`}</h3>
+            <h3 className="font-semibold text-lg mb-1">{courts[reservation.courtId] || `Cancha ${reservation.courtId}`}</h3>
             <p className="text-gray-600">{dayjs(reservation.date).format('dddd, D [de] MMMM')}</p>
             <p className="text-gray-600">{reservation.time}hs</p>
           </div>

@@ -17,12 +17,13 @@ export const NewCourtForm = () => {
     cost: '',
     description: '',
     capacity: '',
-    slot_duration: '',
-    sportIds: [] as number[],
+    slot_duration: 0, // Comienza en 0 minutos
+    sports: [] as { id: number; name: string }[],
   });
 
   const [sports, setSports] = useState<{ id: number; name: string }[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSports = async () => {
@@ -41,18 +42,24 @@ export const NewCourtForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!clubId) {
       alert('Error: No hay club asociado.');
       return;
     }
 
+    const parsedCapacity = parseInt(formData.capacity, 10);
+    const parsedCost = parseFloat(formData.cost);
+
     try {
       const payload = {
-        ...formData,
-        cost: parseFloat(formData.cost),
-        capacity: parseInt(formData.capacity, 10),
-        slot_duration: parseInt(formData.slot_duration, 10),
+        name: formData.name,
+        description: formData.description,
+        cost: parsedCost,
+        capacity: parsedCapacity,
+        slot_duration: formData.slot_duration,
+        sportIds: formData.sports.map(sport => sport.id),
       };
 
       await apiClient.post(`/fields`, payload, {
@@ -63,22 +70,27 @@ export const NewCourtForm = () => {
       navigate('/courts');
     } catch (error) {
       console.error('❌ Error al crear la cancha:', error);
-      alert('No se pudo crear la cancha. Verifica los datos e intenta nuevamente.');
+      setError('No se pudo crear la cancha. Verifica los datos e intenta nuevamente.');
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'slot_duration' || name === 'cost' ? Number(value) : value,
+    }));
     setHasChanges(true);
   };
 
   const handleSportChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = parseInt(e.target.value, 10);
-    if (!isNaN(selectedId) && !formData.sportIds.includes(selectedId)) {
+    const selectedSport = sports.find(s => s.id === selectedId);
+
+    if (selectedSport && !formData.sports.some(s => s.id === selectedId)) {
       setFormData(prev => ({
         ...prev,
-        sportIds: [...prev.sportIds, selectedId],
+        sports: [...prev.sports, selectedSport],
       }));
       setHasChanges(true);
     }
@@ -87,7 +99,7 @@ export const NewCourtForm = () => {
   const handleRemoveSport = (id: number) => {
     setFormData(prev => ({
       ...prev,
-      sportIds: prev.sportIds.filter(sportId => sportId !== id),
+      sports: prev.sports.filter(sport => sport.id !== id),
     }));
     setHasChanges(true);
   };
@@ -97,6 +109,15 @@ export const NewCourtForm = () => {
       navigate('/courts');
     }
   };
+
+  const durationOptions = [15, 30, 60, 90, 120];
+
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const remainder = minutes % 60;
+    return remainder === 0 ? `${hours}:00 hs` : `${hours}:${remainder} hs`;
+  };
+
 
   return (
       <div>
@@ -119,33 +140,19 @@ export const NewCourtForm = () => {
             <div className="space-y-4">
               <div>
                 <label className="block mb-2 font-medium">Nombre:</label>
-                <Input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Ingrese el nombre de la cancha"
-                    className="w-full"
-                    required
-                />
+                <Input type="text" name="name" value={formData.name} onChange={handleInputChange}
+                       placeholder="Ingrese el nombre de la cancha" className="w-full" required/>
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Descripción:</label>
-                <Input
-                    type="text"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="Descripción de la cancha"
-                    className="w-full"
-                    required
-                />
+                <Input type="text" name="description" value={formData.description} onChange={handleInputChange}
+                       placeholder="Descripción de la cancha" className="w-full" required/>
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Deporte:</label>
-                <Select name="sportIds" onChange={handleSportChange} className="w-full">
+                <Select name="sports" onChange={handleSportChange} className="w-full">
                   <option value="">Seleccione un deporte</option>
                   {sports.map(sport => (
                       <option key={sport.id} value={sport.id}>
@@ -154,68 +161,44 @@ export const NewCourtForm = () => {
                   ))}
                 </Select>
                 <div className="mt-2">
-                  {formData.sportIds.map(id => {
-                    const sport = sports.find(s => s.id === id);
-                    return (
-                        <div key={id} className="flex justify-between items-center p-2 bg-gray-100 rounded mt-1">
-                          <span>{sport?.name || 'Deporte desconocido'}</span>
-                          <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 border-red-600 hover:bg-red-50"
-                              onClick={() => handleRemoveSport(id)}
-                          >
-                            Eliminar
-                          </Button>
-                        </div>
-                    );
-                  })}
+                  {formData.sports.map(sport => (
+                      <div key={sport.id} className="flex justify-between items-center p-2 bg-gray-100 rounded mt-1">
+                        <span>{sport.name}</span>
+                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50"
+                                onClick={() => handleRemoveSport(sport.id)}>
+                          Eliminar
+                        </Button>
+                      </div>
+                  ))}
                 </div>
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Costo por hora:</label>
-                <Input
-                    type="number"
-                    name="cost"
-                    value={formData.cost}
-                    onChange={handleInputChange}
-                    placeholder="Ingrese el costo"
-                    className="w-full"
-                    min="0"
-                    required
-                />
+                <Input type="number" name="cost" value={formData.cost} onChange={handleInputChange}
+                       placeholder="Ingrese el costo" className="w-full" min="0" required/>
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Capacidad:</label>
-                <Input
-                    type="number"
-                    name="capacity"
-                    value={formData.capacity}
-                    onChange={handleInputChange}
-                    placeholder="Cantidad de personas"
-                    className="w-full"
-                    min="1"
-                    required
-                />
+                <Input type="number" name="capacity" value={formData.capacity} onChange={handleInputChange}
+                       placeholder="Máximo 30 personas" className="w-full" min="1" max="30" required/>
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">Duración de la franja horaria (minutos):</label>
-                <Input
-                    type="number"
-                    name="slot_duration"
-                    value={formData.slot_duration}
-                    onChange={handleInputChange}
-                    placeholder="Ejemplo: 60"
-                    className="w-full"
-                    min="10"
-                    required
-                />
+                <label className="block mb-2 font-medium">Duración de la franja horaria:</label>
+                <Select name="slot_duration" value={formData.slot_duration} onChange={handleInputChange} className="w-full">
+                  <option value="0" disabled>Seleccione la duración</option>
+                  {durationOptions.map(minutes => (
+                      <option key={minutes} value={minutes}>
+                        {formatDuration(minutes)}
+                      </option>
+                  ))}
+                </Select>
               </div>
             </div>
           </div>
+          {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
         </form>
       </div>
   );

@@ -6,56 +6,69 @@ import { Select } from '@/components/ui/select';
 import { ChevronLeft } from 'lucide-react';
 import apiClient from '@/apiClients';
 import { Court } from '@/types/courts';
+import { useAuth } from '@/context/AppContext';
 
 export const ModifyCourtForm = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const courtId = id ? parseInt(id) : null;
+  const courtId = id ? parseInt(id, 10) : null;
+  const { clubId } = useAuth(); // Asegurar que `clubId` esté disponible
 
-  const [formData, setFormData] = useState<Partial<Court>>({});
+  const [formData, setFormData] = useState<Partial<Court> | null>(null);
   const [sports, setSports] = useState<{ id: number; name: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const apiKey = localStorage.getItem('c-api-key');
 
   useEffect(() => {
-    if (!courtId) {
+    if (!courtId || !clubId) {
+      console.error('❌ Falta `clubId` o `courtId`');
       navigate('/courts');
       return;
     }
 
-    const fetchCourt = async () => {
+    const fetchCourtAndSports = async () => {
       try {
-        const response = await apiClient.get(`/fields/${courtId}`, {
-          headers: { 'c-api-key': apiKey },
+        const [courtResponse, sportsResponse] = await Promise.all([
+          apiClient.get(`/fields/${clubId}/${courtId}`, { headers: { 'c-api-key': apiKey } }),
+          apiClient.get('/sports', { headers: { 'c-api-key': apiKey } }),
+        ]);
+
+        console.log('✅ Datos de la cancha obtenidos:', courtResponse.data);
+
+        setSports(sportsResponse.data);
+        setFormData({
+          id: courtResponse.data.id,
+          name: courtResponse.data.name,
+          description: courtResponse.data.description,
+          cost: courtResponse.data.cost_per_minute,
+          capacity: courtResponse.data.capacity,
+          slot_duration: courtResponse.data.slot_duration,
+          sports: courtResponse.data.sports || [],
         });
-        setFormData(response.data);
       } catch (err) {
-        console.error('❌ Error obteniendo la cancha:', err);
+        console.error('❌ Error obteniendo la cancha o deportes:', err);
         navigate('/courts');
       }
     };
 
-    const fetchSports = async () => {
-      try {
-        const response = await apiClient.get('/sports', {
-          headers: { 'c-api-key': apiKey },
-        });
-        setSports(response.data);
-      } catch (error) {
-        console.error('❌ Error obteniendo deportes:', error);
-      }
-    };
-
-    fetchCourt();
-    fetchSports();
-  }, [courtId, navigate]);
+    fetchCourtAndSports();
+  }, [courtId, clubId, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
+    const requestBody = {
+      name: formData?.name,
+      description: formData?.description,
+      cost: formData?.cost,
+      capacity: formData?.capacity,
+      slot_duration: formData?.slot_duration,
+      sports: formData?.sports?.map(sport => sport.id) || []
+    };
+
     try {
-      await apiClient.put(`/fields/${courtId}`, formData, {
+      await apiClient.put(`/fields/${clubId}/${courtId}`, requestBody, {
         headers: { 'c-api-key': apiKey },
       });
 
@@ -67,21 +80,45 @@ export const ModifyCourtForm = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
-      ...prev,
-      [name]: ['cost', 'capacity', 'slot_duration'].includes(name) ? Number(value) : value,
+      ...prev!,
+      [name]: name === 'slot_duration' || name === 'cost' ? Number(value) : value,
     }));
   };
 
-  const handleSportIdChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedSportId = parseInt(e.target.value, 10);
+  const handleSportChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(e.target.value, 10);
+    const selectedSport = sports.find(s => s.id === selectedId);
+    if (selectedSport && !formData?.sports?.some(s => s.id === selectedId)) {
+      setFormData(prev => ({
+        ...prev!,
+        sports: [...(prev?.sports || []), selectedSport],
+      }));
+    }
+  };
+
+  const handleRemoveSport = (id: number) => {
     setFormData(prev => ({
-      ...prev,
-      sportIds: selectedSportId ? [selectedSportId] : [],
+      ...prev!,
+      sports: prev?.sports?.filter(sport => sport.id !== id) || [],
     }));
   };
+
+  const durationOptions = [15, 30, 60, 90, 120];
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) return `${minutes} minutos`;
+    const hours = Math.floor(minutes / 60);
+    const remainder = minutes % 60;
+    return remainder === 0 ? `${hours}:00 hs` : `${hours}:${remainder} hs`;
+  };
+
+
+  if (!formData) {
+    return <div className="text-center p-6">Cargando datos de la cancha...</div>;
+  }
 
   return (
       <div>
@@ -108,8 +145,13 @@ export const ModifyCourtForm = () => {
               </div>
 
               <div>
+                <label className="block mb-2 font-medium">Descripción:</label>
+                <textarea name="description" value={formData.description || ''} onChange={handleInputChange} placeholder="Ingrese una descripción breve" className="w-full p-2 border rounded-md" required />
+              </div>
+
+              <div>
                 <label className="block mb-2 font-medium">Deporte:</label>
-                <Select name="sportIds" value={formData.sportIds?.[0] || ''} onChange={handleSportIdChange} className="w-full" required>
+                <Select name="sports" onChange={handleSportChange} className="w-full">
                   <option value="">Seleccione un deporte</option>
                   {sports.map(sport => (
                       <option key={sport.id} value={sport.id}>
@@ -117,26 +159,28 @@ export const ModifyCourtForm = () => {
                       </option>
                   ))}
                 </Select>
+                <div className="mt-2">
+                  {formData.sports?.map(sport => (
+                      <div key={sport.id} className="flex justify-between items-center p-2 bg-gray-100 rounded mt-1">
+                        <span>{sport.name}</span>
+                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50" onClick={() => handleRemoveSport(sport.id)}>
+                          Eliminar
+                        </Button>
+                      </div>
+                  ))}
+                </div>
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">Costo (por hora):</label>
-                <Input type="number" name="cost" value={formData.cost || ''} onChange={handleInputChange} placeholder="Ingrese el costo" className="w-full" min="0" required />
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Capacidad:</label>
-                <Input type="number" name="capacity" value={formData.capacity || ''} onChange={handleInputChange} placeholder="Ingrese la capacidad máxima" className="w-full" min="1" required />
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Duración de reserva (minutos):</label>
-                <Input type="number" name="slot_duration" value={formData.slot_duration || ''} onChange={handleInputChange} placeholder="Duración en minutos" className="w-full" min="15" required />
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Descripción:</label>
-                <textarea name="description" value={formData.description || ''} onChange={handleInputChange} placeholder="Ingrese una descripción breve" className="w-full p-2 border rounded-md" required />
+                <label className="block mb-2 font-medium">Duración de reserva:</label>
+                <Select name="slot_duration" value={formData.slot_duration} onChange={handleInputChange} className="w-full">
+                  <option value="" disabled>Seleccione la duración</option>
+                  {durationOptions.map(minutes => (
+                      <option key={minutes} value={minutes}>
+                        {formatDuration(minutes)}
+                      </option>
+                  ))}
+                </Select>
               </div>
             </div>
           </div>
