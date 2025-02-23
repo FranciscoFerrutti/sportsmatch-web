@@ -9,4 +9,4 @@ export interface Field {
 }
 
 export type FieldCreate = Omit<Field, 'id' | 'sports'> & { sportIds: number[] };
-export type CourtUpdate = Partial<FieldCreate>;
+export type FieldUpdate = Partial<FieldCreate>;

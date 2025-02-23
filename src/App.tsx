@@ -7,7 +7,7 @@ import { ModifyFieldsForm } from './components/Fields/ModifyFieldsForm.tsx';
 import { ReservationsView } from './components/Reservations/ReservationsView';
 import CalendarView from './components/Calendar/CalendarView';
 import { AuthProvider } from './context/AppContext';
-import { CourtsProvider } from './context/FieldsContext.tsx';
+import { FieldsProvider } from './context/FieldsContext.tsx';
 import { Login } from './components/Login/Login.tsx';
 import { Signup } from './components/Login/Signup';
 import { PrivateRoute } from './components/Login/PrivateRoute';
@@ -26,10 +26,10 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<PrivateRoute><HomeView /></PrivateRoute>} />
-          <Route path="/courts" element={<PrivateRoute><FieldsView /></PrivateRoute>} />
-          <Route path="/courts/new" element={<PrivateRoute><NewFieldsForm /></PrivateRoute>} />
-          <Route path="/courts/:id/edit" element={<PrivateRoute><ModifyFieldsForm /></PrivateRoute>} />
-          <Route path="/courts/:id/schedule" element={<PrivateRoute><AssignSchedule /></PrivateRoute>} />
+          <Route path="/fields" element={<PrivateRoute><FieldsView /></PrivateRoute>} />
+          <Route path="/fields/new" element={<PrivateRoute><NewFieldsForm /></PrivateRoute>} />
+          <Route path="/fields/:id/edit" element={<PrivateRoute><ModifyFieldsForm /></PrivateRoute>} />
+          <Route path="/fields/:id/schedule" element={<PrivateRoute><AssignSchedule /></PrivateRoute>} />
           <Route path="/reservations" element={<PrivateRoute><ReservationsView /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><CalendarView /></PrivateRoute>} />
           {/* Fallback route */}
@@ -44,9 +44,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <CourtsProvider> {/* CourtsProvider debe envolver AppContent */}
+        <FieldsProvider>
           <AppContent />
-        </CourtsProvider>
+        </FieldsProvider>
       </AuthProvider>
     </Router>
   );

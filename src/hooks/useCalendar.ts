@@ -17,7 +17,7 @@ export const useCalendar = () => {
 
   return {
     selectedField,
-    courts: [], 
+    fields: [],
     timeSlots,
     days,
     hours,
