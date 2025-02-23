@@ -1,16 +1,17 @@
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { HomeView } from './components/Home/HomeView';
-import { CourtsView } from './components/Courts/CourtsView';
-import { NewCourtForm } from './components/Courts/NewCourtForm';
-import { ModifyCourtForm } from './components/Courts/ModifyCourtForm';
+import { FieldsView } from './components/Fields/FieldsView.tsx';
+import { NewFieldsForm } from './components/Fields/NewFieldsForm.tsx';
+import { ModifyFieldsForm } from './components/Fields/ModifyFieldsForm.tsx';
 import { ReservationsView } from './components/Reservations/ReservationsView';
 import CalendarView from './components/Calendar/CalendarView';
 import { AuthProvider } from './context/AppContext';
-import { CourtsProvider } from './context/CourtsContext';
+import { CourtsProvider } from './context/FieldsContext.tsx';
 import { Login } from './components/Login/Login.tsx';
 import { Signup } from './components/Login/Signup';
 import { PrivateRoute } from './components/Login/PrivateRoute';
+import {AssignSchedule} from "./components/Fields/AssignSchedule.tsx";
 
 function AppContent() {
   const location = useLocation();
@@ -25,9 +26,10 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<PrivateRoute><HomeView /></PrivateRoute>} />
-          <Route path="/courts" element={<PrivateRoute><CourtsView /></PrivateRoute>} />
-          <Route path="/courts/new" element={<PrivateRoute><NewCourtForm /></PrivateRoute>} />
-          <Route path="/courts/:id/edit" element={<PrivateRoute><ModifyCourtForm /></PrivateRoute>} />
+          <Route path="/courts" element={<PrivateRoute><FieldsView /></PrivateRoute>} />
+          <Route path="/courts/new" element={<PrivateRoute><NewFieldsForm /></PrivateRoute>} />
+          <Route path="/courts/:id/edit" element={<PrivateRoute><ModifyFieldsForm /></PrivateRoute>} />
+          <Route path="/courts/:id/schedule" element={<PrivateRoute><AssignSchedule /></PrivateRoute>} />
           <Route path="/reservations" element={<PrivateRoute><ReservationsView /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><CalendarView /></PrivateRoute>} />
           {/* Fallback route */}

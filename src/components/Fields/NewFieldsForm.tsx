@@ -7,7 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import apiClient from '@/apiClients';
 import { useAuth } from '@/context/AppContext';
 
-export const NewCourtForm = () => {
+export const NewFieldsForm = () => {
   const navigate = useNavigate();
   const { clubId } = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
@@ -62,12 +62,14 @@ export const NewCourtForm = () => {
         sportIds: formData.sports.map(sport => sport.id),
       };
 
-      await apiClient.post(`/fields`, payload, {
+      const response = await apiClient.post(`/fields`, payload, {
         headers: { 'c-api-key': apiKey },
       });
 
       alert('✅ Cancha creada con éxito');
-      navigate('/courts');
+
+      const id = response.data.id;
+      navigate(`/fields/${id}/schedule`);
     } catch (error) {
       console.error('❌ Error al crear la cancha:', error);
       setError('No se pudo crear la cancha. Verifica los datos e intenta nuevamente.');
@@ -106,7 +108,7 @@ export const NewCourtForm = () => {
 
   const handleBack = () => {
     if (!hasChanges || window.confirm('¿Está seguro que desea volver? Los cambios no guardados se perderán.')) {
-      navigate('/courts');
+      navigate('/fields');
     }
   };
 
@@ -128,11 +130,11 @@ export const NewCourtForm = () => {
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-6 mt-[-40px]">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl">Nueva cancha</h1>
             <Button type="submit" className="bg-[#000066] hover:bg-[#000088]">
-              Guardar
+              Asignar horarios
             </Button>
           </div>
 

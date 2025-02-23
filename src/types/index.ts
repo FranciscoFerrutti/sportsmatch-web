@@ -1,11 +1,11 @@
 export type Reservation = {
     id: number;
-    court: string;
+    field: string;
     date: string;
     time: string;
   };
   
-  export type Court = {
+  export type Field = {
     id: number;
     name: string;
     sport: string;

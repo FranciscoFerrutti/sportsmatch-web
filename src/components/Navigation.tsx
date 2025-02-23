@@ -12,7 +12,7 @@ export const Navigation = () => {
 
   const navItems = [
     { path: '/home', label: 'Inicio' },
-    { path: '/courts', label: 'Mis canchas' },
+    { path: '/fields', label: 'Mis canchas' },
     { path: '/reservations', label: 'Reservas' },
     { path: '/calendar', label: 'Calendario' }
   ];

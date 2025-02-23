@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Court } from '@/types';
+import { Field } from '@/types';
 
-export const useCourts = () => {
-  const [courts, setCourts] = useState<Court[]>([]);
+export const useFields = () => {
+  const [fields, setFields] = useState<Field[]>([]);
 
   useEffect(() => {
-    setCourts([
+    setFields([
       { id: 1, name: "Cancha 1", sport: "Tenis" },
       { id: 2, name: "Cancha 2", sport: "Tenis" },
       { id: 3, name: "Cancha 3", sport: "Tenis" },
@@ -15,9 +15,9 @@ export const useCourts = () => {
     ]);
   }, []);
 
-  const handleModifyCourt = (id: number) => {
-    console.log('Modifying court:', id);
+  const handleModifyField = (id: number) => {
+    console.log('Modifying field:', id);
   };
 
-  return { courts, handleModifyCourt };
+  return { fields, handleModifyField };
 };

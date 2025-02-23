@@ -17,6 +17,7 @@ export const HomeView = () => {
     useEffect(() => {
         const fetchReservations = async () => {
             const apiKey = localStorage.getItem('c-api-key');
+            console.log('c-api-key: ', apiKey);
 
             if (!apiKey) {
                 console.error('Error: API Key no encontrada en localStorage');
@@ -90,7 +91,7 @@ export const HomeView = () => {
                             <Card key={reservation.id} className="p-4 hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="font-semibold text-lg mb-1">{`Cancha ${reservation.courtId}`}</h3>
+                                        <h3 className="font-semibold text-lg mb-1">{`Cancha ${reservation.fieldId}`}</h3>
                                         <div className="space-y-1">
                                             <p className="text-gray-600">{getRelativeDate(reservation.date)}</p>
                                             <p className="text-gray-600">{formatTime(reservation.time)}</p>
@@ -121,7 +122,7 @@ export const HomeView = () => {
                     ) : (
                         upcomingReservations.map(reservation => (
                             <Card key={reservation.id} className="p-4 hover:shadow-md transition-shadow">
-                                <h3 className="font-semibold text-lg mb-1">{`Cancha ${reservation.courtId}`}</h3>
+                                <h3 className="font-semibold text-lg mb-1">{`Cancha ${reservation.fieldId}`}</h3>
                                 <div className="space-y-1">
                                     <p className="text-gray-600">{getRelativeDate(reservation.date)}</p>
                                     <p className="text-gray-600">{formatTime(reservation.time)}</p>

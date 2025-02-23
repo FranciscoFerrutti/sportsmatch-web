@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Select } from '@/components/ui/select';
-import { useCourts } from '@/context/CourtsContext';
-import type { TimeSlotStatus } from '@/context/CourtsContext';
+import { useFields } from '@/context/FieldsContext';
+import type { TimeSlotStatus } from '@/context/FieldsContext';
 
 interface SlotModalProps {
   isOpen: boolean;
@@ -52,15 +52,15 @@ const SlotModal: React.FC<SlotModalProps> = ({ isOpen, onClose, onConfirm, curre
 };
 
 const CalendarView = () => {
-  const { courts, updateSlotStatus } = useCourts();
-  const [selectedCourt, setSelectedCourt] = useState(courts[0]?.id.toString() || '');
+  const { fields, updateSlotStatus } = useFields();
+  const [selectedField, setSelectedField] = useState(fields[0]?.id.toString() || '');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{day: string; hour: number} | null>(null);
   
   const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   const hours = Array.from({ length: 14 }, (_, i) => i + 8);
 
-  const selectedCourtData = courts.find(court => court.id.toString() === selectedCourt);
+  const selectedFieldData = fields.find(field => field.id.toString() === selectedField);
 
   const getWeekDayDate = (day: string) => {
     const today = new Date();
@@ -80,9 +80,9 @@ const CalendarView = () => {
   };
 
   const getTimeSlotStatus = (day: string, hour: number): TimeSlotStatus => {
-    if (!selectedCourtData) return 'No disponible';
+    if (!selectedFieldData) return 'No disponible';
 
-    const schedule = selectedCourtData.schedule[day];
+    const schedule = selectedFieldData.schedule[day];
     if (!schedule || schedule.closed) return 'No disponible';
 
     const currentTime = `${hour.toString().padStart(2, '0')}:00`;
@@ -93,7 +93,7 @@ const CalendarView = () => {
 
     const dateString = getWeekDayDate(day);
 
-    const manualStatus = selectedCourtData.slotStatuses?.find(
+    const manualStatus = selectedFieldData.slotStatuses?.find(
       slot => slot.date === dateString && slot.time === currentTime
     );
 
@@ -101,7 +101,7 @@ const CalendarView = () => {
       return manualStatus.status;
     }
 
-    const isOccupied = selectedCourtData.reservations.some(
+    const isOccupied = selectedFieldData.reservations.some(
       reservation =>
         reservation.status === 'accepted' &&
         reservation.date === dateString &&
@@ -129,19 +129,19 @@ const CalendarView = () => {
   };
 
   const handleStatusChange = (newStatus: TimeSlotStatus) => {
-    if (!selectedSlot || !selectedCourtData) return;
+    if (!selectedSlot || !selectedFieldData) return;
 
     const dateString = getWeekDayDate(selectedSlot.day);
     const timeString = `${selectedSlot.hour.toString().padStart(2, '0')}:00`;
 
     console.log('Updating slot status:', {
-      courtId: selectedCourtData.id,
+      fieldId: selectedFieldData.id,
       date: dateString,
       time: timeString,
       newStatus: newStatus
     });
 
-    updateSlotStatus(selectedCourtData.id, dateString, timeString, newStatus);
+    updateSlotStatus(selectedFieldData.id, dateString, timeString, newStatus);
     setIsModalOpen(false);
     setSelectedSlot(null);
   };
@@ -152,13 +152,13 @@ const CalendarView = () => {
       
       <div className="mb-4">
         <Select
-          value={selectedCourt}
-          onChange={(e) => setSelectedCourt(e.target.value)}
+          value={selectedField}
+          onChange={(e) => setSelectedField(e.target.value)}
           className="w-48"
         >
-          {courts.map(court => (
-            <option key={court.id} value={court.id.toString()}>
-              {court.name} - {court.sport}
+          {fields.map(field => (
+            <option key={field.id} value={field.id.toString()}>
+              {field.name} - {field.sport}
             </option>
           ))}
         </Select>

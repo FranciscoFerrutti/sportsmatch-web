@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export const useNewCourt = () => {
+export const useNewField = () => {
   const [formData, setFormData] = useState({
     name: '',
     sport: '',
@@ -35,9 +35,9 @@ export const useNewCourt = () => {
 
   const handleSubmit = async () => {
     try {
-      console.log('Saving court:', formData);
+      console.log('Saving field:', formData);
     } catch (error) {
-      console.error('Error saving court:', error);
+      console.error('Error saving field:', error);
     }
   };
 

@@ -14,72 +14,67 @@ dayjs.extend(timezone);
 
 export const ReservationsView = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [courts, setCourts] = useState<Record<number, string>>({});
+  const [fields, setFields] = useState<Record<number, string>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { clubId } = useAuth();
+  const apiKey = localStorage.getItem('c-api-key');
 
   useEffect(() => {
-    const fetchReservationsAndCourts = async () => {
-      const apiKey = localStorage.getItem('c-api-key');
-
+    const fetchReservationsAndFields = async () => {
       if (!apiKey || !clubId) {
         console.error('🚨 Error: Falta API Key o clubId', { apiKey, clubId });
+        setLoading(false);
         return;
       }
 
       try {
-        const [reservationsResponse, courtsResponse] = await Promise.all([
+        const [reservationsResponse, fieldsResponse] = await Promise.all([
           apiClient.get('/reservations', { headers: { 'c-api-key': apiKey } }),
           apiClient.get(`/fields/${clubId}`, { headers: { 'c-api-key': apiKey } }),
         ]);
 
         console.log("✅ Reservas obtenidas:", reservationsResponse.data);
-        console.log("✅ Canchas obtenidas:", courtsResponse.data);
+        console.log("✅ Canchas obtenidas:", fieldsResponse.data);
 
         setReservations(reservationsResponse.data);
 
-        const courtsMap: Record<number, string> = {};
-        courtsResponse.data.forEach((court: { id: number; name: string }) => {
-          courtsMap[court.id] = court.name;
+        const fieldsMap: Record<number, string> = {};
+        fieldsResponse.data.forEach((field: { id: number; name: string }) => {
+          fieldsMap[field.id] = field.name;
         });
 
-        console.log("🏟️ Mapeo de canchas generado:", courtsMap);
-        setCourts(courtsMap);
+        console.log("🏟️ Mapeo de canchas generado:", fieldsMap);
+        setFields(fieldsMap);
       } catch (error) {
         console.error("❌ Error al obtener reservas o canchas:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchReservationsAndCourts();
-  }, [clubId]);
+    fetchReservationsAndFields();
+  }, [clubId, apiKey]);
 
+  const updateReservationStatus = async (reservationId: number, status: 'CONFIRMED' | 'CANCELLED') => {
+    if (!apiKey) return;
 
-  const handleAccept = async (reservationId: number) => {
     try {
-      await apiClient.patch(`/reservations/${reservationId}/status`, {
-        status: 'CONFIRMED',
-      });
+      await apiClient.patch(`/reservations/${reservationId}/status`, { status }, { headers: { 'c-api-key': apiKey } });
       setReservations(prev =>
-          prev.map(r => (r.id === reservationId ? { ...r, status: 'CONFIRMED' } : r))
+          prev.map(r => (r.id === reservationId ? { ...r, status } : r))
       );
     } catch (error) {
-      alert('No se puede aceptar la reserva porque el horario ya no está disponible');
-      console.error('Error al aceptar la reserva:', error);
+      alert(status === 'CONFIRMED'
+          ? 'No se puede aceptar la reserva porque el horario ya no está disponible'
+          : 'Error al rechazar la reserva'
+      );
+      console.error(`Error al cambiar el estado de la reserva (${status}):`, error);
     }
   };
 
-  const handleReject = async (reservationId: number) => {
-    try {
-      await apiClient.patch(`/reservations/${reservationId}/status`, {
-        status: 'CANCELLED',
-      });
-      setReservations(prev =>
-          prev.map(r => (r.id === reservationId ? { ...r, status: 'CANCELLED' } : r))
-      );
-    } catch (error) {
-      console.error('Error al rechazar la reserva:', error);
-    }
-  };
+  const handleAccept = (reservationId: number) => updateReservationStatus(reservationId, 'CONFIRMED');
+  const handleReject = (reservationId: number) => updateReservationStatus(reservationId, 'CANCELLED');
 
   const pendingReservations = reservations
       .filter(r => r.status === 'PENDING')
@@ -97,12 +92,16 @@ export const ReservationsView = () => {
       <Card className="p-4 hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-semibold text-lg mb-1">{courts[reservation.courtId] || `Cancha ${reservation.courtId}`}</h3>
+            <h3 className="font-semibold text-lg mb-1">{fields[reservation.fieldId] || `Cancha ${reservation.fieldId}`}</h3>
             <p className="text-gray-600">{dayjs(reservation.date).format('dddd, D [de] MMMM')}</p>
             <p className="text-gray-600">{reservation.time}hs</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-          <span className={`px-3 py-1 rounded-full text-sm ${reservation.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : reservation.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          <span className={`px-3 py-1 rounded-full text-sm ${
+              reservation.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                  reservation.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                      'bg-red-100 text-red-800'
+          }`}>
             {reservation.status === 'PENDING' ? 'Pendiente' : reservation.status === 'CONFIRMED' ? 'Aceptada' : 'Rechazada'}
           </span>
             {showActions && (
@@ -127,44 +126,50 @@ export const ReservationsView = () => {
           <Button className="bg-[#000066] hover:bg-[#000088]" onClick={() => setIsModalOpen(true)}>Nueva reserva</Button>
         </div>
 
-        <section className="mb-8">
-          <h2 className="text-lg font-medium mb-4">Reservas pendientes</h2>
-          <div className="space-y-4">
-            {pendingReservations.length === 0 ? (
-                <Card className="p-6 text-center text-gray-500">No hay reservas pendientes</Card>
-            ) : (
-                pendingReservations.map(reservation => (
-                    <ReservationCard key={reservation.id} reservation={reservation} showActions={true} />
-                ))
-            )}
-          </div>
-        </section>
+        {loading ? (
+            <p className="text-center text-gray-500">Cargando reservas...</p>
+        ) : (
+            <>
+              <section className="mb-8">
+                <h2 className="text-lg font-medium mb-4">Reservas pendientes</h2>
+                <div className="space-y-4">
+                  {pendingReservations.length === 0 ? (
+                      <Card className="p-6 text-center text-gray-500">No hay reservas pendientes</Card>
+                  ) : (
+                      pendingReservations.map(reservation => (
+                          <ReservationCard key={reservation.id} reservation={reservation} showActions />
+                      ))
+                  )}
+                </div>
+              </section>
 
-        <section className="mb-8">
-          <h2 className="text-lg font-medium mb-4">Próximas reservas</h2>
-          <div className="space-y-4">
-            {upcomingReservations.length === 0 ? (
-                <Card className="p-6 text-center text-gray-500">No hay próximas reservas</Card>
-            ) : (
-                upcomingReservations.map(reservation => (
-                    <ReservationCard key={reservation.id} reservation={reservation} />
-                ))
-            )}
-          </div>
-        </section>
+              <section className="mb-8">
+                <h2 className="text-lg font-medium mb-4">Próximas reservas</h2>
+                <div className="space-y-4">
+                  {upcomingReservations.length === 0 ? (
+                      <Card className="p-6 text-center text-gray-500">No hay próximas reservas</Card>
+                  ) : (
+                      upcomingReservations.map(reservation => (
+                          <ReservationCard key={reservation.id} reservation={reservation} />
+                      ))
+                  )}
+                </div>
+              </section>
 
-        <section>
-          <h2 className="text-lg font-medium mb-4">Reservas pasadas</h2>
-          <div className="space-y-4">
-            {pastReservations.length === 0 ? (
-                <Card className="p-6 text-center text-gray-500">No hay reservas pasadas</Card>
-            ) : (
-                pastReservations.map(reservation => (
-                    <ReservationCard key={reservation.id} reservation={reservation} />
-                ))
-            )}
-          </div>
-        </section>
+              <section>
+                <h2 className="text-lg font-medium mb-4">Reservas pasadas</h2>
+                <div className="space-y-4">
+                  {pastReservations.length === 0 ? (
+                      <Card className="p-6 text-center text-gray-500">No hay reservas pasadas</Card>
+                  ) : (
+                      pastReservations.map(reservation => (
+                          <ReservationCard key={reservation.id} reservation={reservation} />
+                      ))
+                  )}
+                </div>
+              </section>
+            </>
+        )}
 
         <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       </div>

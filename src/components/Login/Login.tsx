@@ -22,12 +22,9 @@ export const Login = () => {
     }
 
     try {
-      console.log("Enviando solicitud de login con:", formData);
 
       setBasicAuthHeader(formData.email, formData.password);
       const response = await apiClient.get('/clubauth');
-
-      console.log("Respuesta recibida:", response);
 
       const apiKey = response.headers['c-api-key'];
 
@@ -37,9 +34,6 @@ export const Login = () => {
         const decodedPayload = JSON.parse(atob(payloadBase64));
         clubId = parseInt(decodedPayload.id);
       }
-
-      console.log("API Key:", apiKey);
-      console.log("Club ID (extraído del token):", clubId);
 
       if (apiKey && clubId) {
         localStorage.setItem('c-api-key', apiKey);

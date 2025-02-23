@@ -1,4 +1,4 @@
-export interface Court {
+export interface Field {
     id: number;
     name: string;
     cost: number;
@@ -8,5 +8,5 @@ export interface Court {
     sports: { id: number; name: string }[];
 }
 
-export type CourtCreate = Omit<Court, 'id' | 'sports'> & { sportIds: number[] };
-export type CourtUpdate = Partial<CourtCreate>;
+export type FieldCreate = Omit<Field, 'id' | 'sports'> & { sportIds: number[] };
+export type CourtUpdate = Partial<FieldCreate>;

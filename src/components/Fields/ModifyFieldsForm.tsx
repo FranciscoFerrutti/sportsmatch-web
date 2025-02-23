@@ -5,54 +5,54 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { ChevronLeft } from 'lucide-react';
 import apiClient from '@/apiClients';
-import { Court } from '@/types/courts';
+import { Field } from '@/types/fields';
 import { useAuth } from '@/context/AppContext';
 
-export const ModifyCourtForm = () => {
+export const ModifyFieldsForm = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const courtId = id ? parseInt(id, 10) : null;
+  const fieldId = id ? parseInt(id, 10) : null;
   const { clubId } = useAuth(); // Asegurar que `clubId` esté disponible
 
-  const [formData, setFormData] = useState<Partial<Court> | null>(null);
+  const [formData, setFormData] = useState<Partial<Field> | null>(null);
   const [sports, setSports] = useState<{ id: number; name: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const apiKey = localStorage.getItem('c-api-key');
 
   useEffect(() => {
-    if (!courtId || !clubId) {
-      console.error('❌ Falta `clubId` o `courtId`');
-      navigate('/courts');
+    if (!fieldId || !clubId) {
+      console.error('❌ Falta `clubId` o `fieldId`');
+      navigate('/fields');
       return;
     }
 
-    const fetchCourtAndSports = async () => {
+    const fetchFieldAndSports = async () => {
       try {
-        const [courtResponse, sportsResponse] = await Promise.all([
-          apiClient.get(`/fields/${clubId}/${courtId}`, { headers: { 'c-api-key': apiKey } }),
+        const [fieldResponse, sportsResponse] = await Promise.all([
+          apiClient.get(`/fields/${clubId}/${fieldId}`, { headers: { 'c-api-key': apiKey } }),
           apiClient.get('/sports', { headers: { 'c-api-key': apiKey } }),
         ]);
 
-        console.log('✅ Datos de la cancha obtenidos:', courtResponse.data);
+        console.log('✅ Datos de la cancha obtenidos:', fieldResponse.data);
 
         setSports(sportsResponse.data);
         setFormData({
-          id: courtResponse.data.id,
-          name: courtResponse.data.name,
-          description: courtResponse.data.description,
-          cost: courtResponse.data.cost_per_minute,
-          capacity: courtResponse.data.capacity,
-          slot_duration: courtResponse.data.slot_duration,
-          sports: courtResponse.data.sports || [],
+          id: fieldResponse.data.id,
+          name: fieldResponse.data.name,
+          description: fieldResponse.data.description,
+          cost: fieldResponse.data.cost_per_minute,
+          capacity: fieldResponse.data.capacity,
+          slot_duration: fieldResponse.data.slot_duration,
+          sports: fieldResponse.data.sports || [],
         });
       } catch (err) {
         console.error('❌ Error obteniendo la cancha o deportes:', err);
-        navigate('/courts');
+        navigate('/fields');
       }
     };
 
-    fetchCourtAndSports();
-  }, [courtId, clubId, navigate]);
+    fetchFieldAndSports();
+  }, [fieldId, clubId, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,12 +68,11 @@ export const ModifyCourtForm = () => {
     };
 
     try {
-      await apiClient.put(`/fields/${clubId}/${courtId}`, requestBody, {
+      await apiClient.put(`/fields/${clubId}/${fieldId}`, requestBody, {
         headers: { 'c-api-key': apiKey },
       });
 
-      alert('✅ Cancha actualizada con éxito');
-      navigate('/courts');
+      navigate(`/fields/${id}/schedule`);
     } catch (err: any) {
       console.error('❌ Error al actualizar la cancha:', err);
       setError(err.response?.data?.message || 'Error al conectar con el servidor.');
@@ -123,17 +122,17 @@ export const ModifyCourtForm = () => {
   return (
       <div>
         <div className="p-4">
-          <Button variant="ghost" onClick={() => navigate('/courts')} className="mb-4">
+          <Button variant="ghost" onClick={() => navigate('/fields')} className="mb-4">
             <ChevronLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-6 mt-[-40px]">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl">Modificar cancha</h1>
+            <h1 className="text-xl">Nueva cancha</h1>
             <Button type="submit" className="bg-[#000066] hover:bg-[#000088]">
-              Guardar cambios
+              Asignar horarios
             </Button>
           </div>
 
@@ -141,12 +140,15 @@ export const ModifyCourtForm = () => {
             <div className="space-y-4">
               <div>
                 <label className="block mb-2 font-medium">Nombre:</label>
-                <Input type="text" name="name" value={formData.name || ''} onChange={handleInputChange} className="w-full" required />
+                <Input type="text" name="name" value={formData.name || ''} onChange={handleInputChange}
+                       className="w-full" required/>
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Descripción:</label>
-                <textarea name="description" value={formData.description || ''} onChange={handleInputChange} placeholder="Ingrese una descripción breve" className="w-full p-2 border rounded-md" required />
+                <textarea name="description" value={formData.description || ''} onChange={handleInputChange}
+                          placeholder="Ingrese una descripción breve" className="w-full p-2 border rounded-md"
+                          required/>
               </div>
 
               <div>
@@ -163,7 +165,8 @@ export const ModifyCourtForm = () => {
                   {formData.sports?.map(sport => (
                       <div key={sport.id} className="flex justify-between items-center p-2 bg-gray-100 rounded mt-1">
                         <span>{sport.name}</span>
-                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50" onClick={() => handleRemoveSport(sport.id)}>
+                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50"
+                                onClick={() => handleRemoveSport(sport.id)}>
                           Eliminar
                         </Button>
                       </div>
@@ -173,7 +176,8 @@ export const ModifyCourtForm = () => {
 
               <div>
                 <label className="block mb-2 font-medium">Duración de reserva:</label>
-                <Select name="slot_duration" value={formData.slot_duration} onChange={handleInputChange} className="w-full">
+                <Select name="slot_duration" value={formData.slot_duration} onChange={handleInputChange}
+                        className="w-full">
                   <option value="" disabled>Seleccione la duración</option>
                   {durationOptions.map(minutes => (
                       <option key={minutes} value={minutes}>
