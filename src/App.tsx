@@ -7,7 +7,6 @@ import { ModifyFieldsForm } from './components/Fields/ModifyFieldsForm.tsx';
 import { ReservationsView } from './components/Reservations/ReservationsView';
 import CalendarView from './components/Calendar/CalendarView';
 import { AuthProvider } from './context/AppContext';
-import { FieldsProvider } from './context/FieldsContext.tsx';
 import { Login } from './components/Login/Login.tsx';
 import { Signup } from './components/Login/Signup';
 import { PrivateRoute } from './components/Login/PrivateRoute';
@@ -44,9 +43,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <FieldsProvider>
           <AppContent />
-        </FieldsProvider>
       </AuthProvider>
     </Router>
   );
