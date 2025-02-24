@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/apiClients';
 import {useAuth} from "../../context/AppContext.tsx";
+import {TimeSlot} from "../../types/timeslot.ts";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -25,6 +26,8 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
   const [selectedTime, setSelectedTime] = useState('');
   const [formattedDate, setFormattedDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && clubId) {
@@ -34,8 +37,9 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
 
   const fetchFields = async () => {
     try {
-      const response = await apiClient.get(`/fields/${clubId}`, {
+      const response = await apiClient.get(`/fields`, {
         headers: { "c-api-key": apiKey },
+        params: { clubId }
       });
       setFields(response.data);
     } catch (error) {
@@ -44,54 +48,57 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
     }
   };
 
-  if (!isOpen) return null;
+  const fetchAvailableTimeSlots = async () => {
+    if (!selectedField || !selectedDate) return;
 
-  const selectedFieldData = fields.find(field => field.id.toString() === selectedField);
+    try {
+      const response = await apiClient.get(`/fields/${selectedField}/availability/available`, {
+        headers: { "c-api-key": apiKey },
+        params: {
+          startDate: selectedDate,
+          endDate: selectedDate,
+        },
+      });
+
+      console.log("🕒 TimeSlots disponibles:", response.data);
+
+      // Extraer solo los `startTime` de los timeslots que están `available`
+      const availableSlots = response.data
+          .filter((slot: TimeSlot) => slot.slotStatus === "available")
+          .map((slot: any) => ({
+            id: slot.id,
+            availabilityDate: slot.availability_date,
+            startTime: slot.start_time,
+            endTime: slot.end_time,
+            slotStatus: slot.slotStatus,
+          }));
+
+      setAvailableTimeSlots(availableSlots);
+
+    } catch (error) {
+      console.error("❌ Error obteniendo los timeslots disponibles:", error);
+      setAvailableTimeSlots([]); // En caso de error, vaciar la lista
+    }
+  };
+
+  useEffect(() => {
+    fetchAvailableTimeSlots();
+  }, [selectedField, selectedDate]);
+
+  if (!isOpen) return null;
 
   const minDate = dayjs().add(1, 'day').format('YYYY-MM-DD');
   const maxDate = dayjs().add(30, 'day').format('YYYY-MM-DD');
 
-  const getAvailableTimes = () => {
-    if (!selectedFieldData || !selectedDate) return [];
-
-    const dayOfWeek = dayjs(selectedDate).locale('es').format('dddd');
-    const day = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
-
-    const schedule = selectedFieldData.schedule?.[day];
-    if (!schedule || schedule.closed) return [];
-
-    const startHour = parseInt(schedule.start.split(':')[0]);
-    const endHour = parseInt(schedule.end.split(':')[0]);
-
-    const slotDuration = selectedFieldData.slot_duration || 60; // Duración del turno de la cancha
-    const times: string[] = [];
-
-    for (let hour = startHour; hour < endHour; hour += slotDuration / 60) {
-      const timeString = `${hour.toString().padStart(2, '0')}:00`;
-
-      const isReserved = selectedFieldData.reservations?.some(
-          (reservation: { date: string; time: string; status: string; }) =>
-              reservation.date === selectedDate &&
-              reservation.time === timeString &&
-              reservation.status === 'accepted'
-      );
-
-      const isBlocked = selectedFieldData.slotStatuses?.some(
-          (slot: { date: string; time: string; status: string; }) =>
-              slot.date === selectedDate &&
-              slot.time === timeString &&
-              (slot.status === 'Ocupado' || slot.status === 'No disponible')
-      );
-
-      if (!isReserved && !isBlocked) {
-        times.push(timeString);
-      }
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedField) {
+      setDateError("Seleccione una cancha primero.");
+      setSelectedDate('');
+      setFormattedDate(null);
+      return;
     }
 
-    return times;
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDateError(null);
     const date = e.target.value;
     const localDate = dayjs(date).tz(dayjs.tz.guess());
     setSelectedDate(localDate.format('YYYY-MM-DD'));
@@ -110,20 +117,27 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
     setLoading(true);
 
     try {
-      const localDate = dayjs.tz(selectedDate, 'YYYY-MM-DD', dayjs.tz.guess()).format('YYYY-MM-DD');
-      const localTime = dayjs(`${selectedDate}T${selectedTime}`).format('HH:mm');
+      const selectedSlot = availableTimeSlots.find(slot => slot.startTime === selectedTime);
 
-      console.log("📤 Enviando reserva:", { fieldId: selectedField, date: localDate, time: localTime });
+      if (!selectedSlot) {
+        alert("Error: No se encontró el timeslot seleccionado.");
+        setLoading(false);
+        return;
+      }
 
-      await apiClient.post(`/reservations`, {
-        fieldId: parseInt(selectedField),
-        date: localDate,
-        time: localTime,
-      }, {
-        headers: { "c-api-key": apiKey },
+      console.log("📤 Actualizando TimeSlot:", {
+        fieldId: selectedField,
+        slotId: selectedSlot.id,
+        status: "booked"
       });
 
-      console.log("✅ Reserva creada con éxito");
+      // Hacer el PATCH para actualizar el estado del timeslot a "booked"
+      await apiClient.patch(`/fields/${selectedField}/availability/${selectedSlot.id}/status`,
+          { slotStatus: "booked" },
+          { headers: { "c-api-key": apiKey } }
+      );
+
+      console.log("✅ TimeSlot marcado como ocupado con éxito");
       onClose();
       setSelectedField('');
       setSelectedDate('');
@@ -172,7 +186,9 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
                   max={maxDate}
                   className="w-full p-2 border rounded"
                   required
+                  disabled={!selectedField}
               />
+              {dateError && <p className="text-sm text-red-600 mt-1">{dateError}</p>}
               {formattedDate && (
                   <p className="text-sm text-gray-500 mt-1">{formattedDate}</p>
               )}
@@ -184,15 +200,17 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
                   value={selectedTime}
                   onChange={(e) => setSelectedTime(e.target.value)}
                   className="w-full p-2 border rounded"
-                  disabled={!selectedField || !selectedDate}
+                  disabled={!selectedField || !selectedDate || availableTimeSlots.length === 0}
                   required
               >
                 <option value="">Seleccionar horario</option>
-                {getAvailableTimes().map(time => (
-                    <option key={time} value={time}>{time}hs</option>
+                {availableTimeSlots.map(slot => (
+                    <option key={slot.id} value={slot.startTime}>
+                      {slot.startTime.slice(0, 5)}hs
+                    </option>
                 ))}
               </select>
-              {selectedField && selectedDate && getAvailableTimes().length === 0 && (
+              {selectedField && selectedDate && availableTimeSlots.length === 0 && (
                   <p className="text-sm text-red-600 mt-1">
                     No hay horarios disponibles para esta fecha
                   </p>

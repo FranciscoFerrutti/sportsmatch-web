@@ -5,14 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ChevronLeft } from 'lucide-react';
 import apiClient from '@/apiClients';
 import {DAYS_OF_WEEK} from "../../utils/constants.ts";
-
-interface TimeSlot {
-    id?: string;
-    availabilityDate: string;
-    startTime: string;
-    endTime: string;
-    slotStatus: "available" | "booked" | "maintenance";
-}
+import {TimeSlot} from "../../types/timeslot.ts";
 
 interface ScheduleSlot {
     day: string;

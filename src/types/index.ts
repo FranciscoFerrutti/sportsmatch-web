@@ -14,8 +14,3 @@ export type Reservation = {
     };
   };
   
-  export type TimeSlot = {
-    status: 'available' | 'occupied' | 'pending' | 'closed';
-    time: string;
-  };
-  

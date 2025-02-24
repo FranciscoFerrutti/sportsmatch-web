@@ -31,7 +31,10 @@ export const ReservationsView = () => {
       try {
         const [reservationsResponse, fieldsResponse] = await Promise.all([
           apiClient.get('/reservations', { headers: { 'c-api-key': apiKey } }),
-          apiClient.get(`/fields/${clubId}`, { headers: { 'c-api-key': apiKey } }),
+          apiClient.get(`/fields`, {
+            headers: { 'c-api-key': apiKey } ,
+            params : { clubId }
+          }),
         ]);
 
         console.log("✅ Reservas obtenidas:", reservationsResponse.data);
