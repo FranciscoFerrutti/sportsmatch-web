@@ -123,7 +123,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
         headers: { "c-api-key": apiKey },
       });
 
-      alert("✅ Reserva creada con éxito");
+      console.log("✅ Reserva creada con éxito");
       onClose();
       setSelectedField('');
       setSelectedDate('');

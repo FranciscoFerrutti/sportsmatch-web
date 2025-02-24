@@ -57,8 +57,7 @@ export const ModifyFieldsForm = () => {
     fetchFieldAndSports();
   }, [fieldId, clubId, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const updateField = async (redirectPath: string) => {
     setError(null);
 
     const requestBody = {
@@ -76,11 +75,22 @@ export const ModifyFieldsForm = () => {
         params: { clubId }
       });
 
-      navigate(`/fields/${id}/schedule`);
+      console.log("✅ Cambios guardados correctamente.");
+      navigate(redirectPath);
     } catch (err: any) {
       console.error('❌ Error al actualizar la cancha:', err);
       setError(err.response?.data?.message || 'Error al conectar con el servidor.');
     }
+  };
+
+  const handleSaveChanges = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateField('/fields'); // Redirige a la lista de canchas
+  };
+
+  const handleModifySchedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateField(`/fields/${id}/schedule`); // Redirige a la asignación de horarios
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -132,12 +142,17 @@ export const ModifyFieldsForm = () => {
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 mt-[-40px]">
+        <form className="p-6 mt-[-40px]">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl">Nueva cancha</h1>
-            <Button type="submit" className="bg-[#000066] hover:bg-[#000088]">
-              Asignar horarios
-            </Button>
+            <h1 className="text-xl">Modificar cancha</h1>
+            <div className="flex space-x-4">
+              <Button onClick={handleSaveChanges} className="bg-[#000066] hover:bg-[#000088]">
+                Guardar cambios
+              </Button>
+              <Button onClick={handleModifySchedule} className="bg-[#000066] hover:bg-[#000088]">
+                Modificar horarios
+              </Button>
+            </div>
           </div>
 
           <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm">
@@ -176,6 +191,18 @@ export const ModifyFieldsForm = () => {
                       </div>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="block mb-2 font-medium">Costo por reserva:</label>
+                <Input type="number" name="cost" value={formData.cost || ''} onChange={handleInputChange}
+                       placeholder="Ingrese el costo" className="w-full" min="0" required/>
+              </div>
+
+              <div>
+                <label className="block mb-2 font-medium">Capacidad:</label>
+                <Input type="number" name="capacity" value={formData.capacity || ''} onChange={handleInputChange}
+                       placeholder="Máximo 30 personas" className="w-full" min="1" max="30" required/>
               </div>
 
               <div>

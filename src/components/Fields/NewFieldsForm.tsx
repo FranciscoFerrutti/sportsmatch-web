@@ -183,7 +183,7 @@ export const NewFieldsForm = () => {
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">Costo por hora:</label>
+                <label className="block mb-2 font-medium">Costo por reserva:</label>
                 <Input type="number" name="cost" value={formData.cost} onChange={handleInputChange}
                        placeholder="Ingrese el costo" className="w-full" min="0" required/>
               </div>
