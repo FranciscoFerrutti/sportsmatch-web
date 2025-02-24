@@ -51,7 +51,15 @@ export const Signup = () => {
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrar el club.');
+      const errorMessage = err.response?.data?.message || 'Error al registrar el club.';
+
+      if (errorMessage.includes('email')) {
+        setError('El correo electrónico ya está registrado.');
+      } else if (errorMessage.includes('phone_number')) {
+        setError('El número de teléfono ya está registrado.');
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 

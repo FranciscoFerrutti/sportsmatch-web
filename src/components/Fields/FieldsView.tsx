@@ -24,6 +24,7 @@ export const FieldsView = () => {
       try {
         const response = await apiClient.get(`/fields`, {
           headers: { 'c-api-key': apiKey },
+          params: { clubId }
         });
 
         const formattedFields: Field[] = response.data.map((field: any) => ({
@@ -66,6 +67,7 @@ export const FieldsView = () => {
     try {
       await apiClient.delete(`/fields/${fieldId}`, {
         headers: { 'c-api-key': apiKey },
+        params: { clubId }
       });
 
       setFields(prevFields => prevFields.filter(field => field.id !== fieldId));

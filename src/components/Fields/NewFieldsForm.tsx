@@ -11,6 +11,7 @@ export const NewFieldsForm = () => {
   const navigate = useNavigate();
   const { clubId } = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -43,9 +44,11 @@ export const NewFieldsForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
 
     if (!clubId) {
       alert('Error: No hay club asociado.');
+      setIsLoading(false);
       return;
     }
 
@@ -66,13 +69,13 @@ export const NewFieldsForm = () => {
         headers: { 'c-api-key': apiKey },
       });
 
-      alert('✅ Cancha creada con éxito');
-
       const id = response.data.id;
       navigate(`/fields/${id}/schedule`);
     } catch (error) {
       console.error('❌ Error al crear la cancha:', error);
       setError('No se pudo crear la cancha. Verifica los datos e intenta nuevamente.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -133,10 +136,14 @@ export const NewFieldsForm = () => {
         <form onSubmit={handleSubmit} className="p-6 mt-[-40px]">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl">Nueva cancha</h1>
-            <Button type="submit" className="bg-[#000066] hover:bg-[#000088]">
-              Asignar horarios
+            <Button type="submit" className="bg-[#000066] hover:bg-[#000088]" disabled={isLoading}>
+              {isLoading ? "Guardando..." : "Asignar horarios"}
             </Button>
           </div>
+
+          {isLoading && <p className="text-blue-600 text-center mb-4">
+            ⏳ Agregando cancha, por favor espere...
+          </p>}
 
           <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm">
             <div className="space-y-4">

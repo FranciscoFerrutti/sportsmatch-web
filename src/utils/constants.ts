@@ -1,11 +1,11 @@
 export const DAYS_OF_WEEK = [
+    'Domingo',
     'Lunes',
     'Martes',
     'Miércoles',
     'Jueves',
     'Viernes',
-    'Sábado',
-    'Domingo'
+    'Sábado'
   ];
   
   export const BUSINESS_HOURS = Array.from(

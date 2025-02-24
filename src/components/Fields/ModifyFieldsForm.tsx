@@ -29,7 +29,10 @@ export const ModifyFieldsForm = () => {
     const fetchFieldAndSports = async () => {
       try {
         const [fieldResponse, sportsResponse] = await Promise.all([
-          apiClient.get(`/fields/${clubId}/${fieldId}`, { headers: { 'c-api-key': apiKey } }),
+          apiClient.get(`/fields/${fieldId}`, {
+            headers: { 'c-api-key': apiKey },
+            params: { clubId }
+          }),
           apiClient.get('/sports', { headers: { 'c-api-key': apiKey } }),
         ]);
 
@@ -68,8 +71,9 @@ export const ModifyFieldsForm = () => {
     };
 
     try {
-      await apiClient.put(`/fields/${clubId}/${fieldId}`, requestBody, {
+      await apiClient.put(`/fields/${fieldId}`, requestBody, {
         headers: { 'c-api-key': apiKey },
+        params: { clubId }
       });
 
       navigate(`/fields/${id}/schedule`);

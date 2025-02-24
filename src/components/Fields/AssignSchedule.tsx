@@ -7,15 +7,11 @@ import apiClient from '@/apiClients';
 import {DAYS_OF_WEEK} from "../../utils/constants.ts";
 
 interface TimeSlot {
-    id?: number;
-    field_id: number;
-    reservationId?: number | null;
-    availability_date: string;
-    start_time: string;
-    end_time: string;
+    id?: string;
+    availabilityDate: string;
+    startTime: string;
+    endTime: string;
     slotStatus: "available" | "booked" | "maintenance";
-    created_at?: string;
-    updated_at?: string;
 }
 
 interface ScheduleSlot {
@@ -36,6 +32,7 @@ export const AssignSchedule = () => {
     const [schedule, setSchedule] = useState<ScheduleSlot[]>(
         DAYS_OF_WEEK.map(day => ({ day, startTime: "", endTime: "", slots: [], closed: false, error: "" }))
     );
+    const [formErrors, setFormErrors] = useState<string[]>([]);
 
     useEffect(() => {
         const fetchExistingTimeSlots = async () => {
@@ -48,16 +45,16 @@ export const AssignSchedule = () => {
 
                 const updatedSchedule = DAYS_OF_WEEK.map(day => {
                     const slotsForDay = existingSlots.filter(slot =>
-                        new Date(slot.availability_date).getDay() === DAYS_OF_WEEK.indexOf(day)
+                        (new Date(slot.availabilityDate).getDay() + 6) % 7 === DAYS_OF_WEEK.indexOf(day)
                     );
 
                     if (slotsForDay.length > 0) {
-                        slotsForDay.sort((a, b) => a.start_time.localeCompare(b.start_time));
+                        slotsForDay.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
                         return {
                             day,
-                            startTime: formatTime(slotsForDay[0].start_time),
-                            endTime: formatTime(slotsForDay[slotsForDay.length - 1].end_time),
+                            startTime: formatTime(slotsForDay[0].startTime),
+                            endTime: formatTime(slotsForDay[slotsForDay.length - 1].endTime),
                             slots: slotsForDay,
                             closed: false,
                             error: "",
@@ -193,65 +190,55 @@ export const AssignSchedule = () => {
 
 
     const syncTimeSlots = async () => {
-        const existingSlots: TimeSlot[] = await fetchExistingTimeSlots();
-        const newSlots: Omit<TimeSlot, "id" | "created_at" | "updated_at">[] = [];
+        try {
+            const existingSlots: TimeSlot[] = await fetchExistingTimeSlots();
 
-        for (const slot of schedule) {
-            if (slot.closed || !slot.startTime || !slot.endTime) continue;
-
-            const slotsToCreate = generateTimeSlots(slot.startTime, slot.endTime, slotDuration!);
-            const availabilityDate = getNextDateForDay(slot.day);
-
-            for (const timeSlot of slotsToCreate) {
-                newSlots.push({
-                    field_id: Number(id),
-                    availability_date: availabilityDate,
-                    start_time: formatTime(timeSlot.startTime),
-                    end_time: formatTime(timeSlot.endTime),
-                    slotStatus: "available",
-                });
+            if (existingSlots.length > 0) {
+                console.log("🗑️ Eliminando todos los time slots existentes...");
+                await Promise.all(
+                    existingSlots.map(slot =>
+                        apiClient.delete(`/fields/${id}/availability/${slot.id}`, {
+                            headers: { "c-api-key": apiKey },
+                        })
+                    )
+                );
+                console.log("✅ Todos los time slots eliminados.");
             }
-        }
 
-        if (existingSlots.length === 0) {
-            console.log("📌 Primera carga de horarios: agregando todos los `timeSlots`.");
-            for (const slot of newSlots) {
-                await apiClient.post(`/fields/${id}/availability`, slot, {
-                    headers: { "c-api-key": apiKey },
-                });
+            const newSlots: Omit<TimeSlot, "id">[] = [];
+
+            for (const slot of schedule) {
+                if (slot.closed || !slot.startTime || !slot.endTime) continue;
+
+                const slotsToCreate = generateTimeSlots(slot.startTime, slot.endTime, slotDuration!);
+                const availabilityDate = getNextDateForDay(slot.day);
+
+                for (const timeSlot of slotsToCreate) {
+                    newSlots.push({
+                        availabilityDate: availabilityDate,
+                        startTime: formatTime(timeSlot.startTime),
+                        endTime: formatTime(timeSlot.endTime),
+                        slotStatus: "available",
+                    });
+                }
             }
-            return;
-        }
 
-        const slotsToDelete = existingSlots.filter((existingSlot: TimeSlot) =>
-            !newSlots.some((newSlot) =>
-                existingSlot.availability_date === newSlot.availability_date &&
-                existingSlot.start_time === newSlot.start_time &&
-                existingSlot.end_time === newSlot.end_time
-            )
-        );
-
-        const slotsToAdd = newSlots.filter((newSlot) =>
-            !existingSlots.some((existingSlot: TimeSlot) =>
-                existingSlot.availability_date === newSlot.availability_date &&
-                existingSlot.start_time === newSlot.start_time &&
-                existingSlot.end_time === newSlot.end_time
-            )
-        );
-
-        console.log("🗑️ Slots a eliminar:", slotsToDelete);
-        console.log("➕ Slots a agregar:", slotsToAdd);
-
-        for (const slot of slotsToDelete) {
-            await apiClient.delete(`/fields/${id}/availability/${slot.id}`, {
-                headers: { "c-api-key": apiKey },
-            });
-        }
-
-        for (const slot of slotsToAdd) {
-            await apiClient.post(`/fields/${id}/availability`, slot, {
-                headers: { "c-api-key": apiKey },
-            });
+            if (newSlots.length > 0) {
+                console.log("➕ Agregando nuevos time slots...");
+                await Promise.all(
+                    newSlots.map(slot =>
+                        apiClient.post(`/fields/${id}/availability`, slot, {
+                            headers: { "c-api-key": apiKey },
+                        })
+                    )
+                );
+                console.log("✅ Nuevos time slots agregados con éxito.");
+            } else {
+                console.log("⚠️ No se generaron nuevos time slots.");
+            }
+        } catch (error) {
+            console.error("❌ Error al sincronizar time slots:", error);
+            throw error; // Para que el error se capture en handleSubmit
         }
     };
 
@@ -260,9 +247,23 @@ export const AssignSchedule = () => {
         e.preventDefault();
         setIsLoading(true);
 
+        const errors: string[] = [];
+        schedule.forEach((slot, index) => {
+            if (!slot.closed && (!slot.startTime || !slot.endTime)) {
+                errors[index] = "⚠️ Por favor complete este horario.";
+            }
+        });
+
+        if (errors.length > 0) {
+            setFormErrors(errors);
+            setIsLoading(false);
+            return;
+        }
+
+
         try {
             await syncTimeSlots();
-            alert("✅ Horarios actualizados con éxito");
+            console.log("✅ Horarios actualizados con éxito");
             navigate('/fields');
         } catch (error) {
             console.error("❌ Error al actualizar horarios:", error);
@@ -317,10 +318,10 @@ export const AssignSchedule = () => {
                                                 type="time"
                                                 value={slot.startTime}
                                                 onChange={(e) => handleTimeChange(index, "startTime", e.target.value)}
-                                                required
                                                 step="900"
                                                 lang="es"
                                             />
+                                            {formErrors[index] && <p className="text-red-600 text-sm mt-1">{formErrors[index]}</p>}
                                         </div>
                                         <div className="w-1/2">
                                             <label className="block text-sm text-gray-600 mb-1">Hora de cierre</label>
@@ -328,10 +329,10 @@ export const AssignSchedule = () => {
                                                 type="time"
                                                 value={slot.endTime}
                                                 onChange={(e) => handleTimeChange(index, "endTime", e.target.value)}
-                                                required
                                                 step="900"
                                                 lang="es"
                                             />
+                                            {formErrors[index] && <p className="text-red-600 text-sm mt-1">{formErrors[index]}</p>}
                                         </div>
                                     </div>
                                 )}
