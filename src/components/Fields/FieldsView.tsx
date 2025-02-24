@@ -100,9 +100,9 @@ export const FieldsView = () => {
                         ? field.sports.map(s => s.name).join(', ')
                         : 'No especificado'}
                     </p>
-                    <p className="text-gray-600 mb-4">Costo: ${field.cost}</p>
+                    <p className="text-gray-600 mb-4">Costo por reserva: ${field.cost}</p>
                     <p className="text-gray-600 mb-4">Capacidad: {field.capacity} personas</p>
-                    <p className="text-gray-600 mb-4">Duración de franja: {field.slot_duration} minutos</p>
+                    <p className="text-gray-600 mb-4">Duración de reserva: {field.slot_duration} minutos</p>
 
                     <div className="flex space-x-2">
                       <Button variant="outline" className="flex-1" onClick={() => navigate(`/fields/${field.id}/edit`)}>

@@ -16,9 +16,9 @@ export const FieldCard = ({ field, onModify }: FieldCardProps) => {
           <h3 className="font-bold mb-2">{field.name}</h3>
           <p className="text-gray-600">{field.description}</p>
           <p className="text-gray-600">Deportes: {sportNames}</p>
-          <p className="text-gray-600">Costo: ${field.cost}</p>
+          <p className="text-gray-600">Costo por reserva: ${field.cost}</p>
           <p className="text-gray-600">Capacidad: {field.capacity} personas</p>
-          <p className="text-gray-600">Duración de franja: {field.slot_duration} minutos</p>
+          <p className="text-gray-600">Duración de resrerva: {field.slot_duration} minutos</p>
 
           <div className="mt-4 space-y-1 text-sm">
             {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day) => (
