@@ -124,7 +124,14 @@ const CalendarView = () => {
         slot.endTime > normalizedHour
     );
 
-    return foundSlot?.slotStatus || 'No disponible';
+    const statusMap: Record<string, string> = {
+      'available': 'Disponible',
+      'booked': 'Reservado',
+      'maintenance': 'Mantenimiento',
+      'No disponible': 'No disponible'
+    };
+
+    return statusMap[foundSlot?.slotStatus || 'No disponible'];
   };
 
   const getWeekDayDate = (day: string) => {
@@ -135,9 +142,9 @@ const CalendarView = () => {
 
   const getStatusClass = (status: string) => {
     const classes = {
-      'available': 'bg-green-100 text-green-800',
-      'booked': 'bg-red-100 text-red-800',
-      'maintenance': 'bg-gray-100 text-gray-800',
+      'Disponible': 'bg-green-100 text-green-800',
+      'Reservado': 'bg-red-100 text-red-800',
+      'Mantenimiento': 'bg-gray-100 text-gray-800',
       'No disponible': 'bg-gray-200 text-gray-600',
     } as const;
     return classes[status as keyof typeof classes] || 'bg-gray-200 text-gray-600';
