@@ -19,7 +19,7 @@ interface ReservationModalProps {
 
 export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onClose }) => {
   const apiKey = localStorage.getItem('c-api-key');
-  const { clubId } = useAuth(); // Asegúrate de que el clubId está almacenado
+  const { clubId } = useAuth();
   const [fields, setFields] = useState<any[]>([]);
   const [selectedField, setSelectedField] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -60,9 +60,6 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
         },
       });
 
-      console.log("🕒 TimeSlots disponibles:", response.data);
-
-      // Extraer solo los `startTime` de los timeslots que están `available`
       const availableSlots = response.data
           .filter((slot: TimeSlot) => slot.slotStatus === "available")
           .map((slot: any) => ({
@@ -77,7 +74,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
 
     } catch (error) {
       console.error("❌ Error obteniendo los timeslots disponibles:", error);
-      setAvailableTimeSlots([]); // En caso de error, vaciar la lista
+      setAvailableTimeSlots([]);
     }
   };
 
@@ -125,19 +122,11 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
         return;
       }
 
-      console.log("📤 Actualizando TimeSlot:", {
-        fieldId: selectedField,
-        slotId: selectedSlot.id,
-        status: "booked"
-      });
-
-      // Hacer el PATCH para actualizar el estado del timeslot a "booked"
       await apiClient.patch(`/fields/${selectedField}/availability/${selectedSlot.id}/status`,
           { slotStatus: "booked" },
           { headers: { "c-api-key": apiKey } }
       );
 
-      console.log("✅ TimeSlot marcado como ocupado con éxito");
       onClose();
       setSelectedField('');
       setSelectedDate('');

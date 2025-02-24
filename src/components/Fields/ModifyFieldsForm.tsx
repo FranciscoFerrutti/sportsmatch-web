@@ -12,7 +12,7 @@ export const ModifyFieldsForm = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const fieldId = id ? parseInt(id, 10) : null;
-  const { clubId } = useAuth(); // Asegurar que `clubId` esté disponible
+  const { clubId } = useAuth();
 
   const [formData, setFormData] = useState<Partial<Field> | null>(null);
   const [sports, setSports] = useState<{ id: number; name: string }[]>([]);
@@ -35,8 +35,6 @@ export const ModifyFieldsForm = () => {
           }),
           apiClient.get('/sports', { headers: { 'c-api-key': apiKey } }),
         ]);
-
-        console.log('✅ Datos de la cancha obtenidos:', fieldResponse.data);
 
         setSports(sportsResponse.data);
         setFormData({
@@ -75,7 +73,6 @@ export const ModifyFieldsForm = () => {
         params: { clubId }
       });
 
-      console.log("✅ Cambios guardados correctamente.");
       navigate(redirectPath);
     } catch (err: any) {
       console.error('❌ Error al actualizar la cancha:', err);
@@ -85,16 +82,22 @@ export const ModifyFieldsForm = () => {
 
   const handleSaveChanges = (e: React.FormEvent) => {
     e.preventDefault();
-    updateField('/fields'); // Redirige a la lista de canchas
+    updateField('/fields');
   };
 
   const handleModifySchedule = (e: React.FormEvent) => {
     e.preventDefault();
-    updateField(`/fields/${id}/schedule`); // Redirige a la asignación de horarios
+    updateField(`/fields/${id}/schedule`);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    let newValue = name === 'slot_duration' || name === 'cost' ? Number(value) : value;
+
+    if (name === 'slot_duration' && Number(newValue) % 30 !== 0) {
+      return;
+    }
+
     setFormData(prev => ({
       ...prev!,
       [name]: name === 'slot_duration' || name === 'cost' ? Number(value) : value,
@@ -118,16 +121,6 @@ export const ModifyFieldsForm = () => {
       sports: prev?.sports?.filter(sport => sport.id !== id) || [],
     }));
   };
-
-  const durationOptions = [15, 30, 60, 90, 120];
-
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes} minutos`;
-    const hours = Math.floor(minutes / 60);
-    const remainder = minutes % 60;
-    return remainder === 0 ? `${hours}:00 hs` : `${hours}:${remainder} hs`;
-  };
-
 
   if (!formData) {
     return <div className="text-center p-6">Cargando datos de la cancha...</div>;
@@ -206,17 +199,19 @@ export const ModifyFieldsForm = () => {
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">Duración de reserva:</label>
-                <Select name="slot_duration" value={formData.slot_duration} onChange={handleInputChange}
-                        className="w-full">
-                  <option value="" disabled>Seleccione la duración</option>
-                  {durationOptions.map(minutes => (
-                      <option key={minutes} value={minutes}>
-                        {formatDuration(minutes)}
-                      </option>
-                  ))}
-                </Select>
+                <label className="block mb-2 font-medium">Duración (en minutos):</label>
+                <Input
+                    type="number"
+                    name="slot_duration"
+                    value={formData.slot_duration}
+                    onChange={handleInputChange}
+                    placeholder="Múltiplo de 30 minutos"
+                    className="w-full"
+                    min="1"
+                    required
+                />
               </div>
+
             </div>
           </div>
 

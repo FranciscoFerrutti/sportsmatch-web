@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Select } from '@/components/ui/select';
 import apiClient from '@/apiClients';
 import { Field } from "../../types";
 import { TimeSlot } from "../../types/timeslot.ts";
 import { useAuth } from "../../context/AppContext.tsx";
 import dayjs from 'dayjs';
-import { DAYS_OF_WEEK } from "../../utils/constants.ts";
 
-const ORDERED_DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']; // Domingo al final
+const ORDERED_DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const CalendarView = () => {
   const [fields, setFields] = useState<Field[]>([]);
@@ -52,15 +51,13 @@ const CalendarView = () => {
 
     setLoading(true);
     try {
-      const startDate = dayjs().startOf('week').add(1, 'day').format('YYYY-MM-DD'); // Lunes
-      const endDate = dayjs().endOf('week').add(1, 'day').format('YYYY-MM-DD'); // Domingo
+      const startDate = dayjs().startOf('week').add(1, 'day').format('YYYY-MM-DD');
+      const endDate = dayjs().endOf('week').add(1, 'day').format('YYYY-MM-DD');
 
       const response = await apiClient.get(`/fields/${fieldId}/availability`, {
         headers: { "c-api-key": apiKey },
         params: { startDate, endDate },
       });
-
-      console.log("✅ TimeSlots obtenidos:", response.data);
 
       const formattedSlots = response.data.map((slot: any) => ({
         id: slot.id,
@@ -71,7 +68,7 @@ const CalendarView = () => {
         slotStatus: slot.slotStatus,
       }));
 
-      formattedSlots.sort((a, b) => {
+      formattedSlots.sort((a: { availabilityDate: string; startTime: string; }, b: { availabilityDate: any; startTime: any; }) => {
         const dateComparison = a.availabilityDate.localeCompare(b.availabilityDate);
         if (dateComparison !== 0) return dateComparison;
         return a.startTime.localeCompare(b.startTime);
@@ -92,12 +89,8 @@ const CalendarView = () => {
       return [];
     }
 
-    console.log("🛠️ Procesando timeslots:", timeSlots);
-
     const firstTime = timeSlots.reduce((min, slot) => slot.startTime < min ? slot.startTime : min, timeSlots[0].startTime);
     const lastTime = timeSlots.reduce((max, slot) => slot.endTime > max ? slot.endTime : max, timeSlots[0].endTime);
-
-    console.log(`⏳ Generando slots desde ${firstTime} hasta ${lastTime}`);
 
     let timeArray: string[] = [];
     let currentHour = firstTime;
@@ -108,15 +101,12 @@ const CalendarView = () => {
       currentHour = nextHour;
     }
 
-    console.log("✅ Horarios generados correctamente:", timeArray);
     return timeArray;
   };
 
   const getTimeSlotStatus = (day: string, hour: string): string => {
     const dateString = getWeekDayDate(day);
-    const normalizedHour = hour.length === 5 ? `${hour}:00` : hour; // aseguramos formato HH:mm:ss
-
-    console.log(`🔍 Buscando slots para ${dateString} - ${normalizedHour}`);
+    const normalizedHour = hour.length === 5 ? `${hour}:00` : hour;
 
     const foundSlot = timeSlots.find(slot =>
         slot.availabilityDate === dateString &&
@@ -135,7 +125,7 @@ const CalendarView = () => {
   };
 
   const getWeekDayDate = (day: string) => {
-    const startOfWeek = dayjs().startOf('week').add(1, 'day'); // Empezamos en lunes
+    const startOfWeek = dayjs().startOf('week').add(1, 'day');
     const index = ORDERED_DAYS.indexOf(day);
     return startOfWeek.add(index, 'day').format("YYYY-MM-DD");
   };
@@ -181,7 +171,7 @@ const CalendarView = () => {
                 <tr>
                   <th className="border p-2 bg-gray-50">Horario</th>
                   {ORDERED_DAYS.map((day, index) => {
-                    const dayDate = dayjs().startOf('week').add(index + 1, 'day').format("DD"); // Lunes como inicio
+                    const dayDate = dayjs().startOf('week').add(index + 1, 'day').format("DD");
                     return (
                         <th key={day} className="border p-2 bg-gray-50">
                           {day} {dayDate}
