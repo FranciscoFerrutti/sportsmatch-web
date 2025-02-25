@@ -45,9 +45,9 @@ export const Signup = () => {
           localStorage.setItem('c-api-key', apiKey);
           localStorage.setItem('clubId', clubId.toString());
           login(apiKey, clubId);
-          navigate('/home');
+          navigate('/club-location');
         } else {
-          navigate('/login');
+          navigate('/club-location');
         }
       }
     } catch (err: any) {
