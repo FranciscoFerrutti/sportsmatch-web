@@ -117,6 +117,7 @@ export const LocationSelector = () => {
       coordinates: coordinates
     };
     console.log('Location Data:', formData);
+    navigate('/home');
   };
 
   return (
