@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader } from '@googlemaps/js-api-loader';
+import apiClient from '@/apiClients';
+import { useAuth } from '@/context/AppContext';
 
 /// <reference types="@types/google.maps" />
 
@@ -12,10 +14,14 @@ const SHORT_NAME_ADDRESS_COMPONENT_TYPES = new Set([
 
 export const LocationSelector = () => {
   const navigate = useNavigate();
+  const { clubId } = useAuth();
+  const apiKey = localStorage.getItem('c-api-key');
   const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY';
+    const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     
     const loader = new Loader({
       apiKey: API_KEY,
@@ -106,18 +112,45 @@ export const LocationSelector = () => {
       getComponent('country');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = {
-      address: (document.getElementById('location-input') as HTMLInputElement)?.value,
-      city: (document.getElementById('locality-input') as HTMLInputElement)?.value,
-      state: (document.getElementById('administrative_area_level_1-input') as HTMLInputElement)?.value,
-      postalCode: (document.getElementById('postal_code-input') as HTMLInputElement)?.value,
-      country: (document.getElementById('country-input') as HTMLInputElement)?.value,
-      coordinates: coordinates
-    };
-    console.log('Location Data:', formData);
-    navigate('/home');
+    setError(null);
+    setIsLoading(true);
+
+    if (!coordinates) {
+      setError('Por favor seleccione una ubicación válida');
+      setIsLoading(false);
+      return;
+    }
+
+    const address = (document.getElementById('location-input') as HTMLInputElement)?.value;
+    const city = (document.getElementById('locality-input') as HTMLInputElement)?.value;
+    const state = (document.getElementById('administrative_area_level_1-input') as HTMLInputElement)?.value;
+    const postalCode = (document.getElementById('postal_code-input') as HTMLInputElement)?.value;
+    const country = (document.getElementById('country-input') as HTMLInputElement)?.value;
+
+    const fullAddress = [address, city, state, postalCode, country]
+      .filter(Boolean)
+      .join(', ');
+
+    try {
+      const payload = {
+        latitude: coordinates.lat,
+        longitude: coordinates.lng,
+        address: fullAddress
+      };
+
+      await apiClient.put(`/clubs/${clubId}/location`, payload, {
+        headers: { 'c-api-key': apiKey },
+      });
+
+      navigate('/home');
+    } catch (error) {
+      console.error('❌ Error al actualizar la ubicación:', error);
+      setError('No se pudo actualizar la ubicación. Por favor intente nuevamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -200,9 +233,11 @@ export const LocationSelector = () => {
               <button
                 type="submit"
                 className="w-full bg-[#000066] hover:bg-[#000088] text-white p-2 rounded"
+                disabled={isLoading}
               >
-                Confirmar dirección
+                {isLoading ? "Guardando..." : "Confirmar dirección"}
               </button>
+              {error && <div className="text-red-600 mt-2 text-center">{error}</div>}
             </form>
           </div>
 
