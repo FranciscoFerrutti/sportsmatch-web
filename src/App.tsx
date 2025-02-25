@@ -12,6 +12,7 @@ import { Login } from './components/Login/Login.tsx';
 import { Signup } from './components/Login/Signup';
 import { PrivateRoute } from './components/Login/PrivateRoute';
 import {AssignSchedule} from "./components/Fields/AssignSchedule.tsx";
+import { LocationSelector } from '@/components/Club/LocationSelector';
 
 function AppContent() {
   const location = useLocation();
@@ -32,6 +33,7 @@ function AppContent() {
           <Route path="/fields/:id/schedule" element={<PrivateRoute><AssignSchedule /></PrivateRoute>} />
           <Route path="/reservations" element={<PrivateRoute><ReservationsView /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><CalendarView /></PrivateRoute>} />
+          <Route path="/club-location" element={<LocationSelector />} />
           {/* Fallback route */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
