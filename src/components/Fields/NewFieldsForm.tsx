@@ -18,13 +18,14 @@ export const NewFieldsForm = () => {
     cost: '',
     description: '',
     capacity: '',
-    slot_duration: 0, // Comienza en 0 minutos
+    slot_duration: '',
     sports: [] as { id: number; name: string }[],
   });
 
   const [sports, setSports] = useState<{ id: number; name: string }[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const fetchSports = async () => {
@@ -45,6 +46,24 @@ export const NewFieldsForm = () => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    const errors: { [key: string]: string } = {};
+
+    if (!formData.name.trim()) errors.name = "El nombre es obligatorio.";
+    if (!formData.description.trim()) errors.description = "La descripción es obligatoria.";
+    if (!formData.cost || isNaN(Number(formData.cost))) errors.cost = "Ingrese un costo válido.";
+    if (!formData.capacity || isNaN(Number(formData.capacity)) || Number(formData.capacity) < 1 || Number(formData.capacity) > 30) {
+      errors.capacity = "La capacidad debe estar entre 1 y 30.";
+    }
+    if (!formData.slot_duration || isNaN(Number(formData.slot_duration))) errors.slot_duration = "Ingrese una duración válida.";
+    if (Number(formData.slot_duration) > 0 && Number(formData.slot_duration) % 30 !== 0) errors.slot_duration = "La duración debe ser múltiplo de 30.";
+    if (formData.sports.length === 0) errors.sports = "Seleccione al menos un deporte.";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setIsLoading(false);
+      return;
+    }
 
     if (!clubId) {
       alert('Error: No hay club asociado.');
@@ -81,10 +100,12 @@ export const NewFieldsForm = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'slot_duration' || name === 'cost' ? Number(value) : value,
+      [name]: value,
     }));
+
     setHasChanges(true);
   };
 
@@ -115,15 +136,6 @@ export const NewFieldsForm = () => {
     }
   };
 
-  const durationOptions = [15, 30, 60, 90, 120];
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const remainder = minutes % 60;
-    return remainder === 0 ? `${hours}:00 hs` : `${hours}:${remainder} hs`;
-  };
-
-
   return (
       <div>
         <div className="p-4">
@@ -150,13 +162,15 @@ export const NewFieldsForm = () => {
               <div>
                 <label className="block mb-2 font-medium">Nombre:</label>
                 <Input type="text" name="name" value={formData.name} onChange={handleInputChange}
-                       placeholder="Ingrese el nombre de la cancha" className="w-full" required/>
+                       placeholder="Ingrese el nombre de la cancha" className="w-full"/>
+                {formErrors.name && <p className="text-red-600 text-sm mt-1">{formErrors.name}</p>}
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Descripción:</label>
                 <Input type="text" name="description" value={formData.description} onChange={handleInputChange}
-                       placeholder="Descripción de la cancha" className="w-full" required/>
+                       placeholder="Descripción de la cancha" className="w-full"/>
+                {formErrors.description && <p className="text-red-600 text-sm mt-1">{formErrors.description}</p>}
               </div>
 
               <div>
@@ -180,31 +194,36 @@ export const NewFieldsForm = () => {
                       </div>
                   ))}
                 </div>
+                {formErrors.sports && <p className="text-red-600 text-sm mt-1">{formErrors.sports}</p>}
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Costo por reserva:</label>
                 <Input type="number" name="cost" value={formData.cost} onChange={handleInputChange}
-                       placeholder="Ingrese el costo" className="w-full" min="0" required/>
+                       placeholder="Ingrese el costo" className="w-full" min="0"/>
+                {formErrors.cost && <p className="text-red-600 text-sm mt-1">{formErrors.cost}</p>}
               </div>
 
               <div>
                 <label className="block mb-2 font-medium">Capacidad:</label>
                 <Input type="number" name="capacity" value={formData.capacity} onChange={handleInputChange}
-                       placeholder="Máximo 30 personas" className="w-full" min="1" max="30" required/>
+                       placeholder="Máximo 30 personas" className="w-full"/>
+                {formErrors.capacity && <p className="text-red-600 text-sm mt-1">{formErrors.capacity}</p>}
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">Duración de la franja horaria:</label>
-                <Select name="slot_duration" value={formData.slot_duration} onChange={handleInputChange} className="w-full">
-                  <option value="0" disabled>Seleccione la duración</option>
-                  {durationOptions.map(minutes => (
-                      <option key={minutes} value={minutes}>
-                        {formatDuration(minutes)}
-                      </option>
-                  ))}
-                </Select>
+                <label className="block mb-2 font-medium">Duración (en minutos):</label>
+                <Input
+                    type="number"
+                    name="slot_duration"
+                    value={formData.slot_duration}
+                    onChange={handleInputChange}
+                    placeholder="Múltiplo de 30 minutos"
+                    className="w-full"
+                />
+                {formErrors.slot_duration && <p className="text-red-600 text-sm mt-1">{formErrors.slot_duration}</p>}
               </div>
+
             </div>
           </div>
           {error && <div className="text-red-600 mt-4 text-center">{error}</div>}

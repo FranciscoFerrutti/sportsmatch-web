@@ -71,7 +71,6 @@ export const AssignSchedule = () => {
         const fetchFieldData = async () => {
             try {
                 const response = await apiClient.get(`/fields/${id}`, {headers: {'c-api-key': apiKey}})
-                console.log("Field data: ", response.data)
                 setSlotDuration(response.data.slot_duration);
             } catch (error) {
                 console.error("Error obteniendo slot duration:", error);
@@ -114,18 +113,17 @@ export const AssignSchedule = () => {
 
     const handleBack = () => navigate(`/fields/${id}/edit`);
 
-    // Redondear a intervalos de 15 minutos (00, 15, 30, 45)
-    const roundToNearest15Min = (time: string) => {
+    const roundToNearest30Min = (time: string) => {
         if (!time) return time;
         const [hours, minutes] = time.split(":").map(Number);
-        const roundedMinutes = Math.round(minutes / 15) * 15;
+        const roundedMinutes = Math.round(minutes / 30) * 30;
         const newMinutes = roundedMinutes === 60 ? 0 : roundedMinutes;
         const newHours = roundedMinutes === 60 ? hours + 1 : hours;
         return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
     };
 
     const handleTimeChange = (index: number, key: "startTime" | "endTime", value: string) => {
-        const roundedValue = roundToNearest15Min(value);
+        const roundedValue = roundToNearest30Min(value);
         setSchedule(prev => prev.map((slot, i) => {
             if (i !== index) return slot;
 
@@ -151,7 +149,7 @@ export const AssignSchedule = () => {
 
     const getNextDateForDay = (dayName: string): string => {
         const today = new Date();
-        const todayIndex = today.getDay(); // Índice del día actual (0=Domingo, 1=Lunes, etc.)
+        const todayIndex = today.getDay();
         const targetIndex = DAYS_OF_WEEK.indexOf(dayName);
 
         if (targetIndex === -1) throw new Error(`Día inválido: ${dayName}`);
@@ -187,7 +185,6 @@ export const AssignSchedule = () => {
             const existingSlots: TimeSlot[] = await fetchExistingTimeSlots();
 
             if (existingSlots.length > 0) {
-                console.log("🗑️ Eliminando todos los time slots existentes...");
                 await Promise.all(
                     existingSlots.map(slot =>
                         apiClient.delete(`/fields/${id}/availability/${slot.id}`, {
@@ -195,7 +192,6 @@ export const AssignSchedule = () => {
                         })
                     )
                 );
-                console.log("✅ Todos los time slots eliminados.");
             }
 
             const newSlots: Omit<TimeSlot, "id">[] = [];
@@ -217,7 +213,6 @@ export const AssignSchedule = () => {
             }
 
             if (newSlots.length > 0) {
-                console.log("➕ Agregando nuevos time slots...");
                 await Promise.all(
                     newSlots.map(slot =>
                         apiClient.post(`/fields/${id}/availability`, slot, {
@@ -225,13 +220,12 @@ export const AssignSchedule = () => {
                         })
                     )
                 );
-                console.log("✅ Nuevos time slots agregados con éxito.");
             } else {
-                console.log("⚠️ No se generaron nuevos time slots.");
+                console.error("⚠️ No se generaron nuevos time slots.");
             }
         } catch (error) {
             console.error("❌ Error al sincronizar time slots:", error);
-            throw error; // Para que el error se capture en handleSubmit
+            throw error;
         }
     };
 
@@ -256,7 +250,6 @@ export const AssignSchedule = () => {
 
         try {
             await syncTimeSlots();
-            console.log("✅ Horarios actualizados con éxito");
             navigate('/fields');
         } catch (error) {
             console.error("❌ Error al actualizar horarios:", error);

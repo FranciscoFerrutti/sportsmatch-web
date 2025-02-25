@@ -37,9 +37,6 @@ export const ReservationsView = () => {
           }),
         ]);
 
-        console.log("✅ Reservas obtenidas:", reservationsResponse.data);
-        console.log("✅ Canchas obtenidas:", fieldsResponse.data);
-
         setReservations(reservationsResponse.data);
 
         const fieldsMap: Record<number, string> = {};
@@ -47,7 +44,6 @@ export const ReservationsView = () => {
           fieldsMap[field.id] = field.name;
         });
 
-        console.log("🏟️ Mapeo de canchas generado:", fieldsMap);
         setFields(fieldsMap);
       } catch (error) {
         console.error("❌ Error al obtener reservas o canchas:", error);

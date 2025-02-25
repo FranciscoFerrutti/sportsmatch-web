@@ -21,7 +21,6 @@ interface ReservationCardProps {
 export const ReservationCard: React.FC<ReservationCardProps> = ({ reservation }) => {
     const { cancelReservation } = useFields();
 
-    // Intenta formatear la fecha correctamente
     let formattedDate;
     try {
         formattedDate = reservation.date
@@ -31,9 +30,6 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({ reservation })
         console.error('Error formateando la fecha:', error);
         formattedDate = 'Fecha no disponible';
     }
-
-    console.log('Fecha original:', reservation.date);
-    console.log('Fecha formateada:', formattedDate);
 
     const handleCancel = () => {
         cancelReservation(reservation.fieldId, reservation.id);
