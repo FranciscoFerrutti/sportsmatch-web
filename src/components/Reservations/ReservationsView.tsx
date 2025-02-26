@@ -22,91 +22,66 @@ export const ReservationsView = () => {
   const { clubId } = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
 
-  const fetchReservationsAndFields = async () => {
+  console.log(apiKey)
+
+  const fetchReservations = async () => {
     if (!apiKey || !clubId) {
       console.error('🚨 Error: Falta API Key o clubId', { apiKey, clubId });
       setLoading(false);
       return;
     }
+
     try {
-      const [reservationsResponse, fieldsResponse] = await Promise.all([
-        apiClient.get(`/reservations`, { headers: { 'c-api-key': apiKey } }),
-        apiClient.get('/fields', {
-          headers: { 'c-api-key': apiKey },
-          params: { clubId },
-        }),
-      ]);
+      const response = await apiClient.get(`/reservations`, { headers: { 'c-api-key': apiKey } });
+      const reservationsList = response.data
 
-      setReservations(reservationsResponse.data);
+      const detailedReservations = await Promise.all(
+          reservationsList.map(async (reservation: any) => {
+            try {
+              const detailsResponse = await apiClient.get(`/reservations/${reservation.id}`, {
+                headers: { 'c-api-key': apiKey }
+              });
 
-      const fieldsMap: Record<number, string> = {};
-      fieldsResponse.data.forEach((field: { id: number; name: string }) => {
-        fieldsMap[field.id] = field.name;
-      });
+              return {
+                ...detailsResponse.data,
+                field: {
+                  id: detailsResponse.data.field?.id,
+                  name: detailsResponse.data.field?.name,
+                  cost: detailsResponse.data.field?.cost_per_minute || 0,
+                  description: detailsResponse.data.field?.description || '',
+                  capacity: detailsResponse.data.field?.capacity || 0,
+                  slot_duration: detailsResponse.data.field?.slot_duration || 0,
+                  clubName: detailsResponse.data.field?.club?.name || "Desconocido"
+                },
+                event: {
+                  id: detailsResponse.data.event?.id,
+                  ownerId: detailsResponse.data.event?.ownerId,
+                  organizerType: detailsResponse.data.event?.organizerType || 'user',
+                  schedule: detailsResponse.data.event?.schedule || '',
+                  ownerName: detailsResponse.data.event?.userOwner
+                      ? `${detailsResponse.data.event.userOwner.firstname} ${detailsResponse.data.event.userOwner.lastname}`
+                      : 'Desconocido',
+                  ownerPhone: detailsResponse.data.event?.userOwner?.phone_number || 'Sin teléfono'
+                }
+              };
+            } catch (error) {
+              console.error(`❌ Error al obtener detalles de reserva ${reservation.id}:`, error);
+              return reservation; // Devolvemos la reserva original en caso de error
+            }
+          })
+      );
 
-      setFields(fieldsMap);
-
-      fetchUsersForReservations(reservationsResponse.data);
+      setReservations(detailedReservations);
     } catch (error) {
-      console.error('❌ Error al obtener reservas o canchas:', error);
+      console.error('❌ Error al obtener reservas:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUsersForReservations = async (reservations: Reservation[]) => {
-    const usersMap: Record<number, { name: string; phone: string }> = {};
-    const updatedReservations = [...reservations]; // Copia de reservas para actualizar
-
-    try {
-      const reservationRequests = reservations.map(reservation =>
-          apiClient.get(`/reservations/${reservation.id}`, { headers: { 'c-api-key': apiKey } })
-      );
-
-      const reservationResponses = await Promise.all(reservationRequests);
-
-      for (let i = 0; i < reservationResponses.length; i++) {
-        const res = reservationResponses[i];
-        const reservation = reservations[i];
-        const detailedReservation = res.data;
-
-        if (!detailedReservation || !detailedReservation.event) continue;
-
-        const userId = detailedReservation.event.ownerId;
-        const organizerType = detailedReservation.event.organizerType;
-
-        updatedReservations[i] = { ...reservation, ownerId: userId };
-
-        if (userId && !usersMap[userId]) {
-          let userResponse;
-
-          if (organizerType === "user") {
-            userResponse = await apiClient.get(`/users/${userId}`, { headers: { 'c-api-key': apiKey } });
-          } else if (organizerType === "club") {
-            userResponse = await apiClient.get(`/clubs/${userId}`, { headers: { 'c-api-key': apiKey } });
-          }
-
-          if (userResponse) {
-            usersMap[userId] = {
-              name: userResponse.data.firstName
-                  ? `${userResponse.data.firstName} ${userResponse.data.lastName}`
-                  : userResponse.data.name,
-              phone: userResponse.data.phoneNumber || userResponse.data.phone || 'Sin teléfono',
-            };
-          }
-        }
-      }
-
-      setReservations(updatedReservations); // 🔄 Actualizamos reservas con ownerId
-      setUsers(prevUsers => ({ ...prevUsers, ...usersMap })); // 🔄 Merge con usuarios previos
-    } catch (error) {
-      console.error("❌ Error al obtener datos de usuarios:", error);
-    }
-  };
-
 
   useEffect(() => {
-    fetchReservationsAndFields();
+    fetchReservations();
   }, [clubId, apiKey]);
 
   const handleDeleteReservation = async (reservationId: number) => {
@@ -138,7 +113,7 @@ export const ReservationsView = () => {
       });
 
       console.log(`✅ Reserva ID ${reservationId} aceptada.`);
-      fetchReservationsAndFields();
+      fetchReservations();
     } catch (error) {
       console.error('❌ Error al aceptar la reserva:', error);
       alert('No se pudo aceptar la reserva.');
@@ -159,7 +134,7 @@ export const ReservationsView = () => {
       });
 
       console.log(`❌ Reserva ID ${reservationId} rechazada.`);
-      fetchReservationsAndFields();
+      fetchReservations();
     } catch (error) {
       console.error('Error al rechazar la reserva:', error);
       alert('No se pudo rechazar la reserva.');
@@ -171,23 +146,43 @@ export const ReservationsView = () => {
         .replace(/^./, match => match.toUpperCase());
   };
 
-  const formatTime = (time?: string) => time ? time.slice(0, 5) : "Hora no disponible";
+  const formatTime = (reservation: Reservation) => {
+    if (reservation.status === 'pending' && reservation.timeSlots && reservation.timeSlots?.length > 0) {
+      return reservation.timeSlots[0].startTime.slice(0, 5);
+    }
+
+    if (reservation.event?.schedule) {
+      return dayjs(reservation.event.schedule).format("HH:mm");
+    }
+
+    return "Hora no disponible";
+  };
 
   const now = dayjs();
 
-  const pendingReservations = reservations.filter(r => r.status === 'pending');
+  const pendingReservations = reservations
+      .filter(r => r.status === 'pending')
+      .sort((a, b) => {
+        const dateA = a.timeSlots?.[0]?.date || "";
+        const dateB = b.timeSlots?.[0]?.date || "";
+        const timeA = a.timeSlots?.[0]?.startTime || "";
+        const timeB = b.timeSlots?.[0]?.startTime || "";
 
-  const upcomingReservations = reservations.filter(r => {
-    if (!r.timeSlots || r.timeSlots.length === 0) {
-      return false;
-    }
-    return r.status === 'confirmed' && dayjs(`${r.timeSlots[0].date} ${r.timeSlots[0].startTime}`).isAfter(now);
-  });
+        return dayjs(`${dateA} ${timeA}`).valueOf() - dayjs(`${dateB} ${timeB}`).valueOf();
+      });
 
-  const pastReservations = reservations.filter(r => {
-    if (!r.timeSlots || r.timeSlots.length === 0) return false;
-    return r.status === 'confirmed' && dayjs(`${r.timeSlots[0].date} ${r.timeSlots[0].startTime}`).isBefore(now);
-  });
+  const upcomingReservations = reservations
+      .filter(r => r.status === 'confirmed' && dayjs(r.event.schedule).isAfter(now))
+      .sort((a, b) => dayjs(a.event.schedule).valueOf() - dayjs(b.event.schedule).valueOf());
+
+  const pastReservations = reservations
+      .filter(r => r.status === 'confirmed' && dayjs(r.event.schedule).isBefore(now))
+      .sort((a, b) => dayjs(a.event.schedule).valueOf() - dayjs(b.event.schedule).valueOf());
+
+  const cancelledReservations = reservations
+      .filter(r => r.status === 'cancelled')
+      .sort((a, b) => dayjs(a.event.schedule).valueOf() - dayjs(b.event.schedule).valueOf());
+
 
   const isToday = (dateStr: string) => {
     const today = dayjs().startOf('day'); // Tomar el inicio del día actual
@@ -202,19 +197,26 @@ export const ReservationsView = () => {
   };
 
   const getRelativeDate = (reservation: Reservation) => {
-    if (!reservation || !reservation.timeSlots || reservation.timeSlots.length === 0) {
-      return "Fecha no disponible";
+    if (!reservation) return "Reserva indefinida";
+
+    let date = "";
+
+    if (reservation.status === 'pending' && reservation.timeSlots && reservation.timeSlots.length > 0) {
+      date = reservation.timeSlots[0].date;
     }
 
-    // Usar la fecha correcta de `timeSlots[0].date`
-    const dateStr = reservation.timeSlots[0].date ;
+    else if (reservation.event?.schedule) {
+      date = reservation.event.schedule;
+    }
 
-    if (!dateStr) return "Fecha no disponible";
+    if (!date) return "Fecha no disponible";
 
-    if (isToday(dateStr)) return 'Hoy';
-    if (isTomorrow(dateStr)) return 'Mañana';
-    return formatDate(dateStr);
+    if (isToday(date)) return "Hoy";
+    if (isTomorrow(date)) return "Mañana";
+
+    return formatDate(date);
   };
+
 
   return (
       <div className="p-6">
@@ -232,24 +234,20 @@ export const ReservationsView = () => {
                         <Card className="p-6 text-center text-gray-500">No hay reservas pendientes</Card>
                       </div>
                   ) : (
-                      pendingReservations.map((reservation : Reservation) => (
+                      pendingReservations.map((reservation: Reservation) => (
                           <Card key={`reservation-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start">
                               <div>
-                                <h3 className="font-semibold text-lg mb-1">{fields[reservation.fieldId] || `Cancha ${reservation.fieldId}`}</h3>
+                                <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
                                 <div className="space-y-1">
                                   <p className="text-gray-600">{getRelativeDate(reservation)}</p>
-                                  <p className="text-gray-600">
-                                    {reservation.timeSlots && reservation.timeSlots.length > 0
-                                        ? formatTime(reservation.timeSlots[0].startTime) + " hs"
-                                        : "Hora no disponible"}
-                                  </p>
+                                  <p className="text-gray-600">{formatTime(reservation)} hs</p>
                                   <div className=" border-gray-300 mt-2 pt-2 text-right">
-                                    <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.ownerId ? users[reservation.ownerId]?.name || 'Desconocido' : 'Desconocido'}</p>
+                                    <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.event.ownerName}</p>
                                     <p className="text-gray-600">
-                                      {reservation.ownerId && users[reservation.ownerId]?.phone ? (
+                                      {reservation.event.ownerName && reservation.event.ownerPhone ? (
                                           <a
-                                              href={`https://api.whatsapp.com/send?phone=${users[reservation.ownerId]?.phone.replace('+', '')}`}
+                                              href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                               target="_blank"
                                               rel="noopener noreferrer"
                                               className="text-blue-800 underline hover:text-blue-800"
@@ -288,20 +286,16 @@ export const ReservationsView = () => {
                   ) : (
                       upcomingReservations.map((reservation: Reservation) => (
                           <Card key={`confirmed-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
-                            <h3 className="font-semibold text-lg mb-1">{fields[reservation.fieldId] || `Cancha ${reservation.fieldId}`}</h3>
+                            <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
                             <div className="space-y-1">
                               <p className="text-gray-600">{getRelativeDate(reservation)}</p>
-                              <p className="text-gray-600">
-                                {reservation.timeSlots && reservation.timeSlots.length > 0
-                                    ? formatTime(reservation.timeSlots[0].startTime) + " hs"
-                                    : "Hora no disponible"}
-                              </p>
+                              <p className="text-gray-600">{formatTime(reservation)} hs</p>
                               <div className=" border-gray-300 mt-2 pt-2 text-right">
-                                <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.ownerId ? users[reservation.ownerId]?.name || 'Desconocido' : 'Desconocido'}</p>
+                                <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.event.ownerName}</p>
                                 <p className="text-gray-600">
-                                  {reservation.ownerId && users[reservation.ownerId]?.phone ? (
+                                  {reservation.event.ownerName && reservation.event.ownerPhone ? (
                                       <a
-                                          href={`https://api.whatsapp.com/send?phone=${users[reservation.ownerId]?.phone.replace('+', '')}`}
+                                          href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="text-blue-800 underline hover:text-blue-800"
@@ -319,34 +313,30 @@ export const ReservationsView = () => {
                               </Button>
                             </div>
                           </Card>
-                    ))
+                      ))
                   )}
                 </div>
               </div>
               <div>
                 <h2 className="text-lg font-medium mb-4">Reservas pasadas</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {pastReservations.length === 0 ? (
-                    <div className="col-span-full">
-                      <Card className="p-6 text-center text-gray-500">No hay reservas pasadas</Card>
-                    </div>
-                    ) : (
-                        pastReservations.map((reservation: Reservation) => (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {pastReservations.length === 0 ? (
+                      <div className="col-span-full">
+                        <Card className="p-6 text-center text-gray-500">No hay reservas pasadas</Card>
+                      </div>
+                  ) : (
+                      pastReservations.map((reservation: Reservation) => (
                           <Card key={`past-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
-                            <h3 className="font-semibold text-lg mb-1">{fields[reservation.fieldId] || `Cancha ${reservation.fieldId}`}</h3>
+                            <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
                             <div className="space-y-1">
                               <p className="text-gray-600">{getRelativeDate(reservation)}</p>
-                              <p className="text-gray-600">
-                                {reservation.timeSlots && reservation.timeSlots.length > 0
-                                    ? formatTime(reservation.timeSlots[0].startTime) + " hs"
-                                    : "Hora no disponible"}
-                              </p>
+                              <p className="text-gray-600">{formatTime(reservation)} hs</p>
                               <div className=" border-gray-300 mt-2 pt-2 text-right">
-                                <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.ownerId ? users[reservation.ownerId]?.name || 'Desconocido' : 'Desconocido'}</p>
+                                <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.event.ownerName}</p>
                                 <p className="text-gray-600">
-                                  {reservation.ownerId && users[reservation.ownerId]?.phone ? (
+                                  {reservation.event.ownerName && reservation.event.ownerPhone ? (
                                       <a
-                                          href={`https://api.whatsapp.com/send?phone=${users[reservation.ownerId]?.phone.replace('+', '')}`}
+                                          href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="text-blue-800 underline hover:text-blue-800"
@@ -358,9 +348,44 @@ export const ReservationsView = () => {
                               </div>
                             </div>
                           </Card>
-                        ))
-                    )}
-                  </div>
+                      ))
+                  )}
+                </div>
+              </div>
+              <div>
+                <h2 className="text-lg font-medium mb-4">Reservas canceladas:</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {cancelledReservations.length === 0 ? (
+                      <div className="col-span-full">
+                        <Card className="p-6 text-center text-gray-500">No hay reservas canceladas</Card>
+                      </div>
+                  ) : (
+                      cancelledReservations.map((reservation: Reservation) => (
+                          <Card key={`past-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
+                            <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
+                            <div className="space-y-1">
+                              <p className="text-gray-600">{getRelativeDate(reservation)}</p>
+                              <p className="text-gray-600">{formatTime(reservation)} hs</p>
+                              <div className=" border-gray-300 mt-2 pt-2 text-right">
+                                <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.event.ownerName}</p>
+                                <p className="text-gray-600">
+                                  {reservation.event.ownerName && reservation.event.ownerPhone ? (
+                                      <a
+                                          href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-800 underline hover:text-blue-800"
+                                      >
+                                        Enviar mensaje
+                                      </a>
+                                  ) : 'Sin teléfono'}
+                                </p>
+                              </div>
+                            </div>
+                          </Card>
+                      ))
+                  )}
+                </div>
               </div>
             </>
         )}
