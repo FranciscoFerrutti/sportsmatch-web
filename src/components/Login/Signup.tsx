@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/context/AppContext';
 import type { SignupData } from '@/types/auth';
-import apiClient from '@/apiClients.ts';
+import apiClient, { setBasicAuthHeader } from '@/apiClients.ts';
 
 export const Signup = () => {
   const navigate = useNavigate();
@@ -39,7 +39,17 @@ export const Signup = () => {
       if (response.status === 201) {
         console.log('Registro exitoso');
 
-        const { apiKey, clubId } = response.data;
+        setBasicAuthHeader(formData.email, formData.password);
+        const authResponse = await apiClient.get('/clubauth');
+
+        const apiKey = authResponse.headers['c-api-key'];
+        let clubId: number | null = null;
+
+        if (apiKey) {
+          const payloadBase64 = apiKey.split('.')[1];
+          const decodedPayload = JSON.parse(atob(payloadBase64));
+          clubId = parseInt(decodedPayload.id);
+        }
 
         if (apiKey && clubId) {
           localStorage.setItem('c-api-key', apiKey);
@@ -47,7 +57,7 @@ export const Signup = () => {
           login(apiKey, clubId);
           navigate('/club-location');
         } else {
-          navigate('/club-location');
+          setError('Error al obtener credenciales.');
         }
       }
     } catch (err: any) {
