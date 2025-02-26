@@ -1,4 +1,6 @@
-export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+import {TimeSlot} from "./timeslot.ts";
+
+export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled';
 
 export interface Reservation {
   id: number;
@@ -6,4 +8,7 @@ export interface Reservation {
   date: string;
   time: string;
   status: ReservationStatus;
+  cost: number;
+  timeSlots?: TimeSlot[];
+  ownerId?: number;
 }
