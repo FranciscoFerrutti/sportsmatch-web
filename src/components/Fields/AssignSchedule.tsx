@@ -147,7 +147,7 @@ export const AssignSchedule = () => {
         ));
     };
 
-    const getNextDateForDay = (dayName: string): string => {
+    const getNextDatesForDay = (dayName: string): string[] => {
         const today = new Date();
         const todayIndex = today.getDay();
         const targetIndex = DAYS_OF_WEEK.indexOf(dayName);
@@ -157,11 +157,16 @@ export const AssignSchedule = () => {
         let daysToAdd = targetIndex - todayIndex;
         if (daysToAdd < 0) daysToAdd += 7;
 
-        const targetDate = new Date();
-        targetDate.setDate(today.getDate() + daysToAdd);
+        const dates = [];
+        for (let i = 0; i < 12; i++) {
+            const targetDate = new Date();
+            targetDate.setDate(today.getDate() + daysToAdd + (i * 7));
+            dates.push(targetDate.toISOString().split("T")[0]);
+        }
 
-        return targetDate.toISOString().split("T")[0];
+        return dates;
     };
+
 
     const formatTime = (time: string): string => {
         return time ? time.slice(0, 5) : "";
@@ -185,14 +190,25 @@ export const AssignSchedule = () => {
             const existingSlots: TimeSlot[] = await fetchExistingTimeSlots();
 
             if (existingSlots.length > 0) {
-                await Promise.all(
-                    existingSlots.map(slot =>
-                        apiClient.delete(`/fields/${id}/availability/${slot.id}`, {
-                            headers: { "c-api-key": apiKey },
-                        })
-                    )
-                );
+                console.log(`⏳ Eliminando ${existingSlots.length} time slots en batches...`);
+
+                const batchSize = 10; // Tamaño del lote
+                for (let i = 0; i < existingSlots.length; i += batchSize) {
+                    const batch = existingSlots.slice(i, i + batchSize);
+
+                    await Promise.allSettled(
+                        batch.map(slot =>
+                            apiClient.delete(`/fields/${id}/availability/${slot.id}`, {
+                                headers: { "c-api-key": apiKey },
+                            })
+                        )
+                    );
+
+                    console.log(`🗑️ Batch DELETE ${i / batchSize + 1} completado`);
+                }
             }
+
+            console.log("✅ Eliminación completada. Creando nuevos time slots...");
 
             const newSlots: Omit<TimeSlot, "id">[] = [];
 
@@ -200,29 +216,43 @@ export const AssignSchedule = () => {
                 if (slot.closed || !slot.startTime || !slot.endTime) continue;
 
                 const slotsToCreate = generateTimeSlots(slot.startTime, slot.endTime, slotDuration!);
-                const availabilityDate = getNextDateForDay(slot.day);
+                const availabilityDates = getNextDatesForDay(slot.day);
 
-                for (const timeSlot of slotsToCreate) {
-                    newSlots.push({
-                        availabilityDate: availabilityDate,
-                        startTime: formatTime(timeSlot.startTime),
-                        endTime: formatTime(timeSlot.endTime),
-                        slotStatus: "available",
-                    });
+                for (const date of availabilityDates) {
+                    for (const timeSlot of slotsToCreate) {
+                        newSlots.push({
+                            availabilityDate: date,
+                            startTime: formatTime(timeSlot.startTime),
+                            endTime: formatTime(timeSlot.endTime),
+                            slotStatus: "available",
+                        });
+                    }
                 }
             }
 
-            if (newSlots.length > 0) {
-                await Promise.all(
-                    newSlots.map(slot =>
+            if (newSlots.length === 0) {
+                console.error("⚠️ No se generaron nuevos time slots.");
+                return;
+            }
+
+            console.log(`⏳ Creando ${newSlots.length} nuevos time slots en batches...`);
+
+            const batchSize = 10; // Tamaño de cada lote
+            for (let i = 0; i < newSlots.length; i += batchSize) {
+                const batch = newSlots.slice(i, i + batchSize);
+
+                await Promise.allSettled(
+                    batch.map(slot =>
                         apiClient.post(`/fields/${id}/availability`, slot, {
                             headers: { "c-api-key": apiKey },
                         })
                     )
                 );
-            } else {
-                console.error("⚠️ No se generaron nuevos time slots.");
+
+                console.log(`✅ Batch POST ${i / batchSize + 1} completado`);
             }
+
+            console.log("🚀 Todos los time slots han sido creados exitosamente.");
         } catch (error) {
             console.error("❌ Error al sincronizar time slots:", error);
             throw error;
