@@ -180,8 +180,8 @@ export const HomeView = () => {
     };
 
     const isTomorrow = (dateStr: string) => {
-        const tomorrow = dayjs().add(1, 'day').startOf('day'); // Tomar el inicio del día siguiente
-        const givenDate = dayjs(dateStr).startOf('day'); // Convertir la fecha de la reserva
+        const tomorrow = dayjs().add(1, 'day').startOf('day');
+        const givenDate = dayjs(dateStr).startOf('day');
         return tomorrow.isSame(givenDate, 'day');
     };
 
@@ -192,7 +192,7 @@ export const HomeView = () => {
         let date = "";
 
         if (reservation.status === 'pending' && reservation.timeSlot) {
-            date = reservation.timeSlot.date;
+            date = reservation.timeSlot.availabilityDate;
         }
 
         else if (reservation.event?.schedule) {
