@@ -41,7 +41,7 @@ export const ModifyFieldsForm = () => {
           id: fieldResponse.data.id,
           name: fieldResponse.data.name,
           description: fieldResponse.data.description,
-          cost: fieldResponse.data.cost_per_minute,
+          cost: fieldResponse.data.cost_per_slot,
           capacity: fieldResponse.data.capacity,
           slot_duration: fieldResponse.data.slot_duration,
           sports: fieldResponse.data.sports || [],

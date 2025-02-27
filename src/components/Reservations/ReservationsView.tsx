@@ -15,8 +15,6 @@ dayjs.locale('es');
 
 export const ReservationsView = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [fields, setFields] = useState<Record<number, string>>({});
-  const [users, setUsers] = useState<Record<number, { name: string; phone: string }>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const { clubId } = useAuth();
@@ -47,12 +45,13 @@ export const ReservationsView = () => {
                 field: {
                   id: detailsResponse.data.field?.id,
                   name: detailsResponse.data.field?.name,
-                  cost: detailsResponse.data.field?.cost_per_minute || 0,
+                  cost: detailsResponse.data.field?.cost || 0,
                   description: detailsResponse.data.field?.description || '',
                   capacity: detailsResponse.data.field?.capacity || 0,
                   slot_duration: detailsResponse.data.field?.slot_duration || 0,
                   clubName: detailsResponse.data.field?.club?.name || "Desconocido"
                 },
+                timeSlot: reservation.timeSlots[0],
                 event: {
                   id: detailsResponse.data.event?.id,
                   ownerId: detailsResponse.data.event?.ownerId,
@@ -112,10 +111,9 @@ export const ReservationsView = () => {
         headers: { 'c-api-key': apiKey },
       });
 
-      console.log(`✅ Reserva ID ${reservationId} aceptada.`);
       fetchReservations();
     } catch (error) {
-      console.error('❌ Error al aceptar la reserva:', error);
+      console.error('Error al aceptar la reserva:', error);
       alert('No se pudo aceptar la reserva.');
     }
   };
@@ -133,7 +131,6 @@ export const ReservationsView = () => {
         headers: { 'c-api-key': apiKey },
       });
 
-      console.log(`❌ Reserva ID ${reservationId} rechazada.`);
       fetchReservations();
     } catch (error) {
       console.error('Error al rechazar la reserva:', error);
@@ -147,8 +144,10 @@ export const ReservationsView = () => {
   };
 
   const formatTime = (reservation: Reservation) => {
-    if (reservation.status === 'pending' && reservation.timeSlots && reservation.timeSlots?.length > 0) {
-      return reservation.timeSlots[0].startTime.slice(0, 5);
+    if (reservation.status === 'pending' && reservation.timeSlot) {
+      return reservation.timeSlot.startTime !== "Hora no disponible"
+          ? reservation.timeSlot.startTime.slice(0, 5)
+          : "Hora no disponible";
     }
 
     if (reservation.event?.schedule) {
@@ -158,18 +157,20 @@ export const ReservationsView = () => {
     return "Hora no disponible";
   };
 
+
   const now = dayjs();
 
   const pendingReservations = reservations
       .filter(r => r.status === 'pending')
       .sort((a, b) => {
-        const dateA = a.timeSlots?.[0]?.date || "";
-        const dateB = b.timeSlots?.[0]?.date || "";
-        const timeA = a.timeSlots?.[0]?.startTime || "";
-        const timeB = b.timeSlots?.[0]?.startTime || "";
+        const dateA = a.timeSlot?.availabilityDate || "";
+        const dateB = b.timeSlot?.availabilityDate || "";
+        const timeA = a.timeSlot?.startTime || "";
+        const timeB = b.timeSlot?.startTime || "";
 
         return dayjs(`${dateA} ${timeA}`).valueOf() - dayjs(`${dateB} ${timeB}`).valueOf();
       });
+
 
   const upcomingReservations = reservations
       .filter(r => r.status === 'confirmed' && dayjs(r.event.schedule).isAfter(now))
@@ -201,8 +202,8 @@ export const ReservationsView = () => {
 
     let date = "";
 
-    if (reservation.status === 'pending' && reservation.timeSlots && reservation.timeSlots.length > 0) {
-      date = reservation.timeSlots[0].date;
+    if (reservation.status === 'pending' && reservation.timeSlot) {
+      date = reservation.timeSlot.date;
     }
 
     else if (reservation.event?.schedule) {
@@ -228,7 +229,7 @@ export const ReservationsView = () => {
             <>
               <div className="mb-8">
                 <h2 className="text-lg font-medium mb-4">Reservas pendientes de aprobación</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {pendingReservations.length === 0 ? (
                       <div className="col-span-full">
                         <Card className="p-6 text-center text-gray-500">No hay reservas pendientes</Card>
@@ -236,8 +237,6 @@ export const ReservationsView = () => {
                   ) : (
                       pendingReservations.map((reservation: Reservation) => (
                           <Card key={`reservation-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
-                            <div className="flex justify-between items-start">
-                              <div>
                                 <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
                                 <div className="space-y-1">
                                   <p className="text-gray-600">{getRelativeDate(reservation)}</p>
@@ -258,25 +257,23 @@ export const ReservationsView = () => {
                                     </p>
                                   </div>
                                 </div>
-                              </div>
-                              <div className="flex space-x-2">
-                                <Button variant="outline"
-                                        className="text-green-600 border-green-600 hover:bg-green-50"
-                                        onClick={() => handleAccept(reservation.id)}>
-                                  Aceptar
-                                </Button>
-                                <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50"
-                                        onClick={() => handleReject(reservation.id)}>
-                                  Rechazar
-                                </Button>
-                              </div>
-                            </div>
+                                <div className="mt4 flex gap-2">
+                                  <Button variant="outline"
+                                          className="text-green-600 border-green-600 hover:bg-green-50"
+                                          onClick={() => handleAccept(reservation.id)}>
+                                    Aceptar
+                                  </Button>
+                                  <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50"
+                                          onClick={() => handleReject(reservation.id)}>
+                                    Rechazar
+                                  </Button>
+                                </div>
                           </Card>
                       ))
                   )}
                 </div>
               </div>
-              <div>
+              <div className="mb-8">
                 <h2 className="text-lg font-medium mb-4">Próximas reservas</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {upcomingReservations.length === 0 ? (
@@ -317,7 +314,7 @@ export const ReservationsView = () => {
                   )}
                 </div>
               </div>
-              <div>
+              <div className="mb-8">
                 <h2 className="text-lg font-medium mb-4">Reservas pasadas</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {pastReservations.length === 0 ? (
@@ -352,7 +349,7 @@ export const ReservationsView = () => {
                   )}
                 </div>
               </div>
-              <div>
+              <div className="mb-8">
                 <h2 className="text-lg font-medium mb-4">Reservas canceladas:</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {cancelledReservations.length === 0 ? (

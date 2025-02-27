@@ -12,5 +12,5 @@ export interface Reservation {
   time: string;
   status: ReservationStatus;
   cost: number;
-  timeSlots?: TimeSlot[];
+  timeSlot?: TimeSlot
 }
