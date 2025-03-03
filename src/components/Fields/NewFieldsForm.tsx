@@ -42,11 +42,7 @@ export const NewFieldsForm = () => {
     fetchSports();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
+  const validateFields = () => {
     const errors: { [key: string]: string } = {};
 
     if (!formData.name.trim()) errors.name = "El nombre es obligatorio.";
@@ -59,8 +55,16 @@ export const NewFieldsForm = () => {
     if (Number(formData.slot_duration) > 0 && Number(formData.slot_duration) % 30 !== 0) errors.slot_duration = "La duración debe ser múltiplo de 30.";
     if (formData.sports.length === 0) errors.sports = "Seleccione al menos un deporte.";
 
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    if (!validateFields()) {
       setIsLoading(false);
       return;
     }
@@ -137,97 +141,69 @@ export const NewFieldsForm = () => {
   };
 
   return (
-      <div>
-        <div className="p-4">
-          <Button variant="ghost" onClick={handleBack} className="mb-4">
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 mt-[-40px]">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl">Nueva cancha</h1>
-            <Button type="submit" className="bg-[#000066] hover:bg-[#000088]" disabled={isLoading}>
-              {isLoading ? "Guardando..." : "Asignar horarios"}
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8 flex justify-center">
+        <div className="max-w-3xl w-full">
+          <div className="mb-6">
+            <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="flex items-center text-[#000066] hover:text-[#000088]"
+            >
+              <ChevronLeft className="h-5 w-5 mr-2" /> Volver
             </Button>
           </div>
 
-          {isLoading && <p className="text-blue-600 text-center mb-4">
-            ⏳ Agregando cancha, por favor espere...
-          </p>}
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+            <h1 className="text-2xl font-bold text-[#000066] mb-6">Nueva Cancha</h1>
 
-          <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm">
-            <div className="space-y-4">
-              <div>
-                <label className="block mb-2 font-medium">Nombre:</label>
-                <Input type="text" name="name" value={formData.name} onChange={handleInputChange}
-                       placeholder="Ingrese el nombre de la cancha" className="w-full"/>
-                {formErrors.name && <p className="text-red-600 text-sm mt-1">{formErrors.name}</p>}
-              </div>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <InputField label="Nombre:" name="name" value={formData.name} onChange={handleInputChange} error={formErrors.name} />
+              <InputField label="Descripción:" name="description" value={formData.description} onChange={handleInputChange} error={formErrors.description} />
 
+              {/* Deportes */}
               <div>
-                <label className="block mb-2 font-medium">Descripción:</label>
-                <Input type="text" name="description" value={formData.description} onChange={handleInputChange}
-                       placeholder="Descripción de la cancha" className="w-full"/>
-                {formErrors.description && <p className="text-red-600 text-sm mt-1">{formErrors.description}</p>}
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Deporte:</label>
+                <label className="block font-medium text-gray-700 mb-1">Deporte:</label>
                 <Select name="sports" onChange={handleSportChange} className="w-full">
                   <option value="">Seleccione un deporte</option>
                   {sports.map(sport => (
-                      <option key={sport.id} value={sport.id}>
-                        {sport.name}
-                      </option>
+                      <option key={sport.id} value={sport.id}>{sport.name}</option>
                   ))}
                 </Select>
-                <div className="mt-2">
+                <div className="mt-2 space-y-2">
                   {formData.sports.map(sport => (
-                      <div key={sport.id} className="flex justify-between items-center p-2 bg-gray-100 rounded mt-1">
+                      <div key={sport.id} className="flex justify-between items-center bg-blue-100 text-blue-800 p-2 rounded-lg">
                         <span>{sport.name}</span>
-                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50"
-                                onClick={() => handleRemoveSport(sport.id)}>
+                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50" onClick={() => handleRemoveSport(sport.id)}>
                           Eliminar
                         </Button>
                       </div>
                   ))}
                 </div>
-                {formErrors.sports && <p className="text-red-600 text-sm mt-1">{formErrors.sports}</p>}
+                {formErrors.sports && <p className="text-red-600 text-sm">{formErrors.sports}</p>}
               </div>
 
-              <div>
-                <label className="block mb-2 font-medium">Costo por reserva:</label>
-                <Input type="number" name="cost" value={formData.cost} onChange={handleInputChange}
-                       placeholder="Ingrese el costo" className="w-full" min="0"/>
-                {formErrors.cost && <p className="text-red-600 text-sm mt-1">{formErrors.cost}</p>}
-              </div>
+              <InputField label="Costo por reserva:" name="cost" type="number" value={formData.cost} onChange={handleInputChange} error={formErrors.cost} />
+              <InputField label="Capacidad:" name="capacity" type="number" value={formData.capacity} onChange={handleInputChange} error={formErrors.capacity} />
+              <InputField label="Duración (en minutos):" name="slot_duration" type="number" value={formData.slot_duration} onChange={handleInputChange} error={formErrors.slot_duration} />
 
-              <div>
-                <label className="block mb-2 font-medium">Capacidad:</label>
-                <Input type="number" name="capacity" value={formData.capacity} onChange={handleInputChange}
-                       placeholder="Máximo 30 personas" className="w-full"/>
-                {formErrors.capacity && <p className="text-red-600 text-sm mt-1">{formErrors.capacity}</p>}
-              </div>
+              {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
 
-              <div>
-                <label className="block mb-2 font-medium">Duración (en minutos):</label>
-                <Input
-                    type="number"
-                    name="slot_duration"
-                    value={formData.slot_duration}
-                    onChange={handleInputChange}
-                    placeholder="Múltiplo de 30 minutos"
-                    className="w-full"
-                />
-                {formErrors.slot_duration && <p className="text-red-600 text-sm mt-1">{formErrors.slot_duration}</p>}
+              <div className="flex justify-center mt-6">
+                <Button type="submit" className="bg-[#000066] hover:bg-[#000088]" disabled={isLoading}>
+                  {isLoading ? "Guardando..." : "Asignar horarios"}
+                </Button>
               </div>
-
-            </div>
+            </form>
           </div>
-          {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
-        </form>
+        </div>
       </div>
   );
 };
+
+const InputField = ({ label, error, ...props }) => (
+    <div>
+      <label className="block font-medium text-gray-700 mb-1">{label}</label>
+      <Input className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300" {...props} />
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+    </div>
+);

@@ -22,7 +22,7 @@ export const ModifyProfileView = () => {
 
     const [loading, setLoading] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [ setError] = useState<string | null>(null);
+    const [ error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!clubId || !apiKey) {
