@@ -22,7 +22,7 @@ export const ModifyProfileView = () => {
 
     const [loading, setLoading] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [ setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!clubId || !apiKey) {
@@ -36,7 +36,7 @@ export const ModifyProfileView = () => {
             try {
                 const response = await apiClient.get(`/clubs`, {
                     headers: { 'c-api-key': apiKey },
-                    params: { clubId: clubId}
+                    params: { clubId }
                 });
 
                 setClubData({
@@ -82,12 +82,10 @@ export const ModifyProfileView = () => {
 
             console.log(`✅ Presigned URL recibida: ${presignedUrl}`);
 
-            // **Asegurar que Content-Type coincide**
+            // Subir la imagen a S3
             const uploadResponse = await fetch(presignedUrl, {
                 method: "PUT",
                 body: file,
-                headers: {
-                },
             });
 
             if (!uploadResponse.ok) {
@@ -108,8 +106,7 @@ export const ModifyProfileView = () => {
         }
     };
 
-
-
+    // 📌 Manejo de cambio en la descripción
     const handleDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setClubData(prev => ({ ...prev, description: event.target.value }));
     };
@@ -122,30 +119,28 @@ export const ModifyProfileView = () => {
         try {
             const updatedData: Record<string, any> = {};
 
-            if (!(clubData.description === '' || clubData.description === undefined)){
-                if (clubData.description?.trim()) {
-                    updatedData.description = clubData.description.trim();
-                }
-
-                console.log("📌 Enviando actualización:", updatedData);
-
-                await apiClient.put(`/clubs/${clubId}`, updatedData, {
-                    headers: {
-                        'c-api-key': apiKey,
-                        'Content-Type': 'application/json'
-                    },
-                });
+            if (clubData.description?.trim()) {
+                updatedData.description = clubData.description.trim();
             }
+
+            console.log("📌 Enviando actualización:", updatedData);
+
+            await apiClient.put(`/clubs/${clubId}`, updatedData, {
+                headers: {
+                    'c-api-key': apiKey,
+                    'Content-Type': 'application/json'
+                },
+            });
+
             setLoading(false);
             alert('✅ Cambios guardados con éxito.');
-            navigate('/club-profile')
+            navigate('/club-profile'); // 🔄 Redirigir al perfil
         } catch (error) {
             console.error('❌ Error al guardar cambios:', error);
             setError('No se pudo guardar la información.');
             setLoading(false);
         }
     };
-
 
     return (
         <div className="p-6 max-w-3xl mx-auto">
@@ -154,6 +149,7 @@ export const ModifyProfileView = () => {
             </div>
 
             <Card className="p-6 shadow-lg bg-white rounded-2xl border border-gray-200">
+                {/* 📌 Sección de la imagen */}
                 <div className="flex flex-col items-center">
                     <div className="relative w-32 h-32 mb-4">
                         {imagePreview ? (
@@ -169,17 +165,42 @@ export const ModifyProfileView = () => {
                     <p className="text-sm text-gray-500">Haz clic en el ícono para cambiar la foto</p>
                 </div>
 
-                <div className="mt-6">
-                    <label className="block text-gray-700 font-medium mb-2">Descripción del club:</label>
-                    <textarea
-                        value={clubData.description}
-                        onChange={handleDescriptionChange}
-                        placeholder="Añade una descripción..."
-                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring focus:ring-blue-300"
-                        rows={4}
-                    />
+                {/* 📌 Información del Club */}
+                <div className="mt-6 space-y-4">
+                    <div>
+                        <p className="text-gray-600 text-sm">Nombre del club:</p>
+                        <p className="font-medium text-lg">{clubData.name}</p>
+                    </div>
+
+                    <div>
+                        <p className="text-gray-600 text-sm">Correo electrónico:</p>
+                        <p className="font-medium text-lg">{clubData.email}</p>
+                    </div>
+
+                    <div>
+                        <p className="text-gray-600 text-sm">Teléfono:</p>
+                        <p className="font-medium text-lg">{clubData.phone}</p>
+                    </div>
+
+                    <div>
+                        <p className="text-gray-600 text-sm">Dirección:</p>
+                        <p className="font-medium text-lg">{clubData.address}</p>
+                    </div>
+
+                    {/* 📌 Descripción editable */}
+                    <div className="mt-6">
+                        <label className="block text-gray-700 font-medium mb-2">Descripción del club:</label>
+                        <textarea
+                            value={clubData.description}
+                            onChange={handleDescriptionChange}
+                            placeholder="Añade una descripción..."
+                            className="w-full border border-gray-300 rounded-lg p-3 focus:ring focus:ring-blue-300"
+                            rows={4}
+                        />
+                    </div>
                 </div>
 
+                {/* 📌 Botón de Guardar */}
                 <div className="mt-6 flex justify-center">
                     <Button
                         onClick={handleSaveChanges}

@@ -21,6 +21,7 @@ export const ClubProfileView = () => {
     });
 
     const [error, setError] = useState<string | null>(null);
+    const [imageError, setImageError] = useState<boolean>(false);
 
     useEffect(() => {
         if (!clubId || !apiKey) {
@@ -42,7 +43,7 @@ export const ClubProfileView = () => {
                     email: response.data.email || 'Sin correo',
                     phone: response.data.phone_number || 'Sin teléfono',
                     address: response.data.address || 'Sin dirección',
-                    imageUrl: response.data.imageUrl || '',
+                    imageUrl: response.data.image_url || '',
                     description: response.data.description || '',
                 });
             } catch (error) {
@@ -69,8 +70,13 @@ export const ClubProfileView = () => {
             <Card className="p-6 shadow-lg bg-white rounded-2xl border border-gray-200">
                 <div className="flex flex-col items-center">
                     <div className="relative w-32 h-32 mb-4">
-                        {clubData.imageUrl ? (
-                            <img src={clubData.imageUrl} alt="Club" className="w-full h-full rounded-full object-cover border" />
+                        {!imageError && clubData.imageUrl ? (
+                            <img
+                                src={clubData.imageUrl}
+                                alt="Club"
+                                className="w-full h-full rounded-full object-cover border"
+                                onError={() => setImageError(true)}
+                            />
                         ) : (
                             <UserCircle className="w-full h-full text-gray-400" />
                         )}
