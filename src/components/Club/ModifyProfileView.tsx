@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Upload, Camera, Save, UserCircle, LogOut } from 'lucide-react';
+import { Camera, Save, UserCircle } from 'lucide-react';
 import apiClient from '@/apiClients';
 import { useAuth } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
-export const ProfileView = () => {
+export const ModifyProfileView = () => {
     const { clubId, logout } = useAuth();
     const navigate = useNavigate();
     const apiKey = localStorage.getItem('c-api-key');
@@ -36,7 +36,7 @@ export const ProfileView = () => {
             try {
                 const response = await apiClient.get(`/clubs`, {
                     headers: { 'c-api-key': apiKey },
-                    params: { clubId }
+                    params: { clubId: clubId}
                 });
 
                 setClubData({
@@ -60,40 +60,51 @@ export const ProfileView = () => {
         fetchClubData();
     }, [clubId, apiKey, logout, navigate]);
 
-    // 📌 Nuevo método: Obtener una URL pre-firmada y subir la imagen a S3
+    // 📌 Manejo de subida de imagen
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        setLoading(true);
+
         try {
-            // 1️⃣ Pedir la URL pre-firmada al backend
-            const res = await apiClient.put(`/clubs/${clubId}/image`, null, {
-                headers: { 'c-api-key': apiKey },
+            console.log("📌 Solicitando URL pre-firmada...");
+            const uploadResult = await apiClient.put(`/clubs/${clubId}/image`, null, {
+                headers: { 'c-api-key': apiKey, 'Content-Type': file.type },
             });
 
-            if (!res.data.presignedPutUrl) {
-                throw new Error('No se pudo obtener la URL pre-firmada.');
+            if (!uploadResult.data.presignedPutUrl) {
+                throw new Error("No se pudo obtener la URL pre-firmada.");
             }
 
-            const presignedUrl = res.data.presignedPutUrl;
+            const presignedUrl = uploadResult.data.presignedPutUrl;
+            const imageUrl = uploadResult.data.imageUrl;
 
-            // 2️⃣ Subir la imagen a S3 usando la URL pre-firmada
+            console.log(`✅ Presigned URL recibida: ${presignedUrl}`);
+
+            // **Asegurar que Content-Type coincide**
             const uploadResponse = await fetch(presignedUrl, {
                 method: "PUT",
                 body: file,
-                headers: { "Content-Type": file.type },  // 🔥 IMPORTANTE: Asegura que tenga `Content-Type`
+                headers: {
+                },
             });
 
             if (!uploadResponse.ok) {
-                throw new Error("Error al subir la imagen.");
+                throw new Error(`Error al subir la imagen: ${uploadResponse.status} - ${uploadResponse.statusText}`);
             }
 
-            // 3️⃣ Mostrar la imagen en el frontend
-            setImagePreview(URL.createObjectURL(file));
-            alert("✅ Imagen subida con éxito.");
+            console.log("✅ Imagen subida a S3 correctamente.");
+
+            setImagePreview(imageUrl);
+            setClubData(prev => ({ ...prev, imageUrl }));
+
+            alert("✅ Imagen actualizada con éxito.");
         } catch (error) {
             console.error("❌ Error al subir imagen:", error);
             setError("No se pudo subir la imagen.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -103,22 +114,31 @@ export const ProfileView = () => {
         setClubData(prev => ({ ...prev, description: event.target.value }));
     };
 
+    // 📌 Guardar cambios (imagen y descripción)
     const handleSaveChanges = async () => {
         setLoading(true);
         setError(null);
 
         try {
-            const updatedData = {
-                imageUrl: imagePreview || clubData.imageUrl,
-                description: clubData.description,
-            };
+            const updatedData: Record<string, any> = {};
 
-            await apiClient.put(`/clubs/${clubId}`, updatedData, {
-                headers: { 'c-api-key': apiKey },
-            });
+            if (!(clubData.description === '' || clubData.description === undefined)){
+                if (clubData.description?.trim()) {
+                    updatedData.description = clubData.description.trim();
+                }
 
+                console.log("📌 Enviando actualización:", updatedData);
+
+                await apiClient.put(`/clubs/${clubId}`, updatedData, {
+                    headers: {
+                        'c-api-key': apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                });
+            }
             setLoading(false);
             alert('✅ Cambios guardados con éxito.');
+            navigate('/club-profile')
         } catch (error) {
             console.error('❌ Error al guardar cambios:', error);
             setError('No se pudo guardar la información.');
@@ -126,19 +146,14 @@ export const ProfileView = () => {
         }
     };
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
 
     return (
         <div className="p-6 max-w-3xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-[#000066]">Perfil del Club</h1>
+                <h1 className="text-2xl font-bold text-[#000066]">Editar Perfil del Club</h1>
             </div>
 
             <Card className="p-6 shadow-lg bg-white rounded-2xl border border-gray-200">
-                {/* 📌 Sección de la imagen */}
                 <div className="flex flex-col items-center">
                     <div className="relative w-32 h-32 mb-4">
                         {imagePreview ? (
@@ -154,45 +169,17 @@ export const ProfileView = () => {
                     <p className="text-sm text-gray-500">Haz clic en el ícono para cambiar la foto</p>
                 </div>
 
-                {/* Información del Club */}
-                <div className="mt-6 space-y-4">
-                    <div>
-                        <p className="text-gray-600 text-sm">Nombre del club:</p>
-                        <p className="font-medium text-lg">{clubData.name}</p>
-                    </div>
-
-                    <div>
-                        <p className="text-gray-600 text-sm">Correo electrónico:</p>
-                        <p className="font-medium text-lg">{clubData.email}</p>
-                    </div>
-
-                    <div>
-                        <p className="text-gray-600 text-sm">Teléfono:</p>
-                        <p className="font-medium text-lg">{clubData.phone}</p>
-                    </div>
-
-                    <div>
-                        <p className="text-gray-600 text-sm">Dirección:</p>
-                        <p className="font-medium text-lg">{clubData.address}</p>
-                    </div>
-                </div>
-
-                {/* Sección de descripción */}
                 <div className="mt-6">
                     <label className="block text-gray-700 font-medium mb-2">Descripción del club:</label>
                     <textarea
                         value={clubData.description}
                         onChange={handleDescriptionChange}
-                        placeholder="Añade una descripción sobre tu club..."
+                        placeholder="Añade una descripción..."
                         className="w-full border border-gray-300 rounded-lg p-3 focus:ring focus:ring-blue-300"
                         rows={4}
                     />
                 </div>
 
-                {/* Mensaje de error */}
-                {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-
-                {/* Botón de Guardar */}
                 <div className="mt-6 flex justify-center">
                     <Button
                         onClick={handleSaveChanges}
