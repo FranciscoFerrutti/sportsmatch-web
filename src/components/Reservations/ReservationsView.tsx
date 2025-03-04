@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { useAuth } from '@/context/AppContext';
-import {PlusCircle, UserCircle} from "lucide-react";
+import {UserCircle} from "lucide-react";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -149,11 +149,8 @@ export const ReservationsView = () => {
         <h1 className="text-2xl font-bold text-[#000066]">Reservas</h1>
 
         {/* Botón para abrir el modal de nueva reserva */}
-        <Button
-            className="bg-[#000066] hover:bg-[#000088] text-white flex items-center px-4 py-2 rounded-lg"
-            onClick={() => setIsModalOpen(true)}
-        >
-          <PlusCircle className="w-5 h-5 mr-2" /> Nueva Reserva
+        <Button className="bg-[#000066] hover:bg-[#000088] text-white px-6 py-2 rounded-lg shadow-md" onClick={() => setIsModalOpen(true)}>
+          + Nueva Reserva
         </Button>
 
         {loading ? (
