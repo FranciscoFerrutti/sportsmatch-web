@@ -14,6 +14,7 @@ import {AssignSchedule} from "./components/Fields/AssignSchedule.tsx";
 import { LocationSelector } from '@/components/Club/LocationSelector';
 import {ModifyProfileView} from "./components/Club/ModifyProfileView.tsx";
 import {ClubProfileView} from "./components/Club/ClubProfileView.tsx";
+import {FieldDetailView} from "./components/Fields/FieldDetailView.tsx";
 
 function AppContent() {
   const location = useLocation();
@@ -29,6 +30,7 @@ function AppContent() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<PrivateRoute><HomeView /></PrivateRoute>} />
           <Route path="/fields" element={<PrivateRoute><FieldsView /></PrivateRoute>} />
+          <Route path="/fields/:id" element={<PrivateRoute><FieldDetailView /></PrivateRoute>} />
           <Route path="/fields/new" element={<PrivateRoute><NewFieldsForm /></PrivateRoute>} />
           <Route path="/fields/:id/edit" element={<PrivateRoute><ModifyFieldsForm /></PrivateRoute>} />
           <Route path="/fields/:id/schedule" element={<PrivateRoute><AssignSchedule /></PrivateRoute>} />

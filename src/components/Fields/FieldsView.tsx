@@ -92,7 +92,10 @@ export const FieldsView = () => {
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {fields.map(field => (
-                  <Card key={field.id} className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
+                  <Card
+                      key={field.id}
+                      className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white"
+                  >
                     <CardHeader>
                       <CardTitle>{field.name}</CardTitle>
                     </CardHeader>
@@ -110,8 +113,8 @@ export const FieldsView = () => {
                     </CardContent>
 
                     <CardFooter className="flex justify-between">
-                      <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => navigate(`/fields/${field.id}/edit`)}>
-                        Modificar
+                      <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => navigate(`/fields/${field.id}`)}>
+                        Ver detalles
                       </Button>
                       <Button className="bg-red-500 text-white hover:bg-red-600" onClick={() => handleDeleteField(field.id)}>
                         Eliminar
