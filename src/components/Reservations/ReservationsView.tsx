@@ -146,12 +146,16 @@ export const ReservationsView = () => {
 
   return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
-        <h1 className="text-2xl font-bold text-[#000066]">Reservas</h1>
+        
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-[#000066]">Reservas</h1>
 
-        {/* Botón para abrir el modal de nueva reserva */}
-        <Button className="bg-[#000066] hover:bg-[#000088] text-white px-6 py-2 rounded-lg shadow-md" onClick={() => setIsModalOpen(true)}>
-          + Nueva Reserva
-        </Button>
+          {/* Botón para abrir el modal de nueva reserva */}
+          <Button className="bg-[#000066] hover:bg-[#000088] text-white px-6 py-2 rounded-lg shadow-md"
+                  onClick={() => setIsModalOpen(true)}>
+            + Nueva Reserva
+          </Button>
+        </div>
 
         {loading ? (
             <p className="text-center text-gray-500">Cargando reservas...</p>
@@ -262,7 +266,8 @@ export const ReservationsView = () => {
                                 </CardHeader>
 
                                 <CardContent>
-                                  <div className="border-t border-gray-300 pt-2 text-right flex justify-end items-center gap-3">
+                                  <div
+                                      className="border-t border-gray-300 pt-2 text-right flex justify-end items-center gap-3">
                                     {reservation.event.ownerImage ? (
                                         <img
                                             src={reservation.event.ownerImage}
@@ -370,7 +375,7 @@ export const ReservationsView = () => {
         )}
 
         {/* Modal para nueva reserva */}
-        <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}/>
       </div>
   );
 };
