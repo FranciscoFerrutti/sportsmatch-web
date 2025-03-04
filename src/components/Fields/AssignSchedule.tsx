@@ -209,9 +209,8 @@ export const AssignSchedule = () => {
             const existingSlots: TimeSlot[] = await fetchExistingTimeSlots();
 
             if (existingSlots.length > 0) {
-                console.log(`⏳ Eliminando ${existingSlots.length} time slots en batches...`);
 
-                const batchSize = 10; // Tamaño del lote
+                const batchSize = 50;
                 for (let i = 0; i < existingSlots.length; i += batchSize) {
                     const batch = existingSlots.slice(i, i + batchSize);
 
@@ -256,7 +255,7 @@ export const AssignSchedule = () => {
 
             console.log(`⏳ Creando ${newSlots.length} nuevos time slots en batches...`);
 
-            const batchSize = 10; // Tamaño de cada lote
+            const batchSize = 50;
             for (let i = 0; i < newSlots.length; i += batchSize) {
                 const batch = newSlots.slice(i, i + batchSize);
 

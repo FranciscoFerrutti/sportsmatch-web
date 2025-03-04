@@ -5,16 +5,20 @@ import { Field } from "../../types";
 import { TimeSlot } from "../../types/timeslot.ts";
 import { useAuth } from "../../context/AppContext.tsx";
 import dayjs from 'dayjs';
-
-const ORDERED_DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {DAYS_OF_WEEK} from "../../utils/constants.ts";
 
 const CalendarView = () => {
   const [fields, setFields] = useState<Field[]>([]);
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0);
   const apiKey = localStorage.getItem('c-api-key');
   const { clubId } = useAuth();
+  const [slotDuration, setSlotDuration] = useState<number | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<{ day: string, hour: string, slot: TimeSlot } | null>(null);
+
 
   useEffect(() => {
     fetchFields();
@@ -24,7 +28,19 @@ const CalendarView = () => {
     if (selectedField) {
       fetchTimeSlots(selectedField);
     }
-  }, [selectedField]);
+  }, [selectedField, weekOffset]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectedSlot && !document.getElementById("slot-dropdown")?.contains(event.target as Node)) {
+        setSelectedSlot(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [selectedSlot]);
+
 
   const fetchFields = async () => {
     try {
@@ -51,12 +67,18 @@ const CalendarView = () => {
 
     setLoading(true);
     try {
-      const startDate = dayjs().startOf('week').add(1, 'day').format('YYYY-MM-DD');
-      const endDate = dayjs().endOf('week').add(1, 'day').format('YYYY-MM-DD');
+      const startOfCurrentWeek = dayjs().startOf('week').add(weekOffset * 7, 'day');
+
+      const startDate = startOfCurrentWeek.format('YYYY-MM-DD');
+      const endDate = startOfCurrentWeek.endOf('week').format('YYYY-MM-DD');
 
       const response = await apiClient.get(`/fields/${fieldId}/availability`, {
         headers: { "c-api-key": apiKey },
         params: { startDate, endDate },
+      });
+
+      const fieldsResponse = await apiClient.get(`/fields/${fieldId}`, {
+        headers: { "c-api-key": apiKey },
       });
 
       const formattedSlots = response.data.map((slot: any) => ({
@@ -65,15 +87,15 @@ const CalendarView = () => {
         availabilityDate: slot.availability_date,
         startTime: slot.start_time,
         endTime: slot.end_time,
-        slotStatus: slot.slotStatus,
+        slotStatus: slot.slotStatus
       }));
 
-      formattedSlots.sort((a: { availabilityDate: string; startTime: string; }, b: { availabilityDate: any; startTime: any; }) => {
+      formattedSlots.sort((a, b) => {
         const dateComparison = a.availabilityDate.localeCompare(b.availabilityDate);
-        if (dateComparison !== 0) return dateComparison;
-        return a.startTime.localeCompare(b.startTime);
+        return dateComparison !== 0 ? dateComparison : a.startTime.localeCompare(b.startTime);
       });
 
+      setSlotDuration(fieldsResponse.data.slot_duration)
       setTimeSlots(formattedSlots);
       setLoading(false);
     } catch (error) {
@@ -84,8 +106,8 @@ const CalendarView = () => {
   };
 
   const generateTimeSlots = (): string[] => {
-    if (timeSlots.length === 0) {
-      console.warn("⚠️ No hay timeslots disponibles.");
+    if (!slotDuration || timeSlots.length === 0) {
+      console.warn("⚠️ No hay timeslots disponibles o no se ha definido slotDuration.");
       return [];
     }
 
@@ -96,7 +118,7 @@ const CalendarView = () => {
     let currentHour = firstTime;
 
     while (currentHour < lastTime) {
-      let nextHour = dayjs(`2025-01-01T${currentHour}`).add(30, "minute").format("HH:mm:ss");
+      let nextHour = dayjs(`2025-01-01T${currentHour}`).add(slotDuration, "minute").format("HH:mm:ss");
       timeArray.push(`${currentHour.substring(0, 5)} - ${nextHour.substring(0, 5)}`);
       currentHour = nextHour;
     }
@@ -114,30 +136,176 @@ const CalendarView = () => {
         slot.endTime > normalizedHour
     );
 
-    const statusMap: Record<string, string> = {
-      'available': 'Disponible',
-      'booked': 'Reservado',
-      'maintenance': 'Mantenimiento',
-      'No disponible': 'No disponible'
-    };
+    if (!foundSlot) return "No disponible";
+    if (foundSlot.slotStatus === "maintenance") return "No disponible";
+    if (foundSlot.slotStatus === "available") return "Disponible";
+    if (foundSlot.slotStatus === "booked") return "Reservado";
 
-    return statusMap[foundSlot?.slotStatus || 'No disponible'];
+    return "No disponible";
+  };
+
+
+  const handleSlotClick = (day: string, hour: string) => {
+    const dateString = getWeekDayDate(day);
+    const normalizedHour = hour.length === 5 ? `${hour}:00` : hour;
+
+    let foundSlot: TimeSlot | undefined = timeSlots.find(slot =>
+        slot.availabilityDate === dateString &&
+        slot.startTime <= normalizedHour &&
+        slot.endTime > normalizedHour
+    );
+
+    if (!foundSlot) {
+      foundSlot = {
+        id: -1,
+        availabilityDate: dateString,
+        startTime: normalizedHour,
+        endTime: dayjs(`2025-01-01T${normalizedHour}`).add(slotDuration, "minute").format("HH:mm:ss"),
+        slotStatus: "maintenance"
+      };
+    }
+    setSelectedSlot({ day, hour, slot: foundSlot });
+  };
+
+  const updateSlotStatus = async (newStatus: string) => {
+    if (!selectedSlot) return;
+    const { slot } = selectedSlot;
+
+    try {
+      if (slot.slotStatus === "booked") {
+        if (slot.reservationId) {
+          await handleCancelReservation(slot.reservationId);
+        }
+
+        if (newStatus === "available") {
+          await updateTimeSlot(slot.id, "available");
+        } else if (newStatus === "maintenance") {
+          await deleteTimeSlot(slot.id);
+        }
+      }
+
+      else if (slot.slotStatus === "available") {
+        if (newStatus === "maintenance") {
+          await deleteTimeSlot(slot.id);
+        } else if (newStatus === "booked") {
+          await updateTimeSlot(slot.id, "booked");
+        }
+      }
+
+      else if (slot.slotStatus === "maintenance") {
+        if (newStatus === "available") {
+          await createTimeSlot(slot.availabilityDate, slot.startTime, slot.endTime, "available");
+        } else if (newStatus === "booked") {
+          await createTimeSlot(slot.availabilityDate, slot.startTime, slot.endTime, "booked");
+        }
+      }
+
+      setSelectedSlot(null);
+    } catch (error) {
+      console.error("❌ Error al actualizar slot:", error);
+    }
+  };
+
+  const updateTimeSlot = async (slotId: number, status: string) => {
+    await apiClient.patch(`/fields/${selectedField}/availability/${slotId}/status`, {
+      slotStatus: status
+    }, { headers: { "c-api-key": apiKey } });
+
+    setTimeSlots(prev =>
+        prev.map(s => s.id === slotId ? { ...s, slotStatus: status } : s)
+    );
+  };
+
+
+  const deleteTimeSlot = async (slotId: number) => {
+    try {
+      const slot = timeSlots.find(s => s.id === slotId);
+
+      if (slot?.reservationId) {
+        await handleCancelReservation(slot.reservationId);
+      }
+
+      await apiClient.delete(`/fields/${selectedField}/availability/${slotId}`, {
+        headers: { "c-api-key": apiKey }
+      });
+
+      setTimeSlots(prev => prev.filter(s => s.id !== slotId));
+    } catch (error) {
+      console.error("❌ Error al eliminar el timeslot:", error);
+    }
+  };
+
+
+  const createTimeSlot = async (date: string, start: string, end: string, status: string) => {
+    const formattedStart = start.substring(0, 5);
+    const formattedEnd = end.substring(0, 5);
+
+    const response = await apiClient.post(`/fields/${selectedField}/availability`, {
+      availabilityDate: date,
+      startTime: formattedStart,
+      endTime: formattedEnd,
+      slotStatus: status
+    }, { headers: { "c-api-key": apiKey } });
+
+    setTimeSlots(prev => [...prev, response.data]);
+  };
+
+
+  const handleCancelReservation = async (reservationId: number) => {
+    try {
+      await apiClient.patch(`/reservations/${reservationId}/status`, {
+        status: 'cancelled'
+      }, {
+        headers: { 'c-api-key': apiKey },
+      });
+
+      setTimeSlots(prev =>
+          prev.map(s => s.reservationId === reservationId ? { ...s, eventId: null, slotStatus: "available" } : s)
+      );
+
+      setSelectedSlot(null);
+    } catch (error) {
+      console.error("❌ Error al cancelar reserva:", error);
+    }
+  };
+
+  const getStatusOptions = (slot: TimeSlot) => {
+    if (slot.slotStatus === "available") {
+      return [
+        { label: "Marcar como ocupado", action: () => updateSlotStatus("booked") },
+        { label: "Marcar como no disponible", action: () => updateSlotStatus("maintenance") }
+      ];
+    } else if (slot.slotStatus === "booked") {
+      return slot.reservationId
+          ? [{ label: "Cancelar reserva", action: () => handleCancelReservation(slot.reservationId) }]
+          : [
+            { label: "Marcar como disponible", action: () => updateSlotStatus("available") },
+            { label: "Marcar como no disponible", action: () => updateSlotStatus("maintenance") }
+          ];
+    } else {
+      return [
+        { label: "Marcar como disponible", action: () => updateSlotStatus("available") },
+        { label: "Marcar como ocupado", action: () => updateSlotStatus("booked") }
+      ];
+    }
   };
 
   const getWeekDayDate = (day: string) => {
-    const startOfWeek = dayjs().startOf('week').add(1, 'day');
-    const index = ORDERED_DAYS.indexOf(day);
+    const startOfWeek = dayjs().startOf('week').add(weekOffset * 7, 'day');
+    const index = DAYS_OF_WEEK.indexOf(day);
     return startOfWeek.add(index, 'day').format("YYYY-MM-DD");
   };
 
   const getStatusClass = (status: string) => {
+    const normalizedStatus = status === "maintenance" ? "No disponible" : status;
+
     const classes = {
       'Disponible': 'bg-green-100 text-green-800',
       'Reservado': 'bg-red-100 text-red-800',
-      'Mantenimiento': 'bg-gray-100 text-gray-800',
-      'No disponible': 'bg-gray-200 text-gray-600',
+      'No disponible': 'bg-gray-200 text-gray-600'
     } as const;
-    return classes[status as keyof typeof classes] || 'bg-gray-200 text-gray-600';
+
+    return classes[normalizedStatus as keyof typeof classes] || 'bg-gray-200 text-gray-600';
   };
 
   const timeSlotsFormatted = generateTimeSlots();
@@ -161,6 +329,27 @@ const CalendarView = () => {
           </Select>
         </div>
 
+        {slotDuration && (
+            <p className="text-center text-gray-700 font-medium mb-2">
+              Duración del slot: {slotDuration} minutos
+            </p>
+        )}
+
+        <div className="flex justify-between items-center mb-4">
+          <button onClick={() => setWeekOffset(weekOffset - 1)}
+                  className="p-2 border rounded-md bg-gray-100 hover:bg-gray-200">
+            <ChevronLeft className="h-5 w-5"/>
+          </button>
+          <span className="text-lg font-medium">
+          {dayjs().startOf('week').add(weekOffset * 7, 'day').format("DD MMM")} -
+            {dayjs().endOf('week').add(weekOffset * 7, 'day').format("DD MMM")}
+        </span>
+          <button onClick={() => setWeekOffset(weekOffset + 1)}
+                  className="p-2 border rounded-md bg-gray-100 hover:bg-gray-200">
+            <ChevronRight className="h-5 w-5"/>
+          </button>
+        </div>
+
         {/* Tabla de horarios */}
         {loading ? (
             <p className="text-center text-gray-500">Cargando timeslots...</p>
@@ -170,8 +359,8 @@ const CalendarView = () => {
                 <thead>
                 <tr>
                   <th className="border p-2 bg-gray-50">Horario</th>
-                  {ORDERED_DAYS.map((day, index) => {
-                    const dayDate = dayjs().startOf('week').add(index + 1, 'day').format("DD");
+                  {DAYS_OF_WEEK.map((day, index) => {
+                    const dayDate = dayjs().startOf('week').add(weekOffset * 7 + index, 'day').format("DD");
                     return (
                         <th key={day} className="border p-2 bg-gray-50">
                           {day} {dayDate}
@@ -182,19 +371,33 @@ const CalendarView = () => {
                 </thead>
 
                 <tbody>
-                {timeSlotsFormatted.map(timeRange => (
+                {timeSlotsFormatted.map((timeRange) => (
                     <tr key={timeRange}>
                       <td className="border p-2 text-center font-medium">{timeRange}</td>
-                      {ORDERED_DAYS.map(day => (
-                          <td key={`${day}-${timeRange}`} className="border p-2">
-                          <div className={`text-center p-1 rounded ${getStatusClass(getTimeSlotStatus(day, timeRange.split(" - ")[0]))}`}>
+                      {DAYS_OF_WEEK.map((day) => (
+                          <td key={`${day}-${timeRange}`} className="border p-2"
+                              onClick={() => handleSlotClick(day, timeRange.split(" - ")[0])}>
+                            <div
+                                className={`text-center p-1 rounded ${getStatusClass(getTimeSlotStatus(day, timeRange.split(" - ")[0]))}`}
+                            >
                               {getTimeSlotStatus(day, timeRange.split(" - ")[0])}
                             </div>
+                            {selectedSlot?.day === day && selectedSlot.hour === timeRange.split(" - ")[0] && (
+                                <div id="slot-dropdown" className="absolute bg-white shadow-md rounded-md p-2 mt-1 z-10">
+                                  {getStatusOptions(selectedSlot.slot).map(option => (
+                                      <button key={option.label} className="block w-full text-left p-1 hover:bg-gray-200" onClick={option.action}>
+                                        {option.label}
+                                      </button>
+                                  ))}
+                                </div>
+                            )}
                           </td>
                       ))}
                     </tr>
                 ))}
                 </tbody>
+
+
               </table>
             </div>
         )}

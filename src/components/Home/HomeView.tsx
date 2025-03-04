@@ -106,6 +106,46 @@ export const HomeView = () => {
         return date >= today;
     };
 
+    const handleAccept = async (reservationId: number) => {
+        try {
+            if (!apiKey) {
+                console.error('Error: API Key no encontrada en localStorage');
+                return;
+            }
+
+            await apiClient.patch(`/reservations/${reservationId}/status`, {
+                status: 'confirmed'
+            }, {
+                headers: { 'c-api-key': apiKey },
+            });
+
+            fetchReservations();
+        } catch (error) {
+            console.error('Error al aceptar la reserva:', error);
+            alert('No se pudo aceptar la reserva.');
+        }
+    };
+
+    const handleReject = async (reservationId: number) => {
+        try {
+            if (!apiKey) {
+                console.error('Error: API Key no encontrada en localStorage');
+                return;
+            }
+
+            await apiClient.patch(`/reservations/${reservationId}/status`, {
+                status: 'cancelled'
+            }, {
+                headers: { 'c-api-key': apiKey },
+            });
+
+            fetchReservations();
+        } catch (error) {
+            console.error('Error al rechazar la reserva:', error);
+            alert('No se pudo rechazar la reserva.');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
             <h1 className="text-2xl font-bold text-[#000066]">Inicio</h1>
@@ -174,9 +214,13 @@ export const HomeView = () => {
 
                                             <CardFooter className="flex justify-between">
                                                 <Button
-                                                    className="bg-green-500 text-white hover:bg-green-600">Aceptar</Button>
+                                                    className="bg-green-500 text-white hover:bg-green-600"
+                                                    onClick={() => handleAccept(reservation.id)}
+                                                >Aceptar</Button>
                                                 <Button
-                                                    className="bg-red-500 text-white hover:bg-red-600">Rechazar</Button>
+                                                    className="bg-red-500 text-white hover:bg-red-600"
+                                                    onClick={() => handleReject(reservation.id)}
+                                                >Rechazar</Button>
                                             </CardFooter>
                                         </Card>
                                     ))

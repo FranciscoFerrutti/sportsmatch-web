@@ -60,7 +60,6 @@ export const ModifyProfileView = () => {
         fetchClubData();
     }, [clubId, apiKey, logout, navigate]);
 
-    // 📌 Manejo de subida de imagen
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -68,7 +67,6 @@ export const ModifyProfileView = () => {
         setLoading(true);
 
         try {
-            console.log("📌 Solicitando URL pre-firmada...");
             const uploadResult = await apiClient.put(`/clubs/${clubId}/image`, null, {
                 headers: { 'c-api-key': apiKey, 'Content-Type': file.type },
             });
@@ -80,9 +78,6 @@ export const ModifyProfileView = () => {
             const presignedUrl = uploadResult.data.presignedPutUrl;
             const imageUrl = uploadResult.data.imageUrl;
 
-            console.log(`✅ Presigned URL recibida: ${presignedUrl}`);
-
-            // Subir la imagen a S3
             const uploadResponse = await fetch(presignedUrl, {
                 method: "PUT",
                 body: file,
@@ -91,8 +86,6 @@ export const ModifyProfileView = () => {
             if (!uploadResponse.ok) {
                 throw new Error(`Error al subir la imagen: ${uploadResponse.status} - ${uploadResponse.statusText}`);
             }
-
-            console.log("✅ Imagen subida a S3 correctamente.");
 
             setImagePreview(imageUrl);
             setClubData(prev => ({ ...prev, imageUrl }));
@@ -106,12 +99,10 @@ export const ModifyProfileView = () => {
         }
     };
 
-    // 📌 Manejo de cambio en la descripción
     const handleDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setClubData(prev => ({ ...prev, description: event.target.value }));
     };
 
-    // 📌 Guardar cambios (imagen y descripción)
     const handleSaveChanges = async () => {
         setLoading(true);
         setError(null);
@@ -123,8 +114,6 @@ export const ModifyProfileView = () => {
                 updatedData.description = clubData.description.trim();
             }
 
-            console.log("📌 Enviando actualización:", updatedData);
-
             await apiClient.put(`/clubs/${clubId}`, updatedData, {
                 headers: {
                     'c-api-key': apiKey,
@@ -133,8 +122,7 @@ export const ModifyProfileView = () => {
             });
 
             setLoading(false);
-            alert('✅ Cambios guardados con éxito.');
-            navigate('/club-profile'); // 🔄 Redirigir al perfil
+            navigate('/club-profile');
         } catch (error) {
             console.error('❌ Error al guardar cambios:', error);
             setError('No se pudo guardar la información.');

@@ -1,15 +1,12 @@
 import apiClient from "@/apiClients";
 
-// 📌 Tipo de respuesta esperada
 interface ImageResponse {
     status: number;
     imageURL?: string;
     message?: string;
 }
 
-// 📌 Obtener la imagen del usuario
 export const fetchUserImage = async (userId: number): Promise<ImageResponse> => {
-    console.log(`📌 Solicitando imagen para usuario ${userId}`);
 
     try {
         const res = await apiClient.get(`/users/${userId}/image`, {
@@ -22,7 +19,6 @@ export const fetchUserImage = async (userId: number): Promise<ImageResponse> => 
         }
 
         const { presignedGetUrl } = res.data;
-        console.log(`✅ Presigned GET URL recibida: ${presignedGetUrl}`);
 
         const response = await fetch(presignedGetUrl);
         if (!response.ok) throw new Error("Failed to fetch image");
@@ -37,9 +33,7 @@ export const fetchUserImage = async (userId: number): Promise<ImageResponse> => 
     }
 };
 
-// 📌 Subir la imagen del usuario
 export const updateUserImage = async (userId: number, file: File): Promise<ImageResponse> => {
-    console.log(`📌 Solicitando URL pre-firmada para subir imagen de usuario ${userId}`);
 
     try {
         const res = await apiClient.put(`/users/${userId}/image`, null, {
@@ -52,7 +46,6 @@ export const updateUserImage = async (userId: number, file: File): Promise<Image
         }
 
         const { presignedPutUrl } = res.data;
-        console.log(`✅ Presigned PUT URL recibida: ${presignedPutUrl}`);
 
         const uploadResponse = await fetch(presignedPutUrl, {
             method: "PUT",
@@ -64,7 +57,6 @@ export const updateUserImage = async (userId: number, file: File): Promise<Image
             throw new Error(`Failed to upload: ${uploadResponse.status}`);
         }
 
-        console.log("✅ Imagen subida con éxito");
         return { status: 200, message: "Image update successful" };
     } catch (error) {
         console.error("❌ Error al subir imagen:", error);
