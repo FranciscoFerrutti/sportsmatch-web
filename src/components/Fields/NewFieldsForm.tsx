@@ -199,8 +199,12 @@ export const NewFieldsForm = () => {
       </div>
   );
 };
+interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  error?: string;
+}
 
-const InputField = ({ label, error, ...props }) => (
+const InputField: React.FC<InputFieldProps> = ({ label, error, ...props }) => (
     <div>
       <label className="block font-medium text-gray-700 mb-1">{label}</label>
       <Input className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300" {...props} />

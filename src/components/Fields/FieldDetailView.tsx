@@ -26,7 +26,12 @@ export const FieldDetailView = () => {
                     headers: { "c-api-key": apiKey },
                 });
 
-                setField(response.data);
+                const fieldData = response.data;
+
+                setField({
+                    ...fieldData,
+                    cost: fieldData.cost_por_slot, // Mapeo del nombre correcto
+                });
             } catch (error) {
                 console.error("❌ Error obteniendo la cancha:", error);
             }
@@ -128,7 +133,7 @@ export const FieldDetailView = () => {
                                 : "No especificado"}
                         </p>
                             <p className="text-gray-600 mb-2">
-                                <strong>Costo por reserva:</strong> ${field.cost_per_slot}
+                                <strong>Costo por reserva:</strong> ${field.cost}
                             </p>
                             <p className="text-gray-600 mb-2">
                                 <strong>Capacidad:</strong> {field.capacity} personas

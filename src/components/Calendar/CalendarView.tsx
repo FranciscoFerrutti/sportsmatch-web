@@ -90,7 +90,7 @@ const CalendarView = () => {
         slotStatus: slot.slotStatus
       }));
 
-      formattedSlots.sort((a, b) => {
+      formattedSlots.sort((a : TimeSlot, b: TimeSlot) => {
         const dateComparison = a.availabilityDate.localeCompare(b.availabilityDate);
         return dateComparison !== 0 ? dateComparison : a.startTime.localeCompare(b.startTime);
       });
@@ -160,7 +160,9 @@ const CalendarView = () => {
         id: -1,
         availabilityDate: dateString,
         startTime: normalizedHour,
-        endTime: dayjs(`2025-01-01T${normalizedHour}`).add(slotDuration, "minute").format("HH:mm:ss"),
+        endTime: dayjs(`2025-01-01T${normalizedHour}`)
+            .add(slotDuration ?? 0, "minute")
+            .format("HH:mm:ss"),
         slotStatus: "maintenance"
       };
     }
@@ -171,6 +173,8 @@ const CalendarView = () => {
     if (!selectedSlot) return;
     const { slot } = selectedSlot;
 
+    if (slot === undefined) return;
+
     try {
       if (slot.slotStatus === "booked") {
         if (slot.reservationId) {
@@ -178,17 +182,17 @@ const CalendarView = () => {
         }
 
         if (newStatus === "available") {
-          await updateTimeSlot(slot.id, "available");
+          await updateTimeSlot(slot.id!!, "available");
         } else if (newStatus === "maintenance") {
-          await deleteTimeSlot(slot.id);
+          await deleteTimeSlot(slot.id!!);
         }
       }
 
       else if (slot.slotStatus === "available") {
         if (newStatus === "maintenance") {
-          await deleteTimeSlot(slot.id);
+          await deleteTimeSlot(slot.id!!);
         } else if (newStatus === "booked") {
-          await updateTimeSlot(slot.id, "booked");
+          await updateTimeSlot(slot.id!!, "booked");
         }
       }
 
@@ -212,7 +216,11 @@ const CalendarView = () => {
     }, { headers: { "c-api-key": apiKey } });
 
     setTimeSlots(prev =>
-        prev.map(s => s.id === slotId ? { ...s, slotStatus: status } : s)
+        prev.map(s =>
+            s.id === slotId
+                ? { ...s, slotStatus: status as "available" | "booked" | "maintenance" }
+                : s
+        )
     );
   };
 
@@ -277,7 +285,7 @@ const CalendarView = () => {
       ];
     } else if (slot.slotStatus === "booked") {
       return slot.reservationId
-          ? [{ label: "Cancelar reserva", action: () => handleCancelReservation(slot.reservationId) }]
+          ? [{ label: "Cancelar reserva", action: () => handleCancelReservation(slot.reservationId!!) }]
           : [
             { label: "Marcar como disponible", action: () => updateSlotStatus("available") },
             { label: "Marcar como no disponible", action: () => updateSlotStatus("maintenance") }

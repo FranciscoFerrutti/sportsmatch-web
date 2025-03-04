@@ -136,6 +136,12 @@ export const ModifyProfileView = () => {
                 <h1 className="text-2xl font-bold text-[#000066]">Editar Perfil del Club</h1>
             </div>
 
+            {error && (
+                <div className="mb-4 p-4 text-red-700 bg-red-100 border border-red-400 rounded-lg">
+                    {error}
+                </div>
+            )}
+
             <Card className="p-6 shadow-lg bg-white rounded-2xl border border-gray-200">
                 {/* 📌 Sección de la imagen */}
                 <div className="flex flex-col items-center">

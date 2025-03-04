@@ -209,17 +209,28 @@ export const ModifyFieldsForm = () => {
   );
 };
 
+interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  error?: string;
+}
 
-const InputField = ({ label, ...props }) => (
+const InputField: React.FC<InputFieldProps> = ({ label, error, ...props }) => (
     <div>
       <label className="block font-medium text-gray-700 mb-1">{label}</label>
       <Input className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300" {...props} />
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
 );
 
-const TextAreaField = ({ label, ...props }) => (
+interface TextAreaFieldProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string;
+  error?: string;
+}
+
+const TextAreaField: React.FC<TextAreaFieldProps> = ({ label, error, ...props }) => (
     <div>
       <label className="block font-medium text-gray-700 mb-1">{label}</label>
       <textarea className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300" {...props} />
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
 );
