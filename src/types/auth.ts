@@ -3,6 +3,8 @@ export interface Club {
     name: string;
     phoneNumber: string;
     email: string;
+    description: string;
+    imageUrl?: string
 }
 
 export interface LoginCredentials {
@@ -14,6 +16,7 @@ export interface SignupData {
     name: string;
     phoneNumber: string;
     email: string;
+    description: string;
     password: string;
     confirmPassword: string;
 }
