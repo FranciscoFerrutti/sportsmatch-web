@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/apiClients';
 import { Field } from '@/types/fields';
@@ -77,11 +77,11 @@ export const FieldsView = () => {
   };
 
   return (
-      <div className="p-6">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-semibold">Mis canchas</h1>
-          <Button className="bg-[#000066] hover:bg-[#000088]" onClick={handleNewField}>
-            Nueva cancha
+          <h1 className="text-2xl font-bold text-[#000066]">Mis canchas</h1>
+          <Button className="bg-[#000066] hover:bg-[#000088] text-white px-6 py-2 rounded-lg shadow-md" onClick={handleNewField}>
+            + Nueva Cancha
           </Button>
         </div>
 
@@ -90,32 +90,36 @@ export const FieldsView = () => {
         ) : fields.length === 0 ? (
             <p className="text-center text-gray-500">No hay canchas registradas.</p>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {fields.map(field => (
-                  <Card key={field.id} className="p-4 bg-white">
-                    <h3 className="font-semibold text-lg mb-2">{field.name}</h3>
-                    <p className="text-gray-600 mb-4">Descripción: {field.description}</p>
-                    <p className="text-gray-600 mb-4">
-                      Deportes permitidos: {field.sports?.length > 0
-                        ? field.sports.map(s => s.name).join(', ')
-                        : 'No especificado'}
-                    </p>
-                    <p className="text-gray-600 mb-4">Costo por reserva: ${field.cost}</p>
-                    <p className="text-gray-600 mb-4">Capacidad: {field.capacity} personas</p>
-                    <p className="text-gray-600 mb-4">Duración de reserva: {field.slot_duration} minutos</p>
+                  <Card
+                      key={field.id}
+                      className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white"
+                  >
+                    <CardHeader>
+                      <CardTitle>{field.name}</CardTitle>
+                    </CardHeader>
 
-                    <div className="flex space-x-2">
-                      <Button variant="outline" className="flex-1" onClick={() => navigate(`/fields/${field.id}/edit`)}>
-                        Modificar
+                    <CardContent className="space-y-2">
+                      <p className="text-gray-600"><strong>Descripción:</strong> {field.description}</p>
+                      <p className="text-gray-600">
+                        <strong>Deportes permitidos:</strong> {field.sports.length > 0
+                          ? field.sports.map(s => s.name).join(', ')
+                          : 'No especificado'}
+                      </p>
+                      <p className="text-gray-600"><strong>Costo por reserva:</strong> ${field.cost}</p>
+                      <p className="text-gray-600"><strong>Capacidad:</strong> {field.capacity} personas</p>
+                      <p className="text-gray-600"><strong>Duración:</strong> {field.slot_duration} minutos</p>
+                    </CardContent>
+
+                    <CardFooter className="flex justify-between">
+                      <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50" onClick={() => navigate(`/fields/${field.id}`)}>
+                        Ver detalles
                       </Button>
-                      <Button
-                          variant="destructive"
-                          className="flex-1 text-white bg-red-600 hover:bg-red-700"
-                          onClick={() => handleDeleteField(field.id)}
-                      >
+                      <Button className="bg-red-500 text-white hover:bg-red-600" onClick={() => handleDeleteField(field.id)}>
                         Eliminar
                       </Button>
-                    </div>
+                    </CardFooter>
                   </Card>
               ))}
             </div>

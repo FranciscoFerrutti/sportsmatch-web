@@ -5,4 +5,5 @@ export interface Event {
     schedule: string;
     ownerName: string;
     ownerPhone: string;
+    ownerImage?: string;
 }

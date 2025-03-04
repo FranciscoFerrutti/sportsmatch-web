@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ChevronLeft } from 'lucide-react';
+import { Select } from "@/components/ui/select";
+import {ChevronDown, ChevronLeft, Copy} from 'lucide-react';
 import apiClient from '@/apiClients';
 import {DAYS_OF_WEEK} from "../../utils/constants.ts";
 import {TimeSlot} from "../../types/timeslot.ts";
@@ -25,6 +25,9 @@ export const AssignSchedule = () => {
     const [schedule, setSchedule] = useState<ScheduleSlot[]>(
         DAYS_OF_WEEK.map(day => ({ day, startTime: "", endTime: "", slots: [], closed: false, error: "" }))
     );
+    const [copyFromDay, setCopyFromDay] = useState<string | null>(null);
+    const [copyToDays, setCopyToDays] = useState<string[]>([]);
+    const [showDropdown, setShowDropdown] = useState<string | null>(null);
     const [formErrors, setFormErrors] = useState<string[]>([]);
 
     useEffect(() => {
@@ -110,30 +113,38 @@ export const AssignSchedule = () => {
         return slots;
     };
 
+    const handleCopySchedule = () => {
+        if (!copyFromDay || copyToDays.length === 0) return;
+
+        const referenceSlot = schedule.find((slot) => slot.day === copyFromDay);
+        if (!referenceSlot) return;
+
+        setSchedule((prev) =>
+            prev.map((slot) =>
+                copyToDays.includes(slot.day)
+                    ? { ...slot, startTime: referenceSlot.startTime, endTime: referenceSlot.endTime, closed: referenceSlot.closed }
+                    : slot
+            )
+        );
+
+        setCopyFromDay(null);
+        setCopyToDays([]);
+        setShowDropdown(null);
+    };
 
     const handleBack = () => navigate(`/fields/${id}/edit`);
 
-    const roundToNearest30Min = (time: string) => {
-        if (!time) return time;
-        const [hours, minutes] = time.split(":").map(Number);
-        const roundedMinutes = Math.round(minutes / 30) * 30;
-        const newMinutes = roundedMinutes === 60 ? 0 : roundedMinutes;
-        const newHours = roundedMinutes === 60 ? hours + 1 : hours;
-        return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
-    };
-
     const handleTimeChange = (index: number, key: "startTime" | "endTime", value: string) => {
-        const roundedValue = roundToNearest30Min(value);
         setSchedule(prev => prev.map((slot, i) => {
             if (i !== index) return slot;
 
-            let newSlot = { ...slot, [key]: roundedValue, error: "" };
+            let newSlot = { ...slot, [key]: value, error: "" };
 
-            if (key === "startTime" && newSlot.endTime && roundedValue >= newSlot.endTime) {
+            if (key === "startTime" && newSlot.endTime && value >= newSlot.endTime) {
                 newSlot.error = "La hora de apertura debe ser menor a la de cierre.";
             }
 
-            if (key === "endTime" && newSlot.startTime && roundedValue <= newSlot.startTime) {
+            if (key === "endTime" && newSlot.startTime && value <= newSlot.startTime) {
                 newSlot.error = "La hora de cierre debe ser mayor a la de apertura.";
             }
 
@@ -166,6 +177,14 @@ export const AssignSchedule = () => {
 
         return dates;
     };
+
+    const timeOptions = Array.from({ length: 48 }, (_, i) => {
+        const hours = Math.floor(i / 2)
+            .toString()
+            .padStart(2, "0");
+        const minutes = i % 2 === 0 ? "00" : "30";
+        return `${hours}:${minutes}`;
+    });
 
 
     const formatTime = (time: string): string => {
@@ -316,7 +335,48 @@ export const AssignSchedule = () => {
                     <div className="space-y-4">
                         {schedule.map((slot, index) => (
                             <div key={slot.day} className="p-4 border rounded-lg shadow-sm bg-gray-50">
-                                <label className="block font-medium mb-2">{slot.day}</label>
+                                <div className="flex justify-between items-center">
+                                    <label className="font-medium">{slot.day}</label>
+                                    <div className="relative">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-blue-600 border-blue-600 hover:bg-blue-50 flex items-center"
+                                            onClick={() => {
+                                                setCopyFromDay(slot.day);
+                                                setShowDropdown(prev => (prev === slot.day ? null : slot.day));
+                                            }}
+                                        >
+                                            <Copy className="w-4 h-4 mr-2"/> Copiar <ChevronDown
+                                            className="w-4 h-4 ml-1"/>
+                                        </Button>
+                                        {showDropdown === slot.day && (
+                                            <div
+                                                className="absolute top-10 right-0 bg-white border rounded-lg shadow-lg p-4 z-10 w-48">
+                                                <label className="block font-medium mb-2 text-sm">
+                                                    Copiar a:
+                                                </label>
+                                                {DAYS_OF_WEEK.filter((day) => day !== slot.day).map((day) => (
+                                                    <div key={day} className="flex items-center space-x-2">
+                                                        <input type="checkbox" onChange={(e) => {
+                                                            setCopyToDays(e.target.checked
+                                                                ? [...copyToDays, day]
+                                                                : copyToDays.filter(d => d !== day)
+                                                            );
+                                                        }}/>
+                                                        <span>{day}</span>
+                                                    </div>
+                                                ))}
+                                                <Button
+                                                    className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                                    onClick={handleCopySchedule}
+                                                >
+                                                    Confirmar
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                                 <div className="flex items-center space-x-2 mb-2">
                                     <input
                                         type="checkbox"
@@ -330,25 +390,31 @@ export const AssignSchedule = () => {
                                     <div className="flex space-x-4">
                                         <div className="w-1/2">
                                             <label className="block text-sm text-gray-600 mb-1">Hora de apertura</label>
-                                            <Input
-                                                type="time"
-                                                value={slot.startTime}
-                                                onChange={(e) => handleTimeChange(index, "startTime", e.target.value)}
-                                                step="900"
-                                                lang="es"
-                                            />
-                                            {formErrors[index] && <p className="text-red-600 text-sm mt-1">{formErrors[index]}</p>}
+                                            <Select value={slot.startTime}
+                                                    onChange={(e) => handleTimeChange(index, "startTime", e.target.value)}>
+                                                <option value="">Seleccione...</option>
+                                                {timeOptions.map((time) => (
+                                                    <option key={time} value={time}>
+                                                        {time}
+                                                    </option>
+                                                ))}
+                                            </Select>
+                                            {formErrors[index] &&
+                                                <p className="text-red-600 text-sm mt-1">{formErrors[index]}</p>}
                                         </div>
                                         <div className="w-1/2">
                                             <label className="block text-sm text-gray-600 mb-1">Hora de cierre</label>
-                                            <Input
-                                                type="time"
-                                                value={slot.endTime}
-                                                onChange={(e) => handleTimeChange(index, "endTime", e.target.value)}
-                                                step="900"
-                                                lang="es"
-                                            />
-                                            {formErrors[index] && <p className="text-red-600 text-sm mt-1">{formErrors[index]}</p>}
+                                            <Select value={slot.endTime}
+                                                    onChange={(e) => handleTimeChange(index, "endTime", e.target.value)}>
+                                                <option value="">Seleccione...</option>
+                                                {timeOptions.map((time) => (
+                                                    <option key={time} value={time}>
+                                                        {time}
+                                                    </option>
+                                                ))}
+                                            </Select>
+                                            {formErrors[index] &&
+                                                <p className="text-red-600 text-sm mt-1">{formErrors[index]}</p>}
                                         </div>
                                     </div>
                                 )}

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Save, Trash2 } from 'lucide-react';
 import apiClient from '@/apiClients';
 import { Field } from '@/types/fields';
 import { useAuth } from '@/context/AppContext';
@@ -17,6 +17,7 @@ export const ModifyFieldsForm = () => {
   const [formData, setFormData] = useState<Partial<Field> | null>(null);
   const [sports, setSports] = useState<{ id: number; name: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const apiKey = localStorage.getItem('c-api-key');
 
   useEffect(() => {
@@ -55,7 +56,24 @@ export const ModifyFieldsForm = () => {
     fetchFieldAndSports();
   }, [fieldId, clubId, navigate]);
 
+  const validateFields = () => {
+    const errors: Record<string, string> = {};
+
+    if (!formData?.name?.trim()) errors.name = 'El nombre es obligatorio';
+    if (!formData?.description?.trim()) errors.description = 'La descripción es obligatoria';
+    if (!formData?.cost || formData.cost <= 0) errors.cost = 'El costo debe ser mayor a 0';
+    if (!formData?.capacity || formData.capacity <= 0) errors.capacity = 'La capacidad debe ser mayor a 0';
+    if (!formData?.slot_duration || formData.slot_duration % 30 !== 0)
+      errors.slot_duration = 'La duración debe ser un múltiplo de 30 minutos';
+    if (!formData?.sports || formData.sports.length === 0) errors.sports = 'Debe seleccionar al menos un deporte';
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const updateField = async (redirectPath: string) => {
+    if (!validateFields()) return;
+
     setError(null);
 
     const requestBody = {
@@ -100,7 +118,7 @@ export const ModifyFieldsForm = () => {
 
     setFormData(prev => ({
       ...prev!,
-      [name]: name === 'slot_duration' || name === 'cost' ? Number(value) : value,
+      [name]: newValue,
     }));
   };
 
@@ -127,96 +145,81 @@ export const ModifyFieldsForm = () => {
   }
 
   return (
-      <div>
-        <div className="p-4">
-          <Button variant="ghost" onClick={() => navigate('/fields')} className="mb-4">
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </div>
-
-        <form className="p-6 mt-[-40px]">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl">Modificar cancha</h1>
-            <div className="flex space-x-4">
-              <Button onClick={handleSaveChanges} className="bg-[#000066] hover:bg-[#000088]">
-                Guardar cambios
-              </Button>
-              <Button onClick={handleModifySchedule} className="bg-[#000066] hover:bg-[#000088]">
-                Modificar horarios
-              </Button>
-            </div>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8 flex justify-center">
+        <div className="max-w-3xl w-full">
+          <div className="mb-6">
+            <Button
+                variant="ghost"
+                onClick={() => navigate('/fields')}
+                className="flex items-center text-[#000066] hover:text-[#000088]"
+            >
+              <ChevronLeft className="h-5 w-5 mr-2" /> Volver
+            </Button>
           </div>
 
-          <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm">
-            <div className="space-y-4">
-              <div>
-                <label className="block mb-2 font-medium">Nombre:</label>
-                <Input type="text" name="name" value={formData.name || ''} onChange={handleInputChange}
-                       className="w-full" required/>
-              </div>
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+            <h1 className="text-2xl font-bold text-[#000066] mb-6">Modificar Cancha</h1>
 
+            <form className="space-y-6">
+              <InputField label="Nombre:" name="name" value={formData.name} onChange={handleInputChange} error={formErrors.name} />
+              {formErrors.name && <p className="text-red-600 text-sm mt-1">{formErrors.name}</p>}
+              <TextAreaField label="Descripción:" name="description" value={formData.description} onChange={handleInputChange} error={formErrors.description} />
+              {formErrors.description && <p className="text-red-600 text-sm mt-1">{formErrors.description}</p>}
+              {/* Deportes */}
               <div>
-                <label className="block mb-2 font-medium">Descripción:</label>
-                <textarea name="description" value={formData.description || ''} onChange={handleInputChange}
-                          placeholder="Ingrese una descripción breve" className="w-full p-2 border rounded-md"
-                          required/>
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Deporte:</label>
+                <label className="block font-medium text-gray-700 mb-1">Deporte:</label>
                 <Select name="sports" onChange={handleSportChange} className="w-full">
                   <option value="">Seleccione un deporte</option>
                   {sports.map(sport => (
-                      <option key={sport.id} value={sport.id}>
-                        {sport.name}
-                      </option>
+                      <option key={sport.id} value={sport.id}>{sport.name}</option>
                   ))}
                 </Select>
-                <div className="mt-2">
+                <div className="mt-2 space-y-2">
                   {formData.sports?.map(sport => (
-                      <div key={sport.id} className="flex justify-between items-center p-2 bg-gray-100 rounded mt-1">
+                      <div key={sport.id} className="flex justify-between items-center bg-blue-100 text-blue-800 p-2 rounded-lg">
                         <span>{sport.name}</span>
-                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50"
-                                onClick={() => handleRemoveSport(sport.id)}>
-                          Eliminar
+                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50" onClick={() => handleRemoveSport(sport.id)}>
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                   ))}
                 </div>
+                {formErrors.sports && <p className="text-red-600 text-sm">{formErrors.sports}</p>}
               </div>
 
-              <div>
-                <label className="block mb-2 font-medium">Costo por reserva:</label>
-                <Input type="number" name="cost" value={formData.cost || ''} onChange={handleInputChange}
-                       placeholder="Ingrese el costo" className="w-full" min="0" required/>
+              <InputField label="Costo por reserva:" name="cost" type="number" value={formData.cost} onChange={handleInputChange} error={formErrors.cost} />
+              {formErrors.cost && <p className="text-red-600 text-sm mt-1">{formErrors.cost}</p>}
+              <InputField label="Capacidad:" name="capacity" type="number" value={formData.capacity} onChange={handleInputChange} error={formErrors.capacity} />
+              {formErrors.capacity && <p className="text-red-600 text-sm mt-1">{formErrors.capacity}</p>}
+              <InputField label="Duración (en minutos):" name="slot_duration" type="number" value={formData.slot_duration} onChange={handleInputChange} error={formErrors.slot_duration} />
+              {formErrors.slot_duration && <p className="text-red-600 text-sm mt-1">{formErrors.slot_duration}</p>}
+              <div className="flex justify-between mt-6">
+                <Button className="bg-[#000066] hover:bg-[#000088]" onClick={handleSaveChanges}>
+                  <Save className="w-5 h-5 mr-2" /> Guardar cambios
+                </Button>
+                <Button className="bg-[#000066] hover:bg-[#000088]" onClick={handleModifySchedule}>
+                  Modificar horarios
+                </Button>
               </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Capacidad:</label>
-                <Input type="number" name="capacity" value={formData.capacity || ''} onChange={handleInputChange}
-                       placeholder="Máximo 30 personas" className="w-full" min="1" max="30" required/>
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Duración (en minutos):</label>
-                <Input
-                    type="number"
-                    name="slot_duration"
-                    value={formData.slot_duration}
-                    onChange={handleInputChange}
-                    placeholder="Múltiplo de 30 minutos"
-                    className="w-full"
-                    min="1"
-                    required
-                />
-              </div>
-
-            </div>
+              {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
+            </form>
           </div>
-
-          {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
-        </form>
+        </div>
       </div>
   );
 };
+
+
+const InputField = ({ label, ...props }) => (
+    <div>
+      <label className="block font-medium text-gray-700 mb-1">{label}</label>
+      <Input className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300" {...props} />
+    </div>
+);
+
+const TextAreaField = ({ label, ...props }) => (
+    <div>
+      <label className="block font-medium text-gray-700 mb-1">{label}</label>
+      <textarea className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300" {...props} />
+    </div>
+);
