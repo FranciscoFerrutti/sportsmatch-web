@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { ReservationModal } from './ReservationModal';
 import { Reservation } from '@/types/reservation';
 import apiClient from '@/apiClients';
@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { useAuth } from '@/context/AppContext';
+import {UserCircle} from "lucide-react";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -17,27 +18,25 @@ export const ReservationsView = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { clubId } = useAuth();
+  const {clubId} = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
-
-  console.log(apiKey)
 
   const fetchReservations = async () => {
     if (!apiKey || !clubId) {
-      console.error('🚨 Error: Falta API Key o clubId', { apiKey, clubId });
+      console.error('🚨 Error: Falta API Key o clubId', {apiKey, clubId});
       setLoading(false);
       return;
     }
 
     try {
-      const response = await apiClient.get(`/reservations`, { headers: { 'c-api-key': apiKey } });
+      const response = await apiClient.get(`/reservations`, {headers: {'c-api-key': apiKey}});
       const reservationsList = response.data
 
       const detailedReservations = await Promise.all(
           reservationsList.map(async (reservation: any) => {
             try {
               const detailsResponse = await apiClient.get(`/reservations/${reservation.id}`, {
-                headers: { 'c-api-key': apiKey }
+                headers: {'c-api-key': apiKey}
               });
 
               return {
@@ -85,13 +84,11 @@ export const ReservationsView = () => {
 
   const handleDeleteReservation = async (reservationId: number) => {
     if (!apiKey) return;
-    console.log(`🗑️ Eliminando reserva ID: ${reservationId}`);
     try {
       await apiClient.delete(`/reservations/${reservationId}`, {
-        headers: { 'c-api-key': apiKey },
+        headers: {'c-api-key': apiKey},
       });
       setReservations(prev => prev.filter(r => r.id !== reservationId));
-      console.log(`✅ Reserva ID: ${reservationId} eliminada correctamente.`);
     } catch (error) {
       console.error('❌ Error al eliminar la reserva:', error);
       alert('No se pudo eliminar la reserva.');
@@ -108,7 +105,7 @@ export const ReservationsView = () => {
       await apiClient.patch(`/reservations/${reservationId}/status`, {
         status: 'confirmed'
       }, {
-        headers: { 'c-api-key': apiKey },
+        headers: {'c-api-key': apiKey},
       });
 
       fetchReservations();
@@ -128,7 +125,7 @@ export const ReservationsView = () => {
       await apiClient.patch(`/reservations/${reservationId}/status`, {
         status: 'cancelled'
       }, {
-        headers: { 'c-api-key': apiKey },
+        headers: {'c-api-key': apiKey},
       });
 
       fetchReservations();
@@ -138,255 +135,235 @@ export const ReservationsView = () => {
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    return dayjs(dateStr).locale('es').format('dddd D [de] MMMM [de] YYYY')
-        .replace(/^./, match => match.toUpperCase());
+  const isDateCurrentOrFuture = (dateString: string | undefined) => {
+    if (!dateString) return false;
+    const today = dayjs().startOf('day');
+    const date = dayjs(dateString).startOf('day');
+    return date.isSame(today, 'day') || date.isAfter(today);
   };
 
-  const formatTime = (reservation: Reservation) => {
-    if (reservation.status === 'pending' && reservation.timeSlot) {
-      return reservation.timeSlot.startTime !== "Hora no disponible"
-          ? reservation.timeSlot.startTime.slice(0, 5)
-          : "Hora no disponible";
-    }
-
-    if (reservation.event?.schedule) {
-      return dayjs(reservation.event.schedule).format("HH:mm");
-    }
-
-    return "Hora no disponible";
-  };
-
-
-  const now = dayjs();
-
-  const pendingReservations = reservations
-      .filter(r => r.status === 'pending')
-      .sort((a, b) => {
-        const dateA = a.timeSlot?.availabilityDate || "";
-        const dateB = b.timeSlot?.availabilityDate || "";
-        const timeA = a.timeSlot?.startTime || "";
-        const timeB = b.timeSlot?.startTime || "";
-
-        return dayjs(`${dateA} ${timeA}`).valueOf() - dayjs(`${dateB} ${timeB}`).valueOf();
-      });
-
-
-  const upcomingReservations = reservations
-      .filter(r => r.status === 'confirmed' && dayjs(r.event.schedule).isAfter(now))
-      .sort((a, b) => dayjs(a.event.schedule).valueOf() - dayjs(b.event.schedule).valueOf());
-
-  const pastReservations = reservations
-      .filter(r => r.status === 'confirmed' && dayjs(r.event.schedule).isBefore(now))
-      .sort((a, b) => dayjs(a.event.schedule).valueOf() - dayjs(b.event.schedule).valueOf());
-
-  const cancelledReservations = reservations
-      .filter(r => r.status === 'cancelled')
-      .sort((a, b) => dayjs(a.event.schedule).valueOf() - dayjs(b.event.schedule).valueOf());
-
-
-  const isToday = (dateStr: string) => {
-    const today = dayjs().startOf('day'); // Tomar el inicio del día actual
-    const givenDate = dayjs(dateStr).startOf('day'); // Convertir la fecha de la reserva
-    return today.isSame(givenDate, 'day');
-  };
-
-  const isTomorrow = (dateStr: string) => {
-    const tomorrow = dayjs().add(1, 'day').startOf('day'); // Tomar el inicio del día siguiente
-    const givenDate = dayjs(dateStr).startOf('day'); // Convertir la fecha de la reserva
-    return tomorrow.isSame(givenDate, 'day');
-  };
-
-  const getRelativeDate = (reservation: Reservation) => {
-    if (!reservation) return "Reserva indefinida";
-
-    let date = "";
-
-    if (reservation.status === 'pending' && reservation.timeSlot) {
-      date = reservation.timeSlot.availabilityDate;
-    }
-
-    else if (reservation.event?.schedule) {
-      date = reservation.event.schedule;
-    }
-
-    if (!date) return "Fecha no disponible";
-
-    if (isToday(date)) return "Hoy";
-    if (isTomorrow(date)) return "Mañana";
-
-    return formatDate(date);
-  };
 
 
   return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold mb-6">Reservas</h1>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
+        <h1 className="text-2xl font-bold text-[#000066]">Reservas</h1>
 
         {loading ? (
             <p className="text-center text-gray-500">Cargando reservas...</p>
         ) : (
-            <>
-              <div className="mb-8">
-                <h2 className="text-lg font-medium mb-4">Reservas pendientes de aprobación</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {pendingReservations.length === 0 ? (
-                      <div className="col-span-full">
-                        <Card className="p-6 text-center text-gray-500">No hay reservas pendientes</Card>
-                      </div>
+            <div className="max-w-6xl mx-auto space-y-12">
+
+              {/* 🔹 Reservas Pendientes */}
+              <section>
+                <h2 className="text-xl font-semibold text-[#000066] mb-4">📌 Reservas Pendientes</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {reservations.filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate)).length === 0 ? (
+                      <Card className="p-6 text-center text-gray-500">No hay reservas pendientes</Card>
                   ) : (
-                      pendingReservations.map((reservation: Reservation) => (
-                          <Card key={`reservation-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
-                                <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
-                                <div className="space-y-1">
-                                  <p className="text-gray-600">{getRelativeDate(reservation)}</p>
-                                  <p className="text-gray-600">{formatTime(reservation)} hs</p>
-                                  <div className=" border-gray-300 mt-2 pt-2 text-right">
-                                    <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.event.ownerName}</p>
-                                    <p className="text-gray-600">
-                                      {reservation.event.ownerName && reservation.event.ownerPhone ? (
-                                          <a
-                                              href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-blue-800 underline hover:text-blue-800"
-                                          >
-                                            Enviar mensaje
-                                          </a>
-                                      ) : 'Sin teléfono'}
-                                    </p>
+                      reservations
+                          .filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
+                          .sort((a, b) =>
+                              dayjs(a.timeSlot?.availabilityDate).valueOf() -
+                              dayjs(b.timeSlot?.availabilityDate).valueOf() ||
+                              dayjs(`2000-01-01T${a.timeSlot?.startTime}`).valueOf() -
+                              dayjs(`2000-01-01T${b.timeSlot?.startTime}`).valueOf()
+                          )
+                          .map((reservation: Reservation) => (
+                              <Card key={`reservation-${reservation.id}`}
+                                    className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
+                                <CardHeader>
+                                  <CardTitle>{reservation.field.name}</CardTitle>
+                                  <p className="text-gray-600">{dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}</p>
+                                  <p className="text-gray-600">{reservation.timeSlot?.startTime} hs</p>
+                                </CardHeader>
+
+                                <CardContent>
+                                  <div
+                                      className="border-t border-gray-300 pt-2 text-right flex justify-end items-center gap-3">
+                                    {reservation.event.ownerImage ? (
+                                        <img
+                                            src={reservation.event.ownerImage}
+                                            alt="Owner"
+                                            className="w-14 h-14 rounded-full object-cover border"
+                                            onError={(e) => (e.currentTarget.style.display = "none")}
+                                        />
+                                    ) : (
+                                        <UserCircle className="w-14 h-14 text-gray-400"/>
+                                    )}
+                                    <div>
+                                      <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">
+                                        {reservation.event.ownerName}
+                                      </p>
+                                      <p className="text-gray-600">
+                                        {reservation.event.ownerPhone ? (
+                                            <a
+                                                href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-800 underline hover:text-blue-600"
+                                            >
+                                              Enviar mensaje
+                                            </a>
+                                        ) : 'Sin teléfono'}
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="mt4 flex gap-2">
-                                  <Button variant="outline"
-                                          className="text-green-600 border-green-600 hover:bg-green-50"
+                                </CardContent>
+
+                                <CardFooter className="flex justify-between">
+                                  <Button className="bg-green-500 text-white hover:bg-green-600"
                                           onClick={() => handleAccept(reservation.id)}>
                                     Aceptar
                                   </Button>
-                                  <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50"
+                                  <Button className="bg-red-500 text-white hover:bg-red-600"
                                           onClick={() => handleReject(reservation.id)}>
                                     Rechazar
                                   </Button>
-                                </div>
-                          </Card>
-                      ))
+                                </CardFooter>
+                              </Card>
+                          ))
                   )}
                 </div>
-              </div>
-              <div className="mb-8">
-                <h2 className="text-lg font-medium mb-4">Próximas reservas</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {upcomingReservations.length === 0 ? (
-                      <div className="col-span-full">
-                        <Card className="p-6 text-center text-gray-500">No hay próximas reservas</Card>
-                      </div>
+              </section>
+
+              {/* 🔹 Próximas Reservas */}
+              <section>
+                <h2 className="text-xl font-semibold text-[#000066] mb-4">📅 Próximas Reservas</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {reservations.filter(r =>
+                      (r.status === 'pending' || r.status === 'confirmed') &&
+                      isDateCurrentOrFuture(r.timeSlot?.availabilityDate)
+                  ).length === 0 ? (
+                      <Card className="p-6 text-center text-gray-500">No hay próximas reservas</Card>
                   ) : (
-                      upcomingReservations.map((reservation: Reservation) => (
-                          <Card key={`confirmed-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
-                            <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
-                            <div className="space-y-1">
-                              <p className="text-gray-600">{getRelativeDate(reservation)}</p>
-                              <p className="text-gray-600">{formatTime(reservation)} hs</p>
-                              <div className=" border-gray-300 mt-2 pt-2 text-right">
-                                <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.event.ownerName}</p>
-                                <p className="text-gray-600">
-                                  {reservation.event.ownerName && reservation.event.ownerPhone ? (
-                                      <a
-                                          href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-blue-800 underline hover:text-blue-800"
+                      reservations
+                          .filter(r =>
+                              (r.status === 'pending' || r.status === 'confirmed') &&
+                              isDateCurrentOrFuture(r.timeSlot?.availabilityDate)
+                          )
+                          .sort((a, b) =>
+                              dayjs(a.timeSlot?.availabilityDate).valueOf() -
+                              dayjs(b.timeSlot?.availabilityDate).valueOf() ||
+                              dayjs(`2000-01-01T${a.timeSlot?.startTime}`).valueOf() -
+                              dayjs(`2000-01-01T${b.timeSlot?.startTime}`).valueOf()
+                          )
+                          .map((reservation: Reservation) => (
+                              <Card key={`reservation-${reservation.id}`}
+                                    className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
+                                <CardHeader>
+                                  <CardTitle>{reservation.field.name}</CardTitle>
+                                  <p className="text-gray-600">{dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}</p>
+                                  <p className="text-gray-600">{reservation.timeSlot?.startTime} hs</p>
+                                </CardHeader>
+
+                                <CardContent>
+                                  <div className="border-t border-gray-300 pt-2 text-right flex justify-end items-center gap-3">
+                                    {reservation.event.ownerImage ? (
+                                        <img
+                                            src={reservation.event.ownerImage}
+                                            alt="Owner"
+                                            className="w-14 h-14 rounded-full object-cover border"
+                                            onError={(e) => (e.currentTarget.style.display = "none")}
+                                        />
+                                    ) : (
+                                        <UserCircle className="w-14 h-14 text-gray-400"/>
+                                    )}
+                                    <div>
+                                      <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">
+                                        {reservation.event.ownerName}
+                                      </p>
+                                      <p className="text-gray-600">
+                                        {reservation.event.ownerPhone ? (
+                                            <a
+                                                href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-800 underline hover:text-blue-600"
+                                            >
+                                              Enviar mensaje
+                                            </a>
+                                        ) : 'Sin teléfono'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </CardContent>
+
+                                <CardFooter className="flex justify-end">
+                                  {reservation.status === 'confirmed' && (
+                                      <Button
+                                          className="bg-red-500 text-white hover:bg-red-600"
+                                          onClick={() => handleDeleteReservation(reservation.id)}
                                       >
-                                        Enviar mensaje
-                                      </a>
-                                  ) : 'Sin teléfono'}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="mt-4">
-                              <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50"
-                                      onClick={() => handleDeleteReservation(reservation.id)}>
-                                Cancelar reserva
-                              </Button>
-                            </div>
-                          </Card>
-                      ))
+                                        Cancelar
+                                      </Button>
+                                  )}
+                                </CardFooter>
+                              </Card>
+                          ))
                   )}
                 </div>
-              </div>
-              <div className="mb-8">
-                <h2 className="text-lg font-medium mb-4">Reservas pasadas</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {pastReservations.length === 0 ? (
-                      <div className="col-span-full">
-                        <Card className="p-6 text-center text-gray-500">No hay reservas pasadas</Card>
-                      </div>
+              </section>
+
+              {/* 🔹 Reservas Pasadas */}
+              <section>
+                <h2 className="text-xl font-semibold text-[#000066] mb-4">⏳ Reservas Pasadas</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {reservations.filter(r =>
+                      r.status === 'confirmed' &&
+                      dayjs(r.timeSlot?.availabilityDate).isBefore(dayjs(), 'day')
+                  ).length === 0 ? (
+                      <Card className="p-6 text-center text-gray-500">No hay reservas pasadas</Card>
                   ) : (
-                      pastReservations.map((reservation: Reservation) => (
-                          <Card key={`past-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
-                            <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
-                            <div className="space-y-1">
-                              <p className="text-gray-600">{getRelativeDate(reservation)}</p>
-                              <p className="text-gray-600">{formatTime(reservation)} hs</p>
-                              <div className=" border-gray-300 mt-2 pt-2 text-right">
-                                <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.event.ownerName}</p>
-                                <p className="text-gray-600">
-                                  {reservation.event.ownerName && reservation.event.ownerPhone ? (
-                                      <a
-                                          href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-blue-800 underline hover:text-blue-800"
-                                      >
-                                        Enviar mensaje
-                                      </a>
-                                  ) : 'Sin teléfono'}
-                                </p>
-                              </div>
-                            </div>
-                          </Card>
-                      ))
+                      reservations
+                          .filter(r =>
+                              r.status === 'confirmed' &&
+                              dayjs(r.timeSlot?.availabilityDate).isBefore(dayjs(), 'day')
+                          )
+                          .map((reservation: Reservation) => (
+                              <Card key={`reservation-${reservation.id}`}
+                                    className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
+                                <CardHeader>
+                                  <CardTitle>{reservation.field.name}</CardTitle>
+                                  <p className="text-gray-600">{dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}</p>
+                                  <p className="text-gray-600">{reservation.timeSlot?.startTime} hs</p>
+                                </CardHeader>
+                                <CardContent>
+                                  <p className="text-gray-500">Estado: {reservation.status}</p>
+                                </CardContent>
+                              </Card>
+                          ))
                   )}
                 </div>
-              </div>
-              <div className="mb-8">
-                <h2 className="text-lg font-medium mb-4">Reservas canceladas:</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {cancelledReservations.length === 0 ? (
-                      <div className="col-span-full">
-                        <Card className="p-6 text-center text-gray-500">No hay reservas canceladas</Card>
-                      </div>
+              </section>
+
+              {/* 🔹 Reservas Canceladas */}
+              <section>
+                <h2 className="text-xl font-semibold text-[#000066] mb-4">❌ Reservas Canceladas</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {reservations.filter(r => r.status === 'cancelled').length === 0 ? (
+                      <Card className="p-6 text-center text-gray-500">No hay reservas canceladas</Card>
                   ) : (
-                      cancelledReservations.map((reservation: Reservation) => (
-                          <Card key={`past-${reservation.id}`} className="p-4 hover:shadow-md transition-shadow">
-                            <h3 className="font-semibold text-lg mb-1">{reservation.field.name}</h3>
-                            <div className="space-y-1">
-                              <p className="text-gray-600">{getRelativeDate(reservation)}</p>
-                              <p className="text-gray-600">{formatTime(reservation)} hs</p>
-                              <div className=" border-gray-300 mt-2 pt-2 text-right">
-                                <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">{reservation.event.ownerName}</p>
-                                <p className="text-gray-600">
-                                  {reservation.event.ownerName && reservation.event.ownerPhone ? (
-                                      <a
-                                          href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-blue-800 underline hover:text-blue-800"
-                                      >
-                                        Enviar mensaje
-                                      </a>
-                                  ) : 'Sin teléfono'}
-                                </p>
-                              </div>
-                            </div>
-                          </Card>
-                      ))
+                      reservations
+                          .filter(r => r.status === 'cancelled')
+                          .map((reservation: Reservation) => (
+                              <Card key={`reservation-${reservation.id}`}
+                                    className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
+                                <CardHeader>
+                                  <CardTitle>{reservation.field.name}</CardTitle>
+                                  <p className="text-gray-600">{dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}</p>
+                                  <p className="text-gray-600">{reservation.timeSlot?.startTime} hs</p>
+                                </CardHeader>
+                                <CardContent>
+                                  <p className="text-gray-500">Estado: Cancelada</p>
+                                </CardContent>
+                              </Card>
+                          ))
                   )}
                 </div>
-              </div>
-            </>
+              </section>
+            </div>
         )}
-        <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}/>
       </div>
   );
 };
+

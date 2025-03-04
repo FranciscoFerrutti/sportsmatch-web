@@ -4,4 +4,5 @@ export type TimeSlot = {
     startTime: string;
     endTime: string;
     slotStatus: "available" | "booked" | "maintenance";
+    reservationId?: number
 };
