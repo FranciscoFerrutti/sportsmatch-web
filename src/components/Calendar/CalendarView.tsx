@@ -53,6 +53,8 @@ const CalendarView = () => {
 
       if (response.data.length > 0) {
         setSelectedField(response.data[0].id.toString());
+      } else {
+        setSelectedField(null)
       }
     } catch (error) {
       console.error('❌ Error al obtener las canchas:', error);
@@ -319,11 +321,17 @@ const CalendarView = () => {
   const timeSlotsFormatted = generateTimeSlots();
 
   return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold mb-4">Calendario semanal</h1>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
+          <h1 className="text-2xl font-bold text-[#000066]">Calendario semanal</h1>
 
-        {/* Selector de cancha */}
-        <div className="mb-4">
+        {/* 📌 Manejo de canchas vacías */}
+        {fields.length === 0 ? (
+            <p className="text-center text-gray-500">No hay canchas registradas.</p>
+        ) : (
+            <>
+
+              {/* Selector de cancha */}
+              <div className="mb-4">
           <Select
               value={selectedField || ''}
               onChange={(e) => setSelectedField(e.target.value)}
@@ -408,6 +416,8 @@ const CalendarView = () => {
 
               </table>
             </div>
+        )}
+            </>
         )}
       </div>
   );
