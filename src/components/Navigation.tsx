@@ -70,7 +70,15 @@ export const Navigation = () => {
         <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center rounded-b-2xl relative">
             {/* Logo y Navegación */}
             <div className="flex items-center space-x-6">
-                <h1 className="text-2xl font-bold text-[#000066]">SportsMatch</h1>
+                {/* 🔹 Logo SportsMatch */}
+                <div className="flex items-center space-x-2">
+                    <img
+                        src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
+                        alt="SportsMatch Logo"
+                        className="h-10 w-10 object-cover rounded-md"
+                    />
+                    <h1 className="text-2xl font-bold text-[#000066]">SportsMatch</h1>
+                </div>
 
                 {/* Navegación */}
                 {navItems.map(item => (
