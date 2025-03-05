@@ -67,7 +67,8 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
             // Crear evento y obtener su ID
             const response = await apiClient.post('/events', eventPayload, {
                 headers: {
-                    'c-api-key': apiKey
+                    'c-api-key': apiKey,
+                    'x-auth-type': 'club'
                 }
             });
 
@@ -83,6 +84,12 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
     };
 
     if (!isOpen) return null;
+
+    const handleCloseAllModals = () => {
+        setIsSelectFieldModalOpen(false);
+        onClose();
+        window.location.reload()
+    };
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -156,7 +163,7 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
             {isSelectFieldModalOpen && createdEventId && (
                 <SelectField
                     isOpen={isSelectFieldModalOpen}
-                    onClose={() => setIsSelectFieldModalOpen(false)}
+                    onClose={handleCloseAllModals}
                     eventId={Number(createdEventId)}
                     sportId={Number(formData.sportId)}
                     date={formData.date}

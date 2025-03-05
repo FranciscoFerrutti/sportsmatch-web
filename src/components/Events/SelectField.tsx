@@ -6,6 +6,7 @@ import apiClient from '@/apiClients';
 import dayjs from 'dayjs';
 import { ClockIcon, Users } from 'lucide-react';
 import {Field} from "../../types/fields";
+import { useNavigate } from 'react-router-dom';
 
 interface SelectFieldProps {
     isOpen: boolean;
@@ -20,13 +21,14 @@ interface FieldWithTimeSlots extends Field {
     availableSlots: { timeSlotId: number; startTime: string }[];
 }
 
-export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, eventId, sportId, date }) => {
+export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, sportId, date }) => {
     const { clubId } = useAuth();
     const apiKey = localStorage.getItem('c-api-key');
 
     const [fields, setFields] = useState<FieldWithTimeSlots[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedField, setSelectedField] = useState<{ id: number; name: string; capacity: number; timeSlotId: number; startTime: string } | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (isOpen) {
@@ -87,27 +89,14 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, event
         if (!selectedField) return;
 
         try {
-
-            const reservationResponse = await apiClient.post(`/reservations/event/${eventId}`, {
-                fieldId: selectedField.id,
-                slotIds: [selectedField.timeSlotId]
+            await apiClient.patch(`/fields/${selectedField.id}/availability/${selectedField.timeSlotId}/status`, {
+                slotStatus: "booked"
             }, {
-                headers: { 'c-api-key': apiKey, 'x-auth-type': 'club' }
+                headers: { 'c-api-key': apiKey }
             });
 
-            if (reservationResponse.data?.reservationId) {
-                const reservationId = reservationResponse.data.reservationId;
-
-                await apiClient.patch(`/reservations/${reservationId}/status`, {
-                    status: 'confirmed'
-                }, {
-                    headers: { 'c-api-key': apiKey }
-                });
-
-                onClose();
-            } else {
-                console.error("❌ No se recibió un ID de reserva.");
-            }
+            onClose();
+            navigate('/events');
         } catch (error) {
             console.error('❌ Error al reservar la cancha:', error);
         }
