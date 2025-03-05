@@ -15,6 +15,7 @@ import { LocationSelector } from '@/components/Club/LocationSelector';
 import {ModifyProfileView} from "./components/Club/ModifyProfileView.tsx";
 import {ClubProfileView} from "./components/Club/ClubProfileView.tsx";
 import {FieldDetailView} from "./components/Fields/FieldDetailView.tsx";
+import {EventsView} from "./components/Events/EventsView.tsx";
 
 function AppContent() {
   const location = useLocation();
@@ -39,6 +40,7 @@ function AppContent() {
           <Route path="/club-location" element={<LocationSelector />}  />
           <Route path="/club-profile" element={<PrivateRoute><ClubProfileView /></PrivateRoute>} />
           <Route path="/club-profile/edit" element={<PrivateRoute><ModifyProfileView /></PrivateRoute>} />
+          <Route path="/events" element={<PrivateRoute><EventsView /></PrivateRoute>} />
           {/* Fallback route */}
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>

@@ -25,7 +25,8 @@ export const Navigation = () => {
         { path: '/home', label: 'Inicio' },
         { path: '/fields', label: 'Mis canchas' },
         { path: '/reservations', label: 'Reservas' },
-        { path: '/calendar', label: 'Calendario' }
+        { path: '/calendar', label: 'Calendario' },
+        { path: '/events', label: 'Eventos' }
     ];
 
     // 🔹 Cierra el menú si se hace clic fuera de él
