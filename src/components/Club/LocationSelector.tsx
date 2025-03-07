@@ -174,7 +174,7 @@ export const LocationSelector = () => {
 
     const streetNumber = getComponent('street_number');
     const route = getComponent('route');
-    const neighborhood = getComponent('sublocality_level_1');
+    const locality = getComponent('sublocality_level_1');
 
 
     const address = `${streetNumber} ${route}`.trim();
@@ -184,7 +184,7 @@ export const LocationSelector = () => {
         latitude: coordinates.lat,
         longitude: coordinates.lng,
         address: address,
-        neighborhood: neighborhood
+        locality: locality
       };
 
       await apiClient.put(`/clubs/${clubId}/location`, payload, {
