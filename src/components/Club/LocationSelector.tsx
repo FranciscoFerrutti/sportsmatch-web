@@ -19,6 +19,7 @@ export const LocationSelector = () => {
   const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fullAddressDisplay, setFullAddressDisplay] = useState<string>('');
 
   useEffect(() => {
     const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -62,9 +63,21 @@ export const LocationSelector = () => {
 
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
+      setError(null);
       
       if (!place.geometry?.location) {
         window.alert(`No details available for input: '${place.name}'`);
+        return;
+      }
+
+      // Check if location is in CABA
+      const city = place.address_components?.find(comp => 
+        comp.types.includes('locality') || comp.types.includes('administrative_area_level_1')
+      )?.long_name;
+
+      if (!city || !city.toLowerCase().includes('buenos aires')) {
+        setError('El club debe pertenecer a la Ciudad Autónoma de Buenos Aires');
+        setFullAddressDisplay('');
         return;
       }
 
@@ -76,11 +89,39 @@ export const LocationSelector = () => {
       map.setZoom(17);
       marker.setPosition(place.geometry.location);
 
+      // Store the place for later use
+      (window as any).lastSelectedPlace = place;
+
       setCoordinates({
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng()
       });
 
+      // Generate and display full address
+      const components = place.address_components || [];
+      const getComponent = (type: string) => {
+        const component = components.find(comp => comp.types[0] === type);
+        return component 
+          ? SHORT_NAME_ADDRESS_COMPONENT_TYPES.has(type) 
+            ? component.short_name 
+            : component.long_name
+          : '';
+      };
+
+      const streetNumber = getComponent('street_number');
+      const route = getComponent('route');
+      const neighborhood = getComponent('sublocality_level_1');
+      const locality = getComponent('locality');
+      const state = getComponent('administrative_area_level_1');
+      const postalCode = getComponent('postal_code');
+      const country = getComponent('country');
+
+      const address = `${streetNumber} ${route}`.trim();
+      const fullAddress = [address, neighborhood, locality, state, postalCode, country]
+        .filter(Boolean)
+        .join(', ');
+
+      setFullAddressDisplay(fullAddress);
       fillInAddress(place);
     });
   };
@@ -99,17 +140,9 @@ export const LocationSelector = () => {
 
     const streetNumber = getComponent('street_number');
     const route = getComponent('route');
+    
     (document.getElementById('location-input') as HTMLInputElement).value = 
       `${streetNumber} ${route}`.trim();
-
-    (document.getElementById('locality-input') as HTMLInputElement).value = 
-      getComponent('locality');
-    (document.getElementById('administrative_area_level_1-input') as HTMLInputElement).value = 
-      getComponent('administrative_area_level_1');
-    (document.getElementById('postal_code-input') as HTMLInputElement).value = 
-      getComponent('postal_code');
-    (document.getElementById('country-input') as HTMLInputElement).value = 
-      getComponent('country');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,21 +156,35 @@ export const LocationSelector = () => {
       return;
     }
 
-    const address = (document.getElementById('location-input') as HTMLInputElement)?.value;
-    const city = (document.getElementById('locality-input') as HTMLInputElement)?.value;
-    const state = (document.getElementById('administrative_area_level_1-input') as HTMLInputElement)?.value;
-    const postalCode = (document.getElementById('postal_code-input') as HTMLInputElement)?.value;
-    const country = (document.getElementById('country-input') as HTMLInputElement)?.value;
+    const place = (window as any).lastSelectedPlace as google.maps.places.PlaceResult;
+    if (!place?.address_components) {
+      setError('Por favor seleccione una ubicación válida del autocompletado');
+      setIsLoading(false);
+      return;
+    }
 
-    const fullAddress = [address, city, state, postalCode, country]
-      .filter(Boolean)
-      .join(', ');
+    const getComponent = (type: string) => {
+      const component = place.address_components?.find(comp => comp.types[0] === type);
+      return component 
+        ? SHORT_NAME_ADDRESS_COMPONENT_TYPES.has(type) 
+          ? component.short_name 
+          : component.long_name
+        : '';
+    };
+
+    const streetNumber = getComponent('street_number');
+    const route = getComponent('route');
+    const neighborhood = getComponent('sublocality_level_1');
+
+
+    const address = `${streetNumber} ${route}`.trim();
 
     try {
       const payload = {
         latitude: coordinates.lat,
         longitude: coordinates.lng,
-        address: fullAddress
+        address: address,
+        neighborhood: neighborhood
       };
 
       await apiClient.put(`/clubs/${clubId}/location`, payload, {
@@ -167,73 +214,22 @@ export const LocationSelector = () => {
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <input
                 type="text"
-                style={{ display: 'none' }}
-                name="hidden"
-                id="hidden"
-              />
-              <input
-                type="text"
-                style={{ display: 'none' }}
-                name="fake-username"
-                id="fake-username"
-              />
-              <input
-                type="password"
-                style={{ display: 'none' }}
-                name="fake-password"
-                id="fake-password"
-              />
-              
-              <input
-                type="text"
                 placeholder="Dirección"
                 id="location-input"
                 className="w-full p-2 border border-gray-300 rounded"
                 autoComplete="off"
                 role="presentation"
               />
-              <input
-                type="text"
-                placeholder="Ciudad"
-                id="locality-input"
-                className="w-full p-2 border border-gray-300 rounded"
-                autoComplete="chrome-off"
-                data-lpignore="true"
-                data-form-type="other"
-              />
-              <div className="grid grid-cols-3 gap-4">
-                <input
-                  type="text"
-                  placeholder="Provincia"
-                  id="administrative_area_level_1-input"
-                  className="w-full p-2 border border-gray-300 rounded col-span-2"
-                  autoComplete="chrome-off"
-                  data-lpignore="true"
-                  data-form-type="other"
-                />
-                <input
-                  type="text"
-                  placeholder="CP"
-                  id="postal_code-input"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  autoComplete="chrome-off"
-                  data-lpignore="true"
-                  data-form-type="other"
-                />
-              </div>
-              <input
-                type="text"
-                placeholder="País"
-                id="country-input"
-                className="w-full p-2 border border-gray-300 rounded"
-                autoComplete="chrome-off"
-                data-lpignore="true"
-                data-form-type="other"
-              />
+              {fullAddressDisplay && !error && (
+                <div className="p-3 bg-gray-50 rounded-lg text-sm">
+                  <p className="font-medium mb-1">Dirección completa:</p>
+                  <p className="text-gray-600">{fullAddressDisplay}</p>
+                </div>
+              )}
               <button
                 type="submit"
                 className="w-full bg-[#000066] hover:bg-[#000088] text-white p-2 rounded"
-                disabled={isLoading}
+                disabled={isLoading || !!error}
               >
                 {isLoading ? "Guardando..." : "Confirmar dirección"}
               </button>
