@@ -17,10 +17,14 @@ import {ClubProfileView} from "./components/Club/ClubProfileView.tsx";
 import {FieldDetailView} from "./components/Fields/FieldDetailView.tsx";
 import {EventsView} from "./components/Events/EventsView.tsx";
 import { EmailVerification } from './components/Login/EmailVerification';
+import { NotFound } from './components/NotFound';
 
 function AppContent() {
   const location = useLocation();
-  const shouldShowNavigation = location.pathname !== '/login' && location.pathname !== '/signup' && location.pathname !== '/verify-email';
+  const shouldShowNavigation = location.pathname !== '/login' && 
+                             location.pathname !== '/signup' && 
+                             location.pathname !== '/verify-email' &&
+                             location.pathname !== '/club-location';
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -39,12 +43,12 @@ function AppContent() {
           <Route path="/fields/:id/schedule" element={<PrivateRoute><AssignSchedule /></PrivateRoute>} />
           <Route path="/reservations" element={<PrivateRoute><ReservationsView /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><CalendarView /></PrivateRoute>} />
-          <Route path="/club-location" element={<LocationSelector />}  />
+          <Route path="/club-location" element={<PrivateRoute><LocationSelector /></PrivateRoute>} />
           <Route path="/club-profile" element={<PrivateRoute><ClubProfileView /></PrivateRoute>} />
           <Route path="/club-profile/edit" element={<PrivateRoute><ModifyProfileView /></PrivateRoute>} />
           <Route path="/events" element={<PrivateRoute><EventsView /></PrivateRoute>} />
           {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
     </div>

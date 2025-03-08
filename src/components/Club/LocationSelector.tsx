@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader } from '@googlemaps/js-api-loader';
 import apiClient from '@/apiClients';
 import { useAuth } from '@/context/AppContext';
+import { NotFound } from '../NotFound';
 
 /// <reference types="@types/google.maps" />
 
@@ -17,24 +18,59 @@ export const LocationSelector = () => {
   const { clubId } = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
   const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fullAddressDisplay, setFullAddressDisplay] = useState<string>('');
+  const [hasLocation, setHasLocation] = useState<boolean | null>(null);
+  const [locationUpdated, setLocationUpdated] = useState(false);
 
   useEffect(() => {
-    const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    
-    const loader = new Loader({
-      apiKey: API_KEY,
-      version: "weekly",
-      libraries: ["places", "maps"]
-    });
+    const checkClubLocation = async () => {
+      try {
+        const response = await apiClient.get(`/clubs`, {
+          params: { clubId }
+        });
 
-    loader.load().then(() => {
-      initMap();
-      initAutocomplete();
-    });
-  }, []);
+        setHasLocation(!!response.data.location);
+      } catch (error) {
+        console.error('❌ Error al verificar la ubicación del club:', error);
+        setError('Error al verificar la ubicación del club');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkClubLocation();
+  }, [clubId]);
+
+  useEffect(() => {
+    if (hasLocation === false) {
+      const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      
+      const loader = new Loader({
+        apiKey: API_KEY,
+        version: "weekly",
+        libraries: ["places", "maps"]
+      });
+
+      loader.load().then(() => {
+        initMap();
+        initAutocomplete();
+      });
+    }
+  }, [hasLocation]);
+
+  // Handle navigation after location update
+  useEffect(() => {
+    if (locationUpdated) {
+      // Add a small delay to ensure state is properly updated
+      const timer = setTimeout(() => {
+        window.location.href = '/home';
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [locationUpdated]);
 
   const initMap = () => {
     const map = new google.maps.Map(document.getElementById("map") as HTMLElement, {
@@ -176,7 +212,6 @@ export const LocationSelector = () => {
     const route = getComponent('route');
     const locality = getComponent('sublocality_level_1');
 
-
     const address = `${streetNumber} ${route}`.trim();
 
     try {
@@ -187,11 +222,12 @@ export const LocationSelector = () => {
         locality: locality
       };
 
-      await apiClient.put(`/clubs/${clubId}/location`, payload, {
+      const response = await apiClient.put(`/clubs/${clubId}/location`, payload, {
         headers: { 'c-api-key': apiKey },
       });
 
-      navigate('/home');
+      console.log('✅ Ubicación actualizada correctamente:', response.data);
+      setLocationUpdated(true);
     } catch (error) {
       console.error('❌ Error al actualizar la ubicación:', error);
       setError('No se pudo actualizar la ubicación. Por favor intente nuevamente.');
@@ -200,9 +236,35 @@ export const LocationSelector = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#000066]"></div>
+      </div>
+    );
+  }
+
+  if (hasLocation) {
+    return <NotFound />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <img
+            src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
+            alt="SportsMatch Logo"
+            className="w-20 h-20 object-contain mx-auto mb-4"
+          />
+          <h1 className="text-2xl md:text-3xl font-bold text-[#000066] mb-2">
+            ¡Bienvenido a Sportsmatch!
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Por favor agrega la ubicación de tu club
+          </p>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Form Column */}
           <div className="bg-white rounded-lg shadow p-6">

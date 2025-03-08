@@ -10,6 +10,7 @@ export const EmailVerification = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('Verificando tu email...');
   const [redirectCountdown, setRedirectCountdown] = useState<number>(0);
+  const [shouldNavigate, setShouldNavigate] = useState(false);
 
   useEffect(() => {
     const handleVerification = async () => {
@@ -38,14 +39,13 @@ export const EmailVerification = () => {
     handleVerification();
   }, [searchParams]);
 
-  // Handle countdown and navigation
+  // Handle countdown
   useEffect(() => {
     if (redirectCountdown > 0) {
       const timer = setInterval(() => {
         setRedirectCountdown(prev => {
           if (prev <= 1) {
-            clearInterval(timer);
-            navigate('/login');
+            setShouldNavigate(true);
             return 0;
           }
           return prev - 1;
@@ -54,7 +54,14 @@ export const EmailVerification = () => {
 
       return () => clearInterval(timer);
     }
-  }, [redirectCountdown, navigate]);
+  }, [redirectCountdown]);
+
+  // Handle navigation separately
+  useEffect(() => {
+    if (shouldNavigate) {
+      navigate('/login');
+    }
+  }, [shouldNavigate, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-white p-6">
