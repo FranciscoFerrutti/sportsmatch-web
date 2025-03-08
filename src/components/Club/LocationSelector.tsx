@@ -251,6 +251,20 @@ export const LocationSelector = () => {
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <img
+            src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
+            alt="SportsMatch Logo"
+            className="w-20 h-20 object-contain mx-auto mb-4"
+          />
+          <h1 className="text-2xl md:text-3xl font-bold text-[#000066] mb-2">
+            ¡Bienvenido a Sportsmatch!
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Por favor agrega la ubicación de tu club
+          </p>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Form Column */}
           <div className="bg-white rounded-lg shadow p-6">
