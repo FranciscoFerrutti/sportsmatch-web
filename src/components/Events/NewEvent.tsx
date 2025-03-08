@@ -49,6 +49,13 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
         }
     }, [isOpen]);
 
+    // Log when createdEventId changes
+    useEffect(() => {
+        if (createdEventId) {
+            console.log('🔔 Event ID state updated:', createdEventId);
+        }
+    }, [createdEventId]);
+
     const fetchSports = async () => {
         try {
             const response = await apiClient.get('/sports', { headers: { 'c-api-key': apiKey } });
@@ -83,6 +90,8 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
                 description: formData.description || " ",
             };
 
+            console.log('📤 Creating event with payload:', eventPayload);
+
             // Crear evento y obtener su ID
             const response = await apiClient.post('/events', eventPayload, {
                 headers: {
@@ -92,8 +101,11 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
             });
 
             if (response.data?.eventId) {
+                console.log('✅ Event created successfully with ID:', response.data.eventId);
                 setCreatedEventId(response.data.eventId);
                 setIsSelectFieldModalOpen(true);
+            } else {
+                console.error('❌ No event ID returned from API');
             }
         } catch (error) {
             console.error('❌ Error al crear el evento:', error);
@@ -102,13 +114,60 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
         }
     };
 
-    if (!isOpen) return null;
-
     const handleCloseAllModals = () => {
+        // If we're closing all modals without completing the process, delete the event
+        if (createdEventId) {
+            console.log('🔄 Attempting to delete event with ID:', createdEventId);
+            
+            // Delete the event that was created
+            apiClient.delete(`/events/${createdEventId}`, {
+                headers: {
+                    'c-api-key': apiKey,
+                    'x-auth-type': 'club'
+                }
+            })
+            .then(() => {
+                console.log(`✅ Event ${createdEventId} deleted successfully`);
+            })
+            .catch(error => {
+                console.error('❌ Error deleting event:', error);
+            });
+        }
+        
         setIsSelectFieldModalOpen(false);
         onClose();
-        window.location.reload()
+        window.location.reload();
     };
+
+    // Function to delete the event if modal is closed
+    const handleClose = () => {
+        if (createdEventId) {
+            console.log('🔄 Attempting to delete event with ID:', createdEventId);
+            
+            // Delete the event that was created
+            apiClient.delete(`/events/${createdEventId}`, {
+                headers: {
+                    'c-api-key': apiKey,
+                    'x-auth-type': 'club'
+                }
+            })
+            .then(() => {
+                console.log(`✅ Event ${createdEventId} deleted successfully`);
+            })
+            .catch(error => {
+                console.error('❌ Error deleting event:', error);
+            })
+            .finally(() => {
+                // Always call onClose to ensure the modal closes
+                onClose();
+            });
+        } else {
+            console.log('ℹ️ No event to delete, just closing modal');
+            onClose();
+        }
+    };
+
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -116,7 +175,7 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
 
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-semibold text-[#000066]">Nuevo Evento</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                    <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -181,7 +240,7 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
                               className="w-full p-2 border rounded" rows={3}/>
 
                     <div className="flex justify-end space-x-2 mt-6">
-                        <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+                        <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
                         <Button type="submit" className="bg-[#000066] hover:bg-[#000088] text-white" disabled={loading}>
                             {loading ? 'Buscando...' : 'Buscar cancha'}
                         </Button>
