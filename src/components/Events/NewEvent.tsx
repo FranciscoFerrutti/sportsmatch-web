@@ -22,12 +22,26 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
         sportId: '',
         expertise: '',
         date: '',
+        time: '',
         location: '',
         players: '2',
         duration: '60',
         description: ''
     });
     const [loading, setLoading] = useState(false);
+    
+    // Generate time options in 30-minute increments
+    const generateTimeOptions = () => {
+        const options = [];
+        for (let hour = 0; hour < 24; hour++) {
+            const hourFormatted = hour.toString().padStart(2, '0');
+            options.push(`${hourFormatted}:00`);
+            options.push(`${hourFormatted}:30`);
+        }
+        return options;
+    };
+    
+    const timeOptions = generateTimeOptions();
 
     useEffect(() => {
         if (isOpen) {
@@ -54,10 +68,15 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
         setLoading(true);
 
         try {
+            // Combine date and time into a single schedule field
+            const scheduleDateTime = formData.date && formData.time 
+                ? `${formData.date}T${formData.time}:00` 
+                : formData.date;
+                
             const eventPayload = {
                 sportId: parseInt(formData.sportId),
                 expertise: parseInt(formData.expertise),
-                schedule: formData.date,
+                schedule: scheduleDateTime,
                 location: "CABA",
                 remaining: parseInt(formData.players),
                 duration: parseInt(formData.duration),
@@ -123,6 +142,16 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
                     <h3 className="text-m font-semibold text-[#000066] mb-2">Fecha:</h3>
                     <Input name="date" type="date" value={formData.date} onChange={handleInputChange} required/>
 
+                    <h3 className="text-m font-semibold text-[#000066] mb-2">Hora:</h3>
+                    <Select name="time" value={formData.time} onChange={handleInputChange} required>
+                        <option value="">Seleccionar hora</option>
+                        {timeOptions.map((time) => (
+                            <option key={time} value={time}>
+                                {time}
+                            </option>
+                        ))}
+                    </Select>
+
                     <h3 className="text-m font-semibold text-[#000066] mb-2">Participantes faltantes:</h3>
                     <Input
                         name="players"
@@ -166,7 +195,7 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
                     onClose={handleCloseAllModals}
                     eventId={Number(createdEventId)}
                     sportId={Number(formData.sportId)}
-                    date={formData.date}
+                    date={formData.date && formData.time ? `${formData.date}T${formData.time}:00` : formData.date}
                     duration={Number(formData.duration)}
                 />
             )}
