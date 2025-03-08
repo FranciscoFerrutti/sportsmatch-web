@@ -42,7 +42,7 @@ export const ClubProfileView = () => {
                     name: response.data.name || 'Sin nombre',
                     email: response.data.email || 'Sin correo',
                     phone: response.data.phone_number || 'Sin teléfono',
-                    address: response.data.address || 'Sin dirección',
+                    address: response.data.location.address || 'Sin dirección',
                     imageUrl: response.data.image_url || '',
                     description: response.data.description || '',
                 });

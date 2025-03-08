@@ -72,14 +72,14 @@ export const Navigation = () => {
             {/* Logo y Navegación */}
             <div className="flex items-center space-x-6">
                 {/* 🔹 Logo SportsMatch */}
-                <div className="flex items-center space-x-2">
+                <NavLink to="/home" className="flex items-center space-x-2 cursor-pointer">
                     <img
                         src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
                         alt="SportsMatch Logo"
                         className="h-10 w-10 object-cover rounded-md"
                     />
                     <h1 className="text-2xl font-bold text-[#000066]">SportsMatch</h1>
-                </div>
+                </NavLink>
 
                 {/* Navegación */}
                 {navItems.map(item => (

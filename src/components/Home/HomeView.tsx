@@ -7,7 +7,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { Reservation } from '@/types/reservation';
 import { useAuth } from "../../context/AppContext.tsx";
-import { UserCircle } from 'lucide-react';
+import { UserCircle, CalendarIcon, MapPin, ClockIcon, Users } from 'lucide-react';
 import isToday from 'dayjs/plugin/isToday';
 
 dayjs.extend(isToday);
@@ -20,6 +20,7 @@ export const HomeView = () => {
     const { clubId } = useAuth();
     const [loading, setLoading] = useState(true);
     const apiKey = localStorage.getItem('c-api-key');
+    const [eventsToday, setEventsToday] = useState<Event[]>([]);
 
     const fetchReservations = async () => {
         if (!apiKey || !clubId) {
@@ -87,9 +88,37 @@ export const HomeView = () => {
         }
     };
 
+    const fetchEventsToday = async () => {
+        if (!apiKey || !clubId) {
+            console.error('🚨 Error: Falta API Key o clubId', { apiKey, clubId });
+            return;
+        }
+
+        try {
+            const response = await apiClient.get(`/events`, { headers: { 'c-api-key': apiKey } });
+
+            if (response.data && Array.isArray(response.data.items)) {
+                // Filtrar eventos que sean de hoy
+                const todayEvents = response.data.items.filter(event =>
+                    dayjs(event.schedule).isSame(dayjs(), 'day')
+                );
+
+                setEventsToday(todayEvents);
+            } else {
+                console.error("❌ Error: La API no devolvió un array de eventos en 'items'");
+                setEventsToday([]);
+            }
+        } catch (error) {
+            console.error('❌ Error al obtener eventos del día de hoy:', error);
+            setEventsToday([]);
+        }
+    };
+
     useEffect(() => {
         fetchReservations();
+        fetchEventsToday();
     }, [clubId, apiKey]);
+
 
     // Función para verificar si una fecha es hoy
     const isDateToday = (dateString: string | undefined) => {
@@ -286,6 +315,39 @@ export const HomeView = () => {
                                                 <Button className="bg-red-500 text-white hover:bg-red-600">Cancelar
                                                     Reserva</Button>
                                             </CardFooter>
+                                        </Card>
+                                    ))
+                            )}
+                        </div>
+                    </section>
+
+                    {/* 🔹 Eventos del Día de Hoy */}
+                    <section>
+                        <h2 className="text-xl font-semibold text-[#000066] mb-4">🎉 Eventos del Día de Hoy</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {eventsToday.length === 0 ? (
+                                <Card className="p-6 text-center text-gray-500">No hay eventos para hoy</Card>
+                            ) : (
+                                eventsToday
+                                    .sort((a, b) => dayjs(a.schedule).valueOf() - dayjs(b.schedule).valueOf()) // Ordenar por horario
+                                    .map((event) => (
+                                        <Card key={`event-${event.id}`}
+                                              className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
+                                            <CardHeader>
+                                                <CardTitle>{event.sportName}</CardTitle>
+                                                <p className="text-gray-600 flex items-center">
+                                                    <ClockIcon className="w-4 h-4 mr-1" />
+                                                    {dayjs(event.schedule).format("HH:mm")} hs
+                                                </p>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-gray-600 flex items-center">
+                                                    <MapPin className="w-4 h-4 mr-1" /> {event.location}
+                                                </p>
+                                                <p className="text-gray-600 flex items-center">
+                                                    <Users className="w-4 h-4 mr-1" /> {event.remaining} jugadores faltantes
+                                                </p>
+                                            </CardContent>
                                         </Card>
                                     ))
                             )}
