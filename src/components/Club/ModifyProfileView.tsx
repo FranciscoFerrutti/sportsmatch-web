@@ -43,7 +43,7 @@ export const ModifyProfileView = () => {
                     name: response.data.name || 'Sin nombre',
                     email: response.data.email || 'Sin correo',
                     phone: response.data.phone_number || 'Sin teléfono',
-                    address: response.data.address || 'Sin dirección',
+                    address: response.data.location.address || 'Sin dirección',
                     imageUrl: response.data.imageUrl || '',
                     description: response.data.description || '',
                 });
@@ -90,7 +90,6 @@ export const ModifyProfileView = () => {
             setImagePreview(imageUrl);
             setClubData(prev => ({ ...prev, imageUrl }));
 
-            alert("✅ Imagen actualizada con éxito.");
         } catch (error) {
             console.error("❌ Error al subir imagen:", error);
             setError("No se pudo subir la imagen.");
