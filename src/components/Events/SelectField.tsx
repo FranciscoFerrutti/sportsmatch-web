@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 interface SelectFieldProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: () => void;
     eventId: number;
     sportId: number;
     date: string;
@@ -21,7 +22,7 @@ interface FieldWithTimeSlots extends Field {
     availableSlots: { timeSlotId: number; startTime: string }[];
 }
 
-export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, sportId, date }) => {
+export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuccess, sportId, date, eventId }) => {
     const { clubId } = useAuth();
     const apiKey = localStorage.getItem('c-api-key');
 
@@ -95,7 +96,14 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, sport
                 headers: { 'c-api-key': apiKey }
             });
 
-            onClose();
+            console.log('✅ Field booked and associated with event successfully');
+            
+            if (onSuccess) {
+                onSuccess();
+            } else {
+                onClose();
+            }
+            
             navigate('/events');
         } catch (error) {
             console.error('❌ Error al reservar la cancha:', error);

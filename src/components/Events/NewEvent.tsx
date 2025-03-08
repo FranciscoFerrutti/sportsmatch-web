@@ -115,9 +115,21 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
     };
 
     const handleCloseAllModals = () => {
-        // If we're closing all modals without completing the process, delete the event
+        // We don't want to delete the event here because this function is called
+        // when the user successfully completes the booking process
+        // The event should remain in the database
+        console.log('✅ Booking process completed successfully, keeping event with ID:', createdEventId);
+        
+        setIsSelectFieldModalOpen(false);
+        onClose();
+        window.location.reload();
+    };
+
+    // Function to handle cancellation of the SelectField modal
+    const handleCancelSelectField = () => {
+        // If the user cancels the SelectField modal, we should delete the event
         if (createdEventId) {
-            console.log('🔄 Attempting to delete event with ID:', createdEventId);
+            console.log('🔄 User cancelled field selection, deleting event with ID:', createdEventId);
             
             // Delete the event that was created
             apiClient.delete(`/events/${createdEventId}`, {
@@ -131,12 +143,15 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
             })
             .catch(error => {
                 console.error('❌ Error deleting event:', error);
+            })
+            .finally(() => {
+                setIsSelectFieldModalOpen(false);
+                onClose();
             });
+        } else {
+            setIsSelectFieldModalOpen(false);
+            onClose();
         }
-        
-        setIsSelectFieldModalOpen(false);
-        onClose();
-        window.location.reload();
     };
 
     // Function to delete the event if modal is closed
@@ -251,7 +266,8 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
             {isSelectFieldModalOpen && createdEventId && (
                 <SelectField
                     isOpen={isSelectFieldModalOpen}
-                    onClose={handleCloseAllModals}
+                    onClose={handleCancelSelectField}
+                    onSuccess={handleCloseAllModals}
                     eventId={Number(createdEventId)}
                     sportId={Number(formData.sportId)}
                     date={formData.date && formData.time ? `${formData.date}T${formData.time}:00` : formData.date}
