@@ -182,9 +182,9 @@ export const NewFieldsForm = () => {
                 {formErrors.sports && <p className="text-red-600 text-sm">{formErrors.sports}</p>}
               </div>
 
-              <InputField label="Costo por reserva:" name="cost" type="number" value={formData.cost} onChange={handleInputChange} error={formErrors.cost} />
+              <InputField label="Costo por turno:" name="cost" type="number" value={formData.cost} onChange={handleInputChange} error={formErrors.cost} />
               <InputField label="Capacidad:" name="capacity" type="number" value={formData.capacity} onChange={handleInputChange} error={formErrors.capacity} />
-              <InputField label="Duración (en minutos):" name="slot_duration" type="number" value={formData.slot_duration} onChange={handleInputChange} error={formErrors.slot_duration} />
+              <InputField label="Duración del turno (en minutos):" name="slot_duration" type="number" value={formData.slot_duration} onChange={handleInputChange} error={formErrors.slot_duration} />
 
               {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
 
