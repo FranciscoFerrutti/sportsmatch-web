@@ -30,7 +30,7 @@ export const EventsView = () => {
         }
 
         try {
-            const response = await apiClient.get(`/events`, { headers: { 'c-api-key': apiKey } });
+            const response = await apiClient.get(`/events?userId=${clubId}&organizerType=club`, { headers: { 'c-api-key': apiKey } });
 
             if (response.data && Array.isArray(response.data.items)) {
                 setEvents(response.data.items); // Extraer solo los items del paginado
@@ -60,7 +60,7 @@ export const EventsView = () => {
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
 
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-[#000066]">Eventos</h1>
+                <h1 className="text-2xl font-bold text-[#000066]">Eventos organizados por mi</h1>
 
                 {/* Botón para abrir el modal de nuevo evento */}
                 <Button className="bg-[#000066] hover:bg-[#000088] text-white px-6 py-2 rounded-lg shadow-md"
