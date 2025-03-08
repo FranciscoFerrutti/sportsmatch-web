@@ -53,14 +53,14 @@ export const FieldDetailView = () => {
                 const formattedSlots = response.data.map((slot: any) => ({
                     id: slot.id,
                     fieldId: slot.field_id,
-                    date: slot.date,
+                    availabilityDate: slot.availability_date,
                     startTime: slot.start_time,
                     endTime: slot.end_time,
                     slotStatus: slot.slotStatus,
                 }));
 
-                formattedSlots.sort((a: { date: string; startTime: string; }, b: { date: any; startTime: any; }) => {
-                    const dateComparison = a.date.localeCompare(b.date);
+                formattedSlots.sort((a: { availabilityDate: string; startTime: string; }, b: { availabilityDate: any; startTime: any; }) => {
+                    const dateComparison = a.availabilityDate.localeCompare(b.availabilityDate);
                     if (dateComparison !== 0) return dateComparison;
                     return a.startTime.localeCompare(b.startTime);
                 });
@@ -86,7 +86,7 @@ export const FieldDetailView = () => {
 
         const formattedDate = referenceDate.format("YYYY-MM-DD");
 
-        const slotsForDay = timeSlots.filter((slot) => slot.date === formattedDate);
+        const slotsForDay = timeSlots.filter((slot) => slot.availabilityDate === formattedDate);
 
         if (!slotsForDay.length) return "Cerrado";
 

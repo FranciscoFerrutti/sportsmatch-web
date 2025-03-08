@@ -46,7 +46,7 @@ export const HomeView = () => {
                             id: timeSlotData.id,
                             startTime: timeSlotData.start_time,
                             endTime: timeSlotData.end_time,
-                            date: timeSlotData.date
+                            availabilityDate: timeSlotData.availability_date
                         };
 
                         return {
@@ -188,14 +188,14 @@ export const HomeView = () => {
                     <section>
                         <h2 className="text-xl font-semibold text-[#000066] mb-4">📌 Reservas Pendientes</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {reservations.filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.date)).length === 0 ? (
+                            {reservations.filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate)).length === 0 ? (
                                 <Card className="p-6 text-center text-gray-500">No hay reservas pendientes</Card>
                             ) : (
                                 reservations
-                                    .filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.date))
+                                    .filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
                                     .sort((a, b) =>
-                                        dayjs(a.timeSlot?.date).valueOf() -
-                                        dayjs(b.timeSlot?.date).valueOf() ||
+                                        dayjs(a.timeSlot?.availabilityDate).valueOf() -
+                                        dayjs(b.timeSlot?.availabilityDate).valueOf() ||
                                         dayjs(`2000-01-01T${a.timeSlot?.startTime}`).valueOf() -
                                         dayjs(`2000-01-01T${b.timeSlot?.startTime}`).valueOf()
                                     )
@@ -204,7 +204,7 @@ export const HomeView = () => {
                                               className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
                                             <CardHeader>
                                                 <CardTitle>{reservation.field.name}</CardTitle>
-                                                <p className="text-gray-600">{dayjs(reservation.timeSlot?.date).format("DD/MM/YYYY")}</p>
+                                                <p className="text-gray-600">{dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}</p>
                                                 <p className="text-gray-600">{reservation.timeSlot?.startTime} hs</p>
                                             </CardHeader>
 
@@ -260,11 +260,11 @@ export const HomeView = () => {
                     <section>
                         <h2 className="text-xl font-semibold text-[#000066] mb-4">📅 Reservas del Día de Hoy</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {reservations.filter(r => r.status === 'confirmed' && isDateToday(r.timeSlot?.date)).length === 0 ? (
+                            {reservations.filter(r => r.status === 'confirmed' && isDateToday(r.timeSlot?.availabilityDate)).length === 0 ? (
                                 <Card className="p-6 text-center text-gray-500">No hay reservas para hoy</Card>
                             ) : (
                                 reservations
-                                    .filter(r => r.status === 'confirmed' && isDateToday(r.timeSlot?.date))
+                                    .filter(r => r.status === 'confirmed' && isDateToday(r.timeSlot?.availabilityDate))
                                     .sort((a, b) =>
                                         dayjs(`2000-01-01T${a.timeSlot?.startTime}`).valueOf() -
                                         dayjs(`2000-01-01T${b.timeSlot?.startTime}`).valueOf()
@@ -274,7 +274,7 @@ export const HomeView = () => {
                                               className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
                                             <CardHeader>
                                                 <CardTitle>{reservation.field.name}</CardTitle>
-                                                <p className="text-gray-600">{dayjs(reservation.timeSlot?.date).format("DD/MM/YYYY")}</p>
+                                                <p className="text-gray-600">{dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}</p>
                                                 <p className="text-gray-600">{reservation.timeSlot?.startTime} hs</p>
                                             </CardHeader>
 

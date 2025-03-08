@@ -107,7 +107,7 @@ export const FieldsView = () => {
                           ? field.sports.map(s => s.name).join(', ')
                           : 'No especificado'}
                       </p>
-                      <p className="text-gray-600"><strong>Costo por turno:</strong> ${field.cost}</p>
+                      <p className="text-gray-600"><strong>Costo por reserva:</strong> ${field.cost}</p>
                       <p className="text-gray-600"><strong>Capacidad:</strong> {field.capacity} personas</p>
                       <p className="text-gray-600"><strong>Duración:</strong> {field.slot_duration} minutos</p>
                     </CardContent>
