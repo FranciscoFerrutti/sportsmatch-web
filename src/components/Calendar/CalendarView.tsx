@@ -86,14 +86,14 @@ const CalendarView = () => {
       const formattedSlots = response.data.map((slot: any) => ({
         id: slot.id,
         fieldId: slot.field_id,
-        availabilityDate: slot.availability_date,
+        date: slot.date,
         startTime: slot.start_time,
         endTime: slot.end_time,
         slotStatus: slot.slotStatus
       }));
 
       formattedSlots.sort((a : TimeSlot, b: TimeSlot) => {
-        const dateComparison = a.availabilityDate.localeCompare(b.availabilityDate);
+        const dateComparison = a.date.localeCompare(b.date);
         return dateComparison !== 0 ? dateComparison : a.startTime.localeCompare(b.startTime);
       });
 
@@ -109,7 +109,6 @@ const CalendarView = () => {
 
   const generateTimeSlots = (): string[] => {
     if (!slotDuration || timeSlots.length === 0) {
-      console.warn("⚠️ No hay timeslots disponibles o no se ha definido slotDuration.");
       return [];
     }
 
@@ -133,7 +132,7 @@ const CalendarView = () => {
     const normalizedHour = hour.length === 5 ? `${hour}:00` : hour;
 
     const foundSlot = timeSlots.find(slot =>
-        slot.availabilityDate === dateString &&
+        slot.date === dateString &&
         slot.startTime <= normalizedHour &&
         slot.endTime > normalizedHour
     );
@@ -152,7 +151,7 @@ const CalendarView = () => {
     const normalizedHour = hour.length === 5 ? `${hour}:00` : hour;
 
     let foundSlot: TimeSlot | undefined = timeSlots.find(slot =>
-        slot.availabilityDate === dateString &&
+        slot.date === dateString &&
         slot.startTime <= normalizedHour &&
         slot.endTime > normalizedHour
     );
@@ -160,7 +159,7 @@ const CalendarView = () => {
     if (!foundSlot) {
       foundSlot = {
         id: -1,
-        availabilityDate: dateString,
+        date: dateString,
         startTime: normalizedHour,
         endTime: dayjs(`2025-01-01T${normalizedHour}`)
             .add(slotDuration ?? 0, "minute")
@@ -200,9 +199,9 @@ const CalendarView = () => {
 
       else if (slot.slotStatus === "maintenance") {
         if (newStatus === "available") {
-          await createTimeSlot(slot.availabilityDate, slot.startTime, slot.endTime, "available");
+          await createTimeSlot(slot.date, slot.startTime, slot.endTime, "available");
         } else if (newStatus === "booked") {
-          await createTimeSlot(slot.availabilityDate, slot.startTime, slot.endTime, "booked");
+          await createTimeSlot(slot.date, slot.startTime, slot.endTime, "booked");
         }
       }
 
@@ -251,7 +250,7 @@ const CalendarView = () => {
     const formattedEnd = end.substring(0, 5);
 
     const response = await apiClient.post(`/fields/${selectedField}/availability`, {
-      availabilityDate: date,
+      date: date,
       startTime: formattedStart,
       endTime: formattedEnd,
       slotStatus: status
@@ -370,52 +369,58 @@ const CalendarView = () => {
         {loading ? (
             <p className="text-center text-gray-500">Cargando timeslots...</p>
         ) : (
-            <div className="overflow-x-auto border rounded-lg bg-white shadow-lg">
-              <table className="w-full border-collapse">
-                <thead>
-                <tr>
-                  <th className="border p-2 bg-gray-50">Horario</th>
-                  {DAYS_OF_WEEK.map((day, index) => {
-                    const dayDate = dayjs().startOf('week').add(weekOffset * 7 + index, 'day').format("DD");
-                    return (
-                        <th key={day} className="border p-2 bg-gray-50">
-                          {day} {dayDate}
-                        </th>
-                    );
-                  })}
-                </tr>
-                </thead>
-
-                <tbody>
-                {timeSlotsFormatted.map((timeRange) => (
-                    <tr key={timeRange}>
-                      <td className="border p-2 text-center font-medium">{timeRange}</td>
-                      {DAYS_OF_WEEK.map((day) => (
-                          <td key={`${day}-${timeRange}`} className="border p-2"
-                              onClick={() => handleSlotClick(day, timeRange.split(" - ")[0])}>
-                            <div
-                                className={`text-center p-1 rounded ${getStatusClass(getTimeSlotStatus(day, timeRange.split(" - ")[0]))}`}
-                            >
-                              {getTimeSlotStatus(day, timeRange.split(" - ")[0])}
-                            </div>
-                            {selectedSlot?.day === day && selectedSlot.hour === timeRange.split(" - ")[0] && (
-                                <div id="slot-dropdown" className="absolute bg-white shadow-md rounded-md p-2 mt-1 z-10">
-                                  {getStatusOptions(selectedSlot.slot).map(option => (
-                                      <button key={option.label} className="block w-full text-left p-1 hover:bg-gray-200" onClick={option.action}>
-                                        {option.label}
-                                      </button>
-                                  ))}
-                                </div>
-                            )}
-                          </td>
-                      ))}
+            <>
+              {timeSlotsFormatted.length > 0 ? (
+                <div className="overflow-x-auto border rounded-lg bg-white shadow-lg">
+                  <table className="w-full border-collapse">
+                    <thead>
+                    <tr>
+                      <th className="border p-2 bg-gray-50">Horario</th>
+                      {DAYS_OF_WEEK.map((day, index) => {
+                        const dayDate = dayjs().startOf('week').add(weekOffset * 7 + index, 'day').format("DD");
+                        return (
+                            <th key={day} className="border p-2 bg-gray-50">
+                              {day} {dayDate}
+                            </th>
+                        );
+                      })}
                     </tr>
-                ))}
-                </tbody>
+                    </thead>
 
-
-              </table>
-            </div>
+                    <tbody>
+                    {timeSlotsFormatted.map((timeRange) => (
+                        <tr key={timeRange}>
+                          <td className="border p-2 text-center font-medium">{timeRange}</td>
+                          {DAYS_OF_WEEK.map((day) => (
+                              <td key={`${day}-${timeRange}`} className="border p-2"
+                                  onClick={() => handleSlotClick(day, timeRange.split(" - ")[0])}>
+                                <div
+                                    className={`text-center p-1 rounded ${getStatusClass(getTimeSlotStatus(day, timeRange.split(" - ")[0]))}`}
+                                >
+                                  {getTimeSlotStatus(day, timeRange.split(" - ")[0])}
+                                </div>
+                                {selectedSlot?.day === day && selectedSlot.hour === timeRange.split(" - ")[0] && (
+                                    <div id="slot-dropdown" className="absolute bg-white shadow-md rounded-md p-2 mt-1 z-10">
+                                      {getStatusOptions(selectedSlot.slot).map(option => (
+                                          <button key={option.label} className="block w-full text-left p-1 hover:bg-gray-200" onClick={option.action}>
+                                            {option.label}
+                                          </button>
+                                      ))}
+                                    </div>
+                                )}
+                              </td>
+                          ))}
+                        </tr>
+                    ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center p-6 bg-white rounded-lg shadow-sm border">
+                  <p className="text-gray-600">No hay horarios disponibles para esta cancha en la semana seleccionada.</p>
+                </div>
+              )}
+            </>
         )}
             </>
         )}
