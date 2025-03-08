@@ -1,6 +1,6 @@
 export type TimeSlot = {
     id?: number;
-    date: string;
+    availabilityDate: string;
     startTime: string;
     endTime: string;
     slotStatus: "available" | "booked" | "maintenance";

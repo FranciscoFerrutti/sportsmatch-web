@@ -86,14 +86,14 @@ const CalendarView = () => {
       const formattedSlots = response.data.map((slot: any) => ({
         id: slot.id,
         fieldId: slot.field_id,
-        date: slot.date,
+        availabilityDate: slot.availability_date,
         startTime: slot.start_time,
         endTime: slot.end_time,
         slotStatus: slot.slotStatus
       }));
 
       formattedSlots.sort((a : TimeSlot, b: TimeSlot) => {
-        const dateComparison = a.date.localeCompare(b.date);
+        const dateComparison = a.availabilityDate.localeCompare(b.availabilityDate);
         return dateComparison !== 0 ? dateComparison : a.startTime.localeCompare(b.startTime);
       });
 
@@ -132,7 +132,7 @@ const CalendarView = () => {
     const normalizedHour = hour.length === 5 ? `${hour}:00` : hour;
 
     const foundSlot = timeSlots.find(slot =>
-        slot.date === dateString &&
+        slot.availabilityDate === dateString &&
         slot.startTime <= normalizedHour &&
         slot.endTime > normalizedHour
     );
@@ -151,7 +151,7 @@ const CalendarView = () => {
     const normalizedHour = hour.length === 5 ? `${hour}:00` : hour;
 
     let foundSlot: TimeSlot | undefined = timeSlots.find(slot =>
-        slot.date === dateString &&
+        slot.availabilityDate === dateString &&
         slot.startTime <= normalizedHour &&
         slot.endTime > normalizedHour
     );
@@ -159,7 +159,7 @@ const CalendarView = () => {
     if (!foundSlot) {
       foundSlot = {
         id: -1,
-        date: dateString,
+        availabilityDate: dateString,
         startTime: normalizedHour,
         endTime: dayjs(`2025-01-01T${normalizedHour}`)
             .add(slotDuration ?? 0, "minute")
@@ -199,9 +199,9 @@ const CalendarView = () => {
 
       else if (slot.slotStatus === "maintenance") {
         if (newStatus === "available") {
-          await createTimeSlot(slot.date, slot.startTime, slot.endTime, "available");
+          await createTimeSlot(slot.availabilityDate, slot.startTime, slot.endTime, "available");
         } else if (newStatus === "booked") {
-          await createTimeSlot(slot.date, slot.startTime, slot.endTime, "booked");
+          await createTimeSlot(slot.availabilityDate, slot.startTime, slot.endTime, "booked");
         }
       }
 
@@ -250,7 +250,7 @@ const CalendarView = () => {
     const formattedEnd = end.substring(0, 5);
 
     const response = await apiClient.post(`/fields/${selectedField}/availability`, {
-      date: date,
+      availabilityDate: date,
       startTime: formattedStart,
       endTime: formattedEnd,
       slotStatus: status
