@@ -39,7 +39,22 @@ export const Login = () => {
         localStorage.setItem('clubId', clubId.toString());
         login(apiKey, clubId);
         console.log('✅ Inicio de sesión exitoso');
-        navigate('/home');
+
+        // Check if club has location
+        try {
+          const clubResponse = await apiClient.get(`/clubs`, {
+            params: { clubId }
+          });
+
+          if (clubResponse.data.location) {
+            navigate('/home');
+          } else {
+            navigate('/club-location');
+          }
+        } catch (error) {
+          console.error('❌ Error al verificar la ubicación del club:', error);
+          navigate('/club-location');
+        }
       } else {
         setError('Error al obtener credenciales.');
       }
