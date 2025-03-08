@@ -16,10 +16,11 @@ import {ModifyProfileView} from "./components/Club/ModifyProfileView.tsx";
 import {ClubProfileView} from "./components/Club/ClubProfileView.tsx";
 import {FieldDetailView} from "./components/Fields/FieldDetailView.tsx";
 import {EventsView} from "./components/Events/EventsView.tsx";
+import { EmailVerification } from './components/Login/EmailVerification';
 
 function AppContent() {
   const location = useLocation();
-  const shouldShowNavigation = location.pathname !== '/login' && location.pathname !== '/signup';
+  const shouldShowNavigation = location.pathname !== '/login' && location.pathname !== '/signup' && location.pathname !== '/verify-email';
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -29,6 +30,7 @@ function AppContent() {
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-email" element={<EmailVerification />} />
           <Route path="/home" element={<PrivateRoute><HomeView /></PrivateRoute>} />
           <Route path="/fields" element={<PrivateRoute><FieldsView /></PrivateRoute>} />
           <Route path="/fields/:id" element={<PrivateRoute><FieldDetailView /></PrivateRoute>} />
