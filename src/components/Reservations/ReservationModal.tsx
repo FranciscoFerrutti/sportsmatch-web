@@ -64,7 +64,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onCl
           .filter((slot: TimeSlot) => slot.slotStatus === "available")
           .map((slot: any) => ({
             id: slot.id,
-            availabilityDate: slot.availability_date,
+            date: slot.date,
             startTime: slot.start_time,
             endTime: slot.end_time,
             slotStatus: slot.slotStatus,

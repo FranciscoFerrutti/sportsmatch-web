@@ -41,7 +41,7 @@ export const AssignSchedule = () => {
 
                 const updatedSchedule = DAYS_OF_WEEK.map(day => {
                     const slotsForDay = existingSlots.filter(slot =>
-                        (new Date(slot.availabilityDate).getDay() + 6) % 7 === DAYS_OF_WEEK.indexOf(day)
+                        (new Date(slot.date).getDay() + 6) % 7 === DAYS_OF_WEEK.indexOf(day)
                     );
 
                     if (slotsForDay.length > 0) {
@@ -234,12 +234,12 @@ export const AssignSchedule = () => {
                 if (slot.closed || !slot.startTime || !slot.endTime) continue;
 
                 const slotsToCreate = generateTimeSlots(slot.startTime, slot.endTime, slotDuration!);
-                const availabilityDates = getNextDatesForDay(slot.day);
+                const dates = getNextDatesForDay(slot.day);
 
-                for (const date of availabilityDates) {
+                for (const date of dates) {
                     for (const timeSlot of slotsToCreate) {
                         newSlots.push({
-                            availabilityDate: date,
+                            date: date,
                             startTime: formatTime(timeSlot.startTime),
                             endTime: formatTime(timeSlot.endTime),
                             slotStatus: "available",
