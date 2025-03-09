@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import apiClient from '@/apiClients';
 import { Participant } from '@/types/participant';
-import { Check, X, User, Star } from 'lucide-react';
+import { Check, X, User, Star, Phone, MessageCircle } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ParticipantRequestsProps {
     eventId: number;
@@ -12,22 +13,22 @@ interface ParticipantRequestsProps {
 }
 
 export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRequestsProps) => {
-    const [participants, setParticipants] = useState<Participant[]>([]);
+    const [pendingParticipants, setPendingParticipants] = useState<Participant[]>([]);
+    const [acceptedParticipants, setAcceptedParticipants] = useState<Participant[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const apiKey = localStorage.getItem('c-api-key');
 
-    const fetchParticipants = async () => {
+    const fetchParticipants = async (status: string) => {
         if (!apiKey) {
             setError('API Key no encontrada');
             setLoading(false);
-            return;
+            return [];
         }
 
         try {
-            setLoading(true);
             const response = await apiClient.get<Participant[]>(
-                `/events/${eventId}/participants?status=pending`, 
+                `/events/${eventId}/participants?status=${status}`, 
                 { 
                     headers: { 
                         'c-api-key': apiKey,
@@ -37,15 +38,30 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
             );
 
             if (response.data && Array.isArray(response.data)) {
-                setParticipants(response.data);
+                return response.data;
             } else {
-                setParticipants([]);
+                return [];
             }
+        } catch (err) {
+            console.error(`Error al obtener participantes ${status}:`, err);
+            return [];
+        }
+    };
+
+    const loadAllParticipants = async () => {
+        setLoading(true);
+        try {
+            const [pending, accepted] = await Promise.all([
+                fetchParticipants('pending'),
+                fetchParticipants('accepted')
+            ]);
+            
+            setPendingParticipants(pending);
+            setAcceptedParticipants(accepted);
             setError(null);
         } catch (err) {
-            console.error('Error al obtener solicitudes de participantes:', err);
-            setError('Error al cargar las solicitudes');
-            setParticipants([]);
+            console.error('Error al cargar participantes:', err);
+            setError('Error al cargar los participantes');
         } finally {
             setLoading(false);
         }
@@ -53,7 +69,7 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
 
     useEffect(() => {
         if (eventId) {
-            fetchParticipants();
+            loadAllParticipants();
         }
     }, [eventId]);
 
@@ -73,8 +89,8 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                 }
             );
             
-            // Remove from list or refresh
-            setParticipants(participants.filter(p => p.userId !== userId));
+            // Refresh participants lists
+            loadAllParticipants();
             if (onRequestsChange) onRequestsChange();
         } catch (err) {
             console.error('Error al aceptar participante:', err);
@@ -95,78 +111,148 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                 }
             );
             
-            // Remove from list or refresh
-            setParticipants(participants.filter(p => p.userId !== userId));
+            // Refresh participants lists
+            loadAllParticipants();
             if (onRequestsChange) onRequestsChange();
         } catch (err) {
             console.error('Error al rechazar participante:', err);
         }
     };
 
+    const handleContact = (participant: Participant) => {
+        // Open phone dialer or messaging app
+        if (participant.phoneNumber) {
+            window.open(`tel:${participant.phoneNumber}`, '_blank');
+        }
+    };
+
     if (loading) {
-        return <div className="text-center py-4">Cargando solicitudes...</div>;
+        return <div className="text-center py-4">Cargando participantes...</div>;
     }
 
     if (error) {
         return <div className="text-center text-red-500 py-4">{error}</div>;
     }
 
-    if (participants.length === 0) {
-        return <div className="text-center text-gray-500 py-4">No hay solicitudes pendientes</div>;
-    }
-
     return (
-        <div className="space-y-4">
-            <h3 className="text-lg font-medium">Solicitudes pendientes ({participants.length})</h3>
+        <Tabs defaultValue="pending" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="pending">
+                    Solicitudes Pendientes
+                </TabsTrigger>
+                <TabsTrigger value="accepted" className="relative">
+                    Participantes Aceptados
+                    {acceptedParticipants.length > 0 && (
+                        <span className="absolute top-0 right-1 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {acceptedParticipants.length}
+                        </span>
+                    )}
+                </TabsTrigger>
+            </TabsList>
             
-            <div className="space-y-3">
-                {participants.map((participant) => (
-                    <Card key={participant.userId} className="overflow-hidden">
-                        <div className="flex items-center p-4">
-                            <div className="flex-shrink-0 mr-4">
-                                <Avatar className="h-12 w-12">
-                                    <AvatarFallback>
-                                        {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </div>
-                            
-                            <div className="flex-grow">
-                                <h4 className="font-medium">{participant.firstname} {participant.lastname}</h4>
-                                <div className="flex items-center text-sm text-gray-500 space-x-2">
-                                    {participant.phoneNumber && (
-                                        <p>{participant.phoneNumber}</p>
-                                    )}
-                                    {participant.rating && (
-                                        <div className="flex items-center">
-                                            <Star className="h-3 w-3 text-yellow-500 mr-1" />
-                                            <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+            <TabsContent value="pending" className="space-y-4">
+                {pendingParticipants.length === 0 ? (
+                    <div className="text-center text-gray-500 py-4">No hay solicitudes pendientes</div>
+                ) : (
+                    <div className="space-y-3">
+                        {pendingParticipants.map((participant) => (
+                            <Card key={participant.userId} className="overflow-hidden">
+                                <div className="flex items-center p-4">
+                                    <div className="flex-shrink-0 mr-4">
+                                        <Avatar className="h-12 w-12">
+                                            <AvatarFallback>
+                                                {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </div>
+                                    
+                                    <div className="flex-grow">
+                                        <h4 className="font-medium">{participant.firstname} {participant.lastname}</h4>
+                                        <div className="flex items-center text-sm text-gray-500 space-x-2">
+                                            {participant.phoneNumber && (
+                                                <p>{participant.phoneNumber}</p>
+                                            )}
+                                            {participant.rating && (
+                                                <div className="flex items-center">
+                                                    <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                                                    <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
+                                    
+                                    <div className="flex space-x-2">
+                                        <Button 
+                                            onClick={() => handleAccept(participant.userId)}
+                                            size="sm"
+                                            className="bg-green-600 hover:bg-green-700"
+                                        >
+                                            <Check className="h-4 w-4" />
+                                        </Button>
+                                        
+                                        <Button 
+                                            onClick={() => handleReject(participant.userId)}
+                                            size="sm"
+                                            variant="destructive"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div className="flex space-x-2">
-                                <Button 
-                                    onClick={() => handleAccept(participant.userId)}
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700"
-                                >
-                                    <Check className="h-4 w-4" />
-                                </Button>
-                                
-                                <Button 
-                                    onClick={() => handleReject(participant.userId)}
-                                    size="sm"
-                                    variant="destructive"
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    </Card>
-                ))}
-            </div>
-        </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </TabsContent>
+            
+            <TabsContent value="accepted" className="space-y-4">
+                {acceptedParticipants.length === 0 ? (
+                    <div className="text-center text-gray-500 py-4">No hay participantes aceptados</div>
+                ) : (
+                    <div className="space-y-3">
+                        {acceptedParticipants.map((participant) => (
+                            <Card key={participant.userId} className="overflow-hidden">
+                                <div className="flex items-center p-4">
+                                    <div className="flex-shrink-0 mr-4">
+                                        <Avatar className="h-12 w-12">
+                                            <AvatarFallback>
+                                                {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </div>
+                                    
+                                    <div className="flex-grow">
+                                        <h4 className="font-medium">{participant.firstname} {participant.lastname}</h4>
+                                        <div className="flex items-center text-sm text-gray-500 space-x-2">
+                                            {participant.phoneNumber && (
+                                                <p>{participant.phoneNumber}</p>
+                                            )}
+                                            {participant.rating && (
+                                                <div className="flex items-center">
+                                                    <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                                                    <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex space-x-2">
+                                        <Button 
+                                            onClick={() => handleContact(participant)}
+                                            size="sm"
+                                            className="bg-blue-600 hover:bg-blue-700"
+                                            disabled={!participant.phoneNumber}
+                                            title={participant.phoneNumber ? "Contactar" : "No hay número de teléfono"}
+                                        >
+                                            <Phone className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </TabsContent>
+        </Tabs>
     );
-};
+}; 

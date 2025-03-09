@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import { Event } from '@/types/event'
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { CalendarIcon, MapPin, ClockIcon, Users, ChevronDown, ChevronUp, UserPlus } from 'lucide-react';
+import { CalendarIcon, MapPin, ClockIcon, Users, ChevronDown, ChevronUp, UserPlus, UserCheck } from 'lucide-react';
 import { ParticipantRequests } from './ParticipantRequests';
 
 dayjs.extend(utc);
@@ -24,6 +24,7 @@ export const EventsView = () => {
     const [loading, setLoading] = useState(true);
     const [expandedEvents, setExpandedEvents] = useState<number[]>([]);
     const [pendingRequestsCounts, setPendingRequestsCounts] = useState<Record<number, number>>({});
+    const [acceptedParticipantsCounts, setAcceptedParticipantsCounts] = useState<Record<number, number>>({});
 
     const fetchEvents = async () => {
         if (!apiKey || !clubId) {
@@ -38,7 +39,7 @@ export const EventsView = () => {
             if (response.data && Array.isArray(response.data.items)) {
                 setEvents(response.data.items); // Extraer solo los items del paginado
                 // Fetch pending requests counts for each event
-                fetchPendingRequestsCounts(response.data.items);
+                fetchParticipantsCounts(response.data.items);
             } else {
                 console.error("❌ Error: La API no devolvió un array de eventos en 'items'");
                 setEvents([]);
@@ -51,34 +52,52 @@ export const EventsView = () => {
         }
     };
 
-    const fetchPendingRequestsCounts = async (eventsList: Event[]) => {
+    const fetchParticipantsCounts = async (eventsList: Event[]) => {
         if (!apiKey) return;
 
-        const counts: Record<number, number> = {};
+        const pendingCounts: Record<number, number> = {};
+        const acceptedCounts: Record<number, number> = {};
         
         await Promise.all(
             eventsList.map(async (event) => {
                 try {
-                    const response = await apiClient.get(`/events/${event.id}/participants?status=pending`, {
+                    // Fetch pending participants
+                    const pendingResponse = await apiClient.get(`/events/${event.id}/participants?status=pending`, {
                         headers: { 
                             'c-api-key': apiKey,
                             'x-auth-type': 'club'
                         }
                     });
                     
-                    if (response.data && Array.isArray(response.data)) {
-                        counts[event.id] = response.data.length;
+                    if (pendingResponse.data && Array.isArray(pendingResponse.data)) {
+                        pendingCounts[event.id] = pendingResponse.data.length;
                     } else {
-                        counts[event.id] = 0;
+                        pendingCounts[event.id] = 0;
+                    }
+
+                    // Fetch accepted participants
+                    const acceptedResponse = await apiClient.get(`/events/${event.id}/participants?status=accepted`, {
+                        headers: { 
+                            'c-api-key': apiKey,
+                            'x-auth-type': 'club'
+                        }
+                    });
+                    
+                    if (acceptedResponse.data && Array.isArray(acceptedResponse.data)) {
+                        acceptedCounts[event.id] = acceptedResponse.data.length;
+                    } else {
+                        acceptedCounts[event.id] = 0;
                     }
                 } catch (error) {
-                    console.error(`Error al obtener solicitudes para evento ${event.id}:`, error);
-                    counts[event.id] = 0;
+                    console.error(`Error al obtener participantes para evento ${event.id}:`, error);
+                    pendingCounts[event.id] = 0;
+                    acceptedCounts[event.id] = 0;
                 }
             })
         );
         
-        setPendingRequestsCounts(counts);
+        setPendingRequestsCounts(pendingCounts);
+        setAcceptedParticipantsCounts(acceptedCounts);
     };
 
     useEffect(() => {
@@ -99,8 +118,8 @@ export const EventsView = () => {
     };
 
     const handleRequestsChange = (eventId: number) => {
-        // Update the pending requests count for this event
-        fetchPendingRequestsCounts(events);
+        // Update the participants counts for this event
+        fetchParticipantsCounts(events);
     };
 
     return (
@@ -153,15 +172,24 @@ export const EventsView = () => {
                                                     <Users className="w-4 h-4 mr-1" /> {event.remaining} jugadores faltantes
                                                 </p>
                                                 
-                                                {pendingRequestsCounts[event.id] > 0 && (
-                                                    <div className="mt-3 flex items-center text-blue-600">
-                                                        <UserPlus className="w-4 h-4 mr-1" />
-                                                        <span>{pendingRequestsCounts[event.id]} solicitudes pendientes</span>
-                                                    </div>
-                                                )}
+                                                <div className="mt-3 space-y-1">
+                                                    {pendingRequestsCounts[event.id] > 0 && (
+                                                        <div className="flex items-center text-blue-600">
+                                                            <UserPlus className="w-4 h-4 mr-1" />
+                                                            <span>{pendingRequestsCounts[event.id]} solicitudes pendientes</span>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {acceptedParticipantsCounts[event.id] > 0 && (
+                                                        <div className="flex items-center text-green-600">
+                                                            <UserCheck className="w-4 h-4 mr-1" />
+                                                            <span>{acceptedParticipantsCounts[event.id]} participantes confirmados</span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </CardContent>
                                             
-                                            {pendingRequestsCounts[event.id] > 0 && (
+                                            {(pendingRequestsCounts[event.id] > 0 || acceptedParticipantsCounts[event.id] > 0) && (
                                                 <CardFooter className="border-t border-gray-100 pt-3 pb-0">
                                                     <Button 
                                                         variant="ghost" 
@@ -169,9 +197,9 @@ export const EventsView = () => {
                                                         onClick={() => toggleEventExpansion(event.id)}
                                                     >
                                                         {expandedEvents.includes(event.id) ? (
-                                                            <>Ocultar solicitudes <ChevronUp className="ml-1 h-4 w-4" /></>
+                                                            <>Ocultar participantes <ChevronUp className="ml-1 h-4 w-4" /></>
                                                         ) : (
-                                                            <>Ver solicitudes <ChevronDown className="ml-1 h-4 w-4" /></>
+                                                            <>Ver participantes <ChevronDown className="ml-1 h-4 w-4" /></>
                                                         )}
                                                     </Button>
                                                 </CardFooter>

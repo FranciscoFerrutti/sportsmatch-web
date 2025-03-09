@@ -10,4 +10,4 @@ export interface Participant {
         count: number
     };
     isRated: boolean;
-}
+} 
