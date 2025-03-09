@@ -140,13 +140,8 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                 <TabsTrigger value="pending">
                     Solicitudes Pendientes
                 </TabsTrigger>
-                <TabsTrigger value="accepted" className="relative">
+                <TabsTrigger value="accepted">
                     Participantes Aceptados
-                    {acceptedParticipants.length > 0 && (
-                        <span className="absolute top-0 right-1 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                            {acceptedParticipants.length}
-                        </span>
-                    )}
                 </TabsTrigger>
             </TabsList>
             
@@ -168,13 +163,13 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                                     
                                     <div className="flex-grow">
                                         <h4 className="font-medium">{participant.firstname} {participant.lastname}</h4>
-                                        <div className="flex items-center text-sm text-gray-500 space-x-2">
+                                        <div className="flex flex-col text-sm text-gray-500">
                                             {participant.phoneNumber && (
                                                 <p>{participant.phoneNumber}</p>
                                             )}
                                             {participant.rating && (
-                                                <div className="flex items-center">
-                                                    <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                                                <div className="flex items-center mt-1">
+                                                    <Star className="h-5 w-5 text-yellow-500 mr-1" />
                                                     <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
                                                 </div>
                                             )}
@@ -223,13 +218,13 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                                     
                                     <div className="flex-grow">
                                         <h4 className="font-medium">{participant.firstname} {participant.lastname}</h4>
-                                        <div className="flex items-center text-sm text-gray-500 space-x-2">
+                                        <div className="flex flex-col text-sm text-gray-500">
                                             {participant.phoneNumber && (
                                                 <p>{participant.phoneNumber}</p>
                                             )}
                                             {participant.rating && (
-                                                <div className="flex items-center">
-                                                    <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                                                <div className="flex items-center mt-1">
+                                                    <Star className="h-5 w-5 text-yellow-500 mr-1" />
                                                     <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
                                                 </div>
                                             )}
