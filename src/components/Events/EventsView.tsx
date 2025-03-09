@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { NewEvent } from './NewEvent';
 import { useAuth } from '@/context/AppContext';
 import apiClient from '@/apiClients';
@@ -8,7 +8,8 @@ import dayjs from 'dayjs';
 import { Event } from '@/types/event'
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { CalendarIcon, MapPin, ClockIcon, Users } from 'lucide-react';
+import { CalendarIcon, MapPin, ClockIcon, Users, ChevronDown, ChevronUp, UserPlus } from 'lucide-react';
+import { ParticipantRequests } from './ParticipantRequests';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -21,6 +22,8 @@ export const EventsView = () => {
     const [events, setEvents] = useState<Event[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [expandedEvents, setExpandedEvents] = useState<number[]>([]);
+    const [pendingRequestsCounts, setPendingRequestsCounts] = useState<Record<number, number>>({});
 
     const fetchEvents = async () => {
         if (!apiKey || !clubId) {
@@ -34,6 +37,8 @@ export const EventsView = () => {
 
             if (response.data && Array.isArray(response.data.items)) {
                 setEvents(response.data.items); // Extraer solo los items del paginado
+                // Fetch pending requests counts for each event
+                fetchPendingRequestsCounts(response.data.items);
             } else {
                 console.error("❌ Error: La API no devolvió un array de eventos en 'items'");
                 setEvents([]);
@@ -46,6 +51,35 @@ export const EventsView = () => {
         }
     };
 
+    const fetchPendingRequestsCounts = async (eventsList: Event[]) => {
+        if (!apiKey) return;
+
+        const counts: Record<number, number> = {};
+        
+        await Promise.all(
+            eventsList.map(async (event) => {
+                try {
+                    const response = await apiClient.get(`/events/${event.id}/participants?status=pending`, {
+                        headers: { 
+                            'c-api-key': apiKey,
+                            'x-auth-type': 'club'
+                        }
+                    });
+                    
+                    if (response.data && Array.isArray(response.data)) {
+                        counts[event.id] = response.data.length;
+                    } else {
+                        counts[event.id] = 0;
+                    }
+                } catch (error) {
+                    console.error(`Error al obtener solicitudes para evento ${event.id}:`, error);
+                    counts[event.id] = 0;
+                }
+            })
+        );
+        
+        setPendingRequestsCounts(counts);
+    };
 
     useEffect(() => {
         fetchEvents();
@@ -54,6 +88,19 @@ export const EventsView = () => {
     const isDateFuture = (dateString: string | undefined) => {
         if (!dateString) return false;
         return dayjs(dateString).isAfter(dayjs(), 'day');
+    };
+
+    const toggleEventExpansion = (eventId: number) => {
+        setExpandedEvents(prev => 
+            prev.includes(eventId) 
+                ? prev.filter(id => id !== eventId) 
+                : [...prev, eventId]
+        );
+    };
+
+    const handleRequestsChange = (eventId: number) => {
+        // Update the pending requests count for this event
+        fetchPendingRequestsCounts(events);
     };
 
     return (
@@ -86,7 +133,7 @@ export const EventsView = () => {
                                     .sort((a, b) => dayjs(a.schedule).valueOf() - dayjs(b.schedule).valueOf())
                                     .map((event: any) => (
                                         <Card key={`event-${event.id}`}
-                                              className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
+                                              className="shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white overflow-hidden">
                                             <CardHeader>
                                                 <CardTitle>{event.sportName}</CardTitle>
                                                 <p className="text-gray-600 flex items-center">
@@ -105,7 +152,39 @@ export const EventsView = () => {
                                                 <p className="text-gray-600 flex items-center">
                                                     <Users className="w-4 h-4 mr-1" /> {event.remaining} jugadores faltantes
                                                 </p>
+                                                
+                                                {pendingRequestsCounts[event.id] > 0 && (
+                                                    <div className="mt-3 flex items-center text-blue-600">
+                                                        <UserPlus className="w-4 h-4 mr-1" />
+                                                        <span>{pendingRequestsCounts[event.id]} solicitudes pendientes</span>
+                                                    </div>
+                                                )}
                                             </CardContent>
+                                            
+                                            {pendingRequestsCounts[event.id] > 0 && (
+                                                <CardFooter className="border-t border-gray-100 pt-3 pb-0">
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        className="w-full flex items-center justify-center text-blue-600"
+                                                        onClick={() => toggleEventExpansion(event.id)}
+                                                    >
+                                                        {expandedEvents.includes(event.id) ? (
+                                                            <>Ocultar solicitudes <ChevronUp className="ml-1 h-4 w-4" /></>
+                                                        ) : (
+                                                            <>Ver solicitudes <ChevronDown className="ml-1 h-4 w-4" /></>
+                                                        )}
+                                                    </Button>
+                                                </CardFooter>
+                                            )}
+                                            
+                                            {expandedEvents.includes(event.id) && (
+                                                <div className="px-4 pb-4 pt-2 bg-gray-50">
+                                                    <ParticipantRequests 
+                                                        eventId={event.id} 
+                                                        onRequestsChange={() => handleRequestsChange(event.id)}
+                                                    />
+                                                </div>
+                                            )}
                                         </Card>
                                     ))
                             )}
