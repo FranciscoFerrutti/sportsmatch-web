@@ -1,50 +1,51 @@
-# React + TypeScript + Vite
+# SportsMatch Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este repositorio contiene el código fuente de la aplicación web de **SportsMatch**, desarrollada en **React.js con Vite**. Está diseñada para que los clubes deportivos gestionen sus canchas, horarios y reservas de manera eficiente.
 
-Currently, two official plugins are available:
+## Tecnologías utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React.js + Vite**: Framework y entorno de desarrollo rápido para aplicaciones web modernas.
+- **Axios**: Cliente HTTP para consumir la API del backend.
+- **React Router**: Manejo de rutas y navegación dentro de la aplicación.
+- **Google Maps API**: Integración para la selección de ubicaciones de clubes.
 
-## Expanding the ESLint configuration
+## Configuración
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+Para ejecutar la aplicación en modo desarrollo, sigue estos pasos:
 
-- Configure the top-level `parserOptions` property like this:
+1. **Instalar las dependencias**:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+   ```sh
+   npm install
+   ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. **Crear un archivo `.env`** en el directorio raíz del proyecto con la siguiente configuración:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+| Variable                      | Descripción |
+|--------------------------------|------------|
+| `VITE_API_BASE_URL`            | URL base del backend de SportsMatch+ |
+| `VITE_GOOGLE_MAPS_API_KEY`     | Clave de API de Google Maps para la selección de ubicaciones |
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Ejecución
+
+1. **Iniciar la aplicación en modo desarrollo**:
+
+   ```sh
+   npm run dev
+   ```
+
+2. **Abrir la aplicación en el navegador**:
+
+   ```
+   http://localhost:5173
+   ```
+
+## Funcionalidades principales
+
+✅ **Gestión de clubes y canchas**  
+✅ **Administración de horarios y disponibilidad**  
+✅ **Visualización de reservas en un calendario interactivo**  
+✅ **Integración con Google Maps para ubicación de clubes**  
+✅ **Interfaz optimizada para escritorio y dispositivos móviles**  
+
+---
