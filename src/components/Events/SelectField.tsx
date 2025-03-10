@@ -96,7 +96,21 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
                 headers: { 'c-api-key': apiKey }
             });
 
-            console.log('✅ Field booked and associated with event successfully');
+            let formattedTime = selectedField.startTime;
+            
+            if (selectedField.startTime.includes('T')) {
+                formattedTime = dayjs(selectedField.startTime).format('HH:mm');
+            } 
+            else if (selectedField.startTime.split(':').length > 2) {
+                formattedTime = selectedField.startTime.split(':').slice(0, 2).join(':');
+            }
+
+            await apiClient.patch(`/events/${eventId}`, {
+                description: selectedField.name,
+                schedule: formattedTime,
+            }, {
+                headers: { 'c-api-key': apiKey, 'x-auth-type': 'club' }
+            });
             
             if (onSuccess) {
                 onSuccess();
@@ -166,7 +180,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
                     </Button>
                     <Button onClick={handleConfirmSelection} className="bg-[#000066] hover:bg-[#000088] text-white"
                             disabled={!selectedField}>
-                        Confirmar Reserva
+                        Confirmar cancha
                     </Button>
                 </div>
             </Card>
