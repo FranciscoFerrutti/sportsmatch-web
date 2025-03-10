@@ -25,6 +25,7 @@ export const EventsView = () => {
     const [expandedEvents, setExpandedEvents] = useState<number[]>([]);
     const [pendingRequestsCounts, setPendingRequestsCounts] = useState<Record<number, number>>({});
     const [acceptedParticipantsCounts, setAcceptedParticipantsCounts] = useState<Record<number, number>>({});
+    const [visibleDescriptions, setVisibleDescriptions] = useState<number[]>([]);
 
     const fetchEvents = async () => {
         if (!apiKey || !clubId) {
@@ -111,6 +112,14 @@ export const EventsView = () => {
 
     const toggleEventExpansion = (eventId: number) => {
         setExpandedEvents(prev => 
+            prev.includes(eventId) 
+                ? prev.filter(id => id !== eventId) 
+                : [...prev, eventId]
+        );
+    };
+
+    const toggleDescriptionVisibility = (eventId: number) => {
+        setVisibleDescriptions(prev => 
             prev.includes(eventId) 
                 ? prev.filter(id => id !== eventId) 
                 : [...prev, eventId]
@@ -225,6 +234,33 @@ export const EventsView = () => {
                                                         </div>
                                                     )}
                                                 </div>
+
+                                                {event.description && (
+                                                    <div className="mt-4">
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="sm"
+                                                            className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                            onClick={() => toggleDescriptionVisibility(event.id)}
+                                                        >
+                                                            {visibleDescriptions.includes(event.id) ? (
+                                                                <span className="flex items-center">
+                                                                    Ocultar descripción <ChevronUp className="ml-1 h-4 w-4" />
+                                                                </span>
+                                                            ) : (
+                                                                <span className="flex items-center">
+                                                                    Ver descripción <ChevronDown className="ml-1 h-4 w-4" />
+                                                                </span>
+                                                            )}
+                                                        </Button>
+                                                        
+                                                        {visibleDescriptions.includes(event.id) && (
+                                                            <div className="mt-2 p-3 bg-blue-50 rounded-md text-gray-700">
+                                                                {event.description}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </CardContent>
                                             
                                             {(pendingRequestsCounts[event.id] > 0 || acceptedParticipantsCounts[event.id] > 0) && (
