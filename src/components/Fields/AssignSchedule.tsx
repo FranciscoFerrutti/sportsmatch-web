@@ -40,9 +40,14 @@ export const AssignSchedule = () => {
                 const existingSlots: TimeSlot[] = response.data;
 
                 const updatedSchedule = DAYS_OF_WEEK.map(day => {
-                    const slotsForDay = existingSlots.filter(slot =>
-                        (new Date(slot.availabilityDate).getDay() + 6) % 7 === DAYS_OF_WEEK.indexOf(day)
-                    );
+                    // Convert from DAYS_OF_WEEK index (where 0 = Monday) to JS Date index (where 0 = Sunday)
+                    const dayIndexInArray = DAYS_OF_WEEK.indexOf(day);
+                    const jsDateIndex = dayIndexInArray === 6 ? 0 : dayIndexInArray + 1;
+                    
+                    const slotsForDay = existingSlots.filter(slot => {
+                        const slotDate = new Date(slot.availabilityDate);
+                        return slotDate.getDay() === jsDateIndex;
+                    });
 
                     if (slotsForDay.length > 0) {
                         slotsForDay.sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -160,13 +165,17 @@ export const AssignSchedule = () => {
 
     const getNextDatesForDay = (dayName: string): string[] => {
         const today = new Date();
-        const todayIndex = today.getDay();
-        const targetIndex = DAYS_OF_WEEK.indexOf(dayName);
+        const todayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        
+        // Convert from DAYS_OF_WEEK index (where 0 = Monday) to JS Date index (where 0 = Sunday)
+        // Lunes (Monday) is at index 0 in DAYS_OF_WEEK but index 1 in JS Date
+        const dayIndexInArray = DAYS_OF_WEEK.indexOf(dayName);
+        const targetIndex = dayIndexInArray === 6 ? 0 : dayIndexInArray + 1;
 
-        if (targetIndex === -1) throw new Error(`Día inválido: ${dayName}`);
+        if (dayIndexInArray === -1) throw new Error(`Día inválido: ${dayName}`);
 
         let daysToAdd = targetIndex - todayIndex;
-        if (daysToAdd < 0) daysToAdd += 7;
+        if (daysToAdd <= 0) daysToAdd += 7;
 
         const dates = [];
         for (let i = 0; i < 12; i++) {
