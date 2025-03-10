@@ -216,6 +216,14 @@ export const EventsView = () => {
                                                             <span>{acceptedParticipantsCounts[event.id]} participantes confirmados</span>
                                                         </div>
                                                     )}
+                                                    
+                                                    {(!pendingRequestsCounts[event.id] || pendingRequestsCounts[event.id] === 0) && 
+                                                     (!acceptedParticipantsCounts[event.id] || acceptedParticipantsCounts[event.id] === 0) && (
+                                                        <div className="flex items-center text-gray-500">
+                                                            <Users className="w-4 h-4 mr-1" />
+                                                            <span>Todavía no hay participantes</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </CardContent>
                                             
