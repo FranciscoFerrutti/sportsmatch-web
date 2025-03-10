@@ -6,4 +6,7 @@ export interface Event {
     ownerName: string;
     ownerPhone: string;
     ownerImage?: string;
+    remaining?: number;
+    location?: string;
+    sportName?: string;
 }

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ParticipantRequestsProps {
     eventId: number;
-    onRequestsChange?: () => void;
+    onRequestsChange?: (action: 'accept' | 'reject') => void;
 }
 
 export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRequestsProps) => {
@@ -89,9 +89,18 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                 }
             );
             
-            // Refresh participants lists
+            // Update local state first for immediate UI feedback
+            const acceptedParticipant = pendingParticipants.find(p => p.userId === userId);
+            if (acceptedParticipant) {
+                setPendingParticipants(prev => prev.filter(p => p.userId !== userId));
+                setAcceptedParticipants(prev => [...prev, {...acceptedParticipant, participantStatus: true}]);
+            }
+            
+            // Notify parent component
+            if (onRequestsChange) onRequestsChange('accept');
+            
+            // Then refresh from server to ensure data consistency
             loadAllParticipants();
-            if (onRequestsChange) onRequestsChange();
         } catch (err) {
             console.error('Error al aceptar participante:', err);
         }
@@ -111,9 +120,14 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                 }
             );
             
-            // Refresh participants lists
+            // Update local state first for immediate UI feedback
+            setPendingParticipants(prev => prev.filter(p => p.userId !== userId));
+            
+            // Notify parent component that a participant was rejected
+            if (onRequestsChange) onRequestsChange('reject');
+            
+            // Then refresh from server to ensure data consistency
             loadAllParticipants();
-            if (onRequestsChange) onRequestsChange();
         } catch (err) {
             console.error('Error al rechazar participante:', err);
         }
@@ -250,4 +264,4 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
             </TabsContent>
         </Tabs>
     );
-}; 
+};

@@ -117,8 +117,38 @@ export const EventsView = () => {
         );
     };
 
-    const handleRequestsChange = (eventId: number) => {
+    const handleRequestsChange = (eventId: number, action: 'accept' | 'reject') => {
         // Update the participants counts for this event
+        if (action === 'accept') {
+            // When accepting a participant, decrease pending count and increase accepted count
+            setPendingRequestsCounts(prev => ({
+                ...prev,
+                [eventId]: Math.max(0, (prev[eventId] || 0) - 1)
+            }));
+            setAcceptedParticipantsCounts(prev => ({
+                ...prev,
+                [eventId]: (prev[eventId] || 0) + 1
+            }));
+
+            // Update the remaining players count in the event
+            setEvents(prev => prev.map(event => {
+                if (event.id === eventId && event.remaining) {
+                    return {
+                        ...event,
+                        remaining: Math.max(0, event.remaining - 1)
+                    };
+                }
+                return event;
+            }));
+        } else if (action === 'reject') {
+            // When rejecting a participant, just decrease pending count
+            setPendingRequestsCounts(prev => ({
+                ...prev,
+                [eventId]: Math.max(0, (prev[eventId] || 0) - 1)
+            }));
+        }
+
+        // Also fetch from server to ensure data consistency
         fetchParticipantsCounts(events);
     };
 
@@ -209,7 +239,7 @@ export const EventsView = () => {
                                                 <div className="px-4 pb-4 pt-2 bg-gray-50">
                                                     <ParticipantRequests 
                                                         eventId={event.id} 
-                                                        onRequestsChange={() => handleRequestsChange(event.id)}
+                                                        onRequestsChange={(action) => handleRequestsChange(event.id, action)}
                                                     />
                                                 </div>
                                             )}
