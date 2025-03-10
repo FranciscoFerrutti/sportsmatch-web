@@ -203,7 +203,7 @@ export const EventsView = () => {
                                                     {dayjs(event.schedule).format("HH:mm")} hs
                                                 </p>
                                             </CardHeader>
-                                            <CardContent>
+                                            <CardContent className="pb-2">
                                                 <p className="text-gray-600 flex items-center">
                                                     <MapPin className="w-4 h-4 mr-1" /> {event.location}
                                                 </p>
@@ -236,11 +236,11 @@ export const EventsView = () => {
                                                 </div>
 
                                                 {event.description && (
-                                                    <div className="mt-4">
+                                                    <div className="mt-2 mb-0">
                                                         <Button 
-                                                            variant="outline" 
+                                                            variant="ghost" 
                                                             size="sm"
-                                                            className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                            className="w-full flex items-center justify-center text-[#000066]"
                                                             onClick={() => toggleDescriptionVisibility(event.id)}
                                                         >
                                                             {visibleDescriptions.includes(event.id) ? (
@@ -264,10 +264,10 @@ export const EventsView = () => {
                                             </CardContent>
                                             
                                             {(pendingRequestsCounts[event.id] > 0 || acceptedParticipantsCounts[event.id] > 0) && (
-                                                <CardFooter className="border-t border-gray-100 pt-3 pb-0">
+                                                <CardFooter className="border-t border-gray-100 pt-0 pb-0 -mt-1">
                                                     <Button 
                                                         variant="ghost" 
-                                                        className="w-full flex items-center justify-center text-blue-600"
+                                                        className="w-full flex items-center justify-center text-[#000066]"
                                                         onClick={() => toggleEventExpansion(event.id)}
                                                     >
                                                         {expandedEvents.includes(event.id) ? (

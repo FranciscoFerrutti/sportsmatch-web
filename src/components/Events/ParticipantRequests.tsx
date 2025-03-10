@@ -249,7 +249,7 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                                         <Button 
                                             onClick={() => handleContact(participant)}
                                             size="sm"
-                                            className="bg-blue-600 hover:bg-blue-700"
+                                            className="bg-[#000066] hover:bg-[#000088]"
                                             disabled={!participant.phoneNumber}
                                             title={participant.phoneNumber ? "Contactar" : "No hay número de teléfono"}
                                         >
