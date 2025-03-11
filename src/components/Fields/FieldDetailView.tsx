@@ -30,7 +30,7 @@ export const FieldDetailView = () => {
 
                 setField({
                     ...fieldData,
-                    cost: fieldData.cost_por_slot, // Mapeo del nombre correcto
+                    cost: fieldData.cost_per_slot, 
                 });
             } catch (error) {
                 console.error("❌ Error obteniendo la cancha:", error);
@@ -142,7 +142,7 @@ export const FieldDetailView = () => {
                                 <strong>Duración:</strong> {field.slot_duration} minutos
                             </p>
 
-                            <h2 className="text-xl font-semibold text-[#000066] mt-6 mb-4">Horarios</h2>
+                            <h2 className="text-xl font-semibold text-[#000066] mt-6 mb-4">Horarios de la semana</h2>
                             <div className="border rounded-lg shadow p-4 bg-gray-50">
                                 {DAYS_OF_WEEK.map((day, index) => (
                                     <div key={day} className="flex justify-between border-b py-2 last:border-none">
