@@ -5,7 +5,7 @@ import { Select } from "@/components/ui/select";
 import {ChevronDown, ChevronLeft, Copy} from 'lucide-react';
 import apiClient from '@/apiClients';
 import {DAYS_OF_WEEK} from "../../utils/constants.ts";
-import {TimeSlot} from "../../types/timeslot.ts";
+import {GetTimeSlot, TimeSlot} from "../../types/timeslot.ts";
 
 interface ScheduleSlot {
     day: string;
@@ -285,12 +285,12 @@ export const AssignSchedule = () => {
         return time ? time.slice(0, 5) : "";
     };
 
-    const fetchExistingTimeSlots = async (): Promise<TimeSlot[]> => {
+    const fetchExistingTimeSlots = async (): Promise<GetTimeSlot[]> => {
         try {
             const response = await apiClient.get(`/fields/${id}/availability`, {
                 headers: { "c-api-key": apiKey },
             });
-            return response.data as TimeSlot[];
+            return response.data as GetTimeSlot[];
         } catch (error) {
             console.error("❌ Error obteniendo timeSlots existentes:", error);
             return [];
@@ -300,13 +300,24 @@ export const AssignSchedule = () => {
 
     const syncTimeSlots = async () => {
         try {
-            const existingSlots: TimeSlot[] = await fetchExistingTimeSlots();
+            const existingSlots: GetTimeSlot[] = await fetchExistingTimeSlots();
+            console.log(`Existing slots: ${existingSlots}`);
 
-            if (existingSlots.length > 0) {
+            const today = new Date();
+            const twoWeeksFromToday = new Date();
+            twoWeeksFromToday.setDate(today.getDate() + 14);
 
+            const slotsToDelete = existingSlots.filter(slot => {
+                console.log(`Slot date: ${slot.availability_date}`);
+                const slotDate = new Date(slot.availability_date);
+                console.log(`Slot date: ${slotDate}`);
+                return slotDate > twoWeeksFromToday;
+            });
+
+            if (slotsToDelete.length > 0) {
                 const batchSize = 50;
-                for (let i = 0; i < existingSlots.length; i += batchSize) {
-                    const batch = existingSlots.slice(i, i + batchSize);
+                for (let i = 0; i < slotsToDelete.length; i += batchSize) {
+                    const batch = slotsToDelete.slice(i, i + batchSize);
 
                     await Promise.allSettled(
                         batch.map(slot =>
