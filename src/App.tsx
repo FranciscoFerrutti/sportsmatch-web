@@ -8,6 +8,7 @@ import { ReservationsView } from './components/Reservations/ReservationsView';
 import CalendarView from './components/Calendar/CalendarView';
 import { AuthProvider } from './context/AppContext';
 import { Login } from './components/Login/Login.tsx';
+import { Landing } from './components/Login/Landing.tsx';
 import { Signup } from './components/Login/Signup';
 import { PrivateRoute } from './components/Login/PrivateRoute';
 import {AssignSchedule} from "./components/Fields/AssignSchedule.tsx";
@@ -24,15 +25,17 @@ function AppContent() {
   const shouldShowNavigation = location.pathname !== '/login' && 
                              location.pathname !== '/signup' && 
                              location.pathname !== '/verify-email' &&
-                             location.pathname !== '/club-location';
+                             location.pathname !== '/club-location' &&
+                              location.pathname !== '/landing';
 
   return (
     <div className="min-h-screen bg-slate-50">
       {shouldShowNavigation && <Navigation />}
       <main className="bg-slate-50 min-h-[calc(100vh-64px)] transition-all duration-300">
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<Navigate to="/landing" />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/landing" element={<Landing />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-email" element={<EmailVerification />} />
           <Route path="/home" element={<PrivateRoute><HomeView /></PrivateRoute>} />
