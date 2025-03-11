@@ -53,7 +53,7 @@ export const AssignSchedule = () => {
 
     const dateRangeMessage = source === 'new' 
         ? `Estás cargando los horarios desde hoy hasta ${formatDateForDisplay(endDate)}`
-        : `Estás actualizando los horarios desde ${formatDateForDisplay(startDate)} hasta ${formatDateForDisplay(endDate)}`;
+        : `Estás actualizando los horarios desde ${formatDateForDisplay(startDate)} hasta ${formatDateForDisplay(endDate)}.<br /> Si quieres actualizar los horarios dentro de los siguientes 14 días, puedes hacerlo sobre el calendario de la cancha.`;
 
     useEffect(() => {
         const fetchExistingTimeSlots = async () => {
@@ -417,7 +417,7 @@ export const AssignSchedule = () => {
 
                 <div className="max-w-2xl mx-auto mb-4">
                     <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md">
-                        <p className="text-sm font-medium">{dateRangeMessage}</p>
+                        <p className="text-sm font-medium" dangerouslySetInnerHTML={{ __html: dateRangeMessage }}></p>
                     </div>
                 </div>
 
