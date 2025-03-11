@@ -16,6 +16,7 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
     const apiKey = localStorage.getItem('c-api-key');
     const [isSelectFieldModalOpen, setIsSelectFieldModalOpen] = useState(false);
     const [createdEventId, setCreatedEventId] = useState<string | null>(null);
+    const [dateError, setDateError] = useState<string | null>(null);
 
     const [sports, setSports] = useState([]);
     const [formData, setFormData] = useState({
@@ -29,6 +30,19 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
         description: ''
     });
     const [loading, setLoading] = useState(false);
+    
+    // Calculate the maximum allowed date (14 days from today)
+    const today = new Date();
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + 14);
+    
+    // Format the max date as YYYY-MM-DD for the date input
+    const formatDateForInput = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
     
     // Generate time options in 30-minute increments
     const generateTimeOptions = () => {
@@ -67,11 +81,35 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
+        
+        // Clear date error when user changes the date
+        if (name === 'date') {
+            setDateError(null);
+            
+            // Validate if the selected date is within the allowed range
+            if (value) {
+                const selectedDate = new Date(value);
+                if (selectedDate > maxDate) {
+                    setDateError(`Solo puedes crear eventos hasta ${formatDateForInput(maxDate)} (14 días desde hoy)`);
+                }
+            }
+        }
+        
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSearchFields = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Check if the date is valid before proceeding
+        if (formData.date) {
+            const selectedDate = new Date(formData.date);
+            if (selectedDate > maxDate) {
+                setDateError(`Solo puedes crear eventos hasta ${formatDateForInput(maxDate)} (14 días desde hoy)`);
+                return;
+            }
+        }
+        
         setLoading(true);
 
         try {
@@ -146,11 +184,12 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
             })
             .finally(() => {
                 setIsSelectFieldModalOpen(false);
-                onClose();
+                setCreatedEventId(null);
+                // Don't close the main modal, just the field selection
             });
         } else {
             setIsSelectFieldModalOpen(false);
-            onClose();
+            // Don't close the main modal
         }
     };
 
@@ -214,7 +253,21 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
                     </Select>
 
                     <h3 className="text-m font-semibold text-[#000066] mb-2">Fecha:</h3>
-                    <Input name="date" type="date" value={formData.date} onChange={handleInputChange} required/>
+                    <Input 
+                        name="date" 
+                        type="date" 
+                        value={formData.date} 
+                        onChange={handleInputChange} 
+                        min={formatDateForInput(today)}
+                        max={formatDateForInput(maxDate)}
+                        required
+                    />
+                    {dateError && (
+                        <div className="text-red-500 text-sm mt-1">{dateError}</div>
+                    )}
+                    <div className="text-[#000066] text-sm mt-1">
+                        Solo puedes crear eventos hasta 14 días desde hoy.
+                    </div>
 
                     <h3 className="text-m font-semibold text-[#000066] mb-2">Hora:</h3>
                     <Select name="time" value={formData.time} onChange={handleInputChange} required>
@@ -256,7 +309,11 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
 
                     <div className="flex justify-end space-x-2 mt-6">
                         <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
-                        <Button type="submit" className="bg-[#000066] hover:bg-[#000088] text-white" disabled={loading}>
+                        <Button 
+                            type="submit" 
+                            className="bg-[#000066] hover:bg-[#000088] text-white" 
+                            disabled={loading || !!dateError}
+                        >
                             {loading ? 'Buscando...' : 'Buscar cancha'}
                         </Button>
                     </div>
