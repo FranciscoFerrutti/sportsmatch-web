@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select } from "@/components/ui/select";
 import {ChevronDown, ChevronLeft, Copy} from 'lucide-react';
@@ -19,6 +19,9 @@ interface ScheduleSlot {
 export const AssignSchedule = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
+    const source = location.state?.source || 'new'; // Default to 'new' if not specified
+
     const apiKey = localStorage.getItem('c-api-key');
     const [isLoading, setIsLoading] = useState(false);
     const [slotDuration, setSlotDuration] = useState<number | null>(null);
@@ -30,6 +33,28 @@ export const AssignSchedule = () => {
     const [showDropdown, setShowDropdown] = useState<string | null>(null);
     const [formErrors, setFormErrors] = useState<string[]>([]);
 
+    // Calculate the start and end dates based on the source
+    const today = new Date();
+    const startDate = new Date(today);
+    if (source === 'modify') {
+        startDate.setDate(today.getDate() + 14); // Two weeks from today
+    }
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 2);
+
+    // Format dates for display
+    const formatDateForDisplay = (date: Date): string => {
+        return date.toLocaleDateString('es-ES', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric' 
+        });
+    };
+
+    const dateRangeMessage = source === 'new' 
+        ? `Estás cargando los horarios desde hoy hasta ${formatDateForDisplay(endDate)}`
+        : `Estás actualizando los horarios desde ${formatDateForDisplay(startDate)} hasta ${formatDateForDisplay(endDate)}`;
+
     useEffect(() => {
         const fetchExistingTimeSlots = async () => {
             try {
@@ -40,13 +65,24 @@ export const AssignSchedule = () => {
                 const existingSlots: TimeSlot[] = response.data;
 
                 const updatedSchedule = DAYS_OF_WEEK.map(day => {
-                    // Convert from DAYS_OF_WEEK index (where 0 = Monday) to JS Date index (where 0 = Sunday)
-                    const dayIndexInArray = DAYS_OF_WEEK.indexOf(day);
-                    const jsDateIndex = dayIndexInArray === 6 ? 0 : dayIndexInArray + 1;
+                    // Map day names to their corresponding day numbers in JavaScript Date
+                    // In JavaScript: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+                    const dayNameToJsDay: Record<string, number> = {
+                        'Lunes': 1,      // Monday
+                        'Martes': 2,     // Tuesday
+                        'Miércoles': 3,  // Wednesday
+                        'Jueves': 4,     // Thursday
+                        'Viernes': 5,    // Friday
+                        'Sábado': 6,     // Saturday
+                        'Domingo': 0     // Sunday
+                    };
+                    
+                    // Get the JavaScript day number for this day
+                    const jsDayNumber = dayNameToJsDay[day];
                     
                     const slotsForDay = existingSlots.filter(slot => {
                         const slotDate = new Date(slot.availabilityDate);
-                        return slotDate.getDay() === jsDateIndex;
+                        return slotDate.getDay() === jsDayNumber;
                     });
 
                     if (slotsForDay.length > 0) {
@@ -164,26 +200,66 @@ export const AssignSchedule = () => {
     };
 
     const getNextDatesForDay = (dayName: string): string[] => {
-        const today = new Date();
-        const todayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        console.log(`Getting dates for day: ${dayName}`);
         
-        // Convert from DAYS_OF_WEEK index (where 0 = Monday) to JS Date index (where 0 = Sunday)
-        // Lunes (Monday) is at index 0 in DAYS_OF_WEEK but index 1 in JS Date
-        const dayIndexInArray = DAYS_OF_WEEK.indexOf(dayName);
-        const targetIndex = dayIndexInArray === 6 ? 0 : dayIndexInArray + 1;
-
-        if (dayIndexInArray === -1) throw new Error(`Día inválido: ${dayName}`);
-
-        let daysToAdd = targetIndex - todayIndex;
-        if (daysToAdd <= 0) daysToAdd += 7;
-
+        // Map day names to their corresponding day numbers in JavaScript Date
+        // In JavaScript: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        const dayNameToJsDay: Record<string, number> = {
+            'Lunes': 1,      // Monday
+            'Martes': 2,     // Tuesday
+            'Miércoles': 3,  // Wednesday
+            'Jueves': 4,     // Thursday
+            'Viernes': 5,    // Friday
+            'Sábado': 6,     // Saturday
+            'Domingo': 0     // Sunday
+        };
+        
+        // Get the JavaScript day number for the requested day
+        const targetDayNumber = dayNameToJsDay[dayName];
+        if (targetDayNumber === undefined) {
+            throw new Error(`Día inválido: ${dayName}`);
+        }
+        
+        console.log(`Target index for ${dayName} (JS Date): ${targetDayNumber}`);
+        
+        // Get the current day number
+        const currentDayNumber = startDate.getDay();
+        console.log(`Today's index (JS Date): ${currentDayNumber}`);
+        
+        // Calculate days to add to reach the next occurrence of the target day
+        let daysToAdd = (targetDayNumber - currentDayNumber + 7) % 7;
+        if (daysToAdd === 0) daysToAdd = 7; // If today is the target day, go to next week
+        console.log(`Days to add: ${daysToAdd}`);
+        
+        // Generate dates for the next 12 weeks
         const dates = [];
         for (let i = 0; i < 12; i++) {
-            const targetDate = new Date();
-            targetDate.setDate(today.getDate() + daysToAdd + (i * 7));
-            dates.push(targetDate.toISOString().split("T")[0]);
+            // Create a new date object for each week
+            const targetDate = new Date(startDate);
+            targetDate.setDate(startDate.getDate() + daysToAdd + (i * 7));
+            
+            // Skip if beyond end date
+            if (targetDate > endDate) break;
+            
+            // Format the date as YYYY-MM-DD
+            const dateStr = targetDate.toISOString().split("T")[0];
+            
+            // Verify the day of the week is correct
+            const verifyDate = new Date(dateStr);
+            const verifyDayNumber = verifyDate.getDay();
+            const verifyDayName = verifyDate.toLocaleDateString('es-ES', { weekday: 'long' });
+            
+            console.log(`Generated date for ${dayName}: ${dateStr} (${verifyDayName})`);
+            
+            // Double-check that the day number matches
+            if (verifyDayNumber !== targetDayNumber) {
+                console.error(`ERROR: Day mismatch! Expected day ${targetDayNumber} but got ${verifyDayNumber}`);
+                continue; // Skip this date
+            }
+            
+            dates.push(dateStr);
         }
-
+        
         return dates;
     };
 
@@ -338,6 +414,12 @@ export const AssignSchedule = () => {
                         ⏳ Por favor aguarde, se están actualizando los horarios...
                     </div>
                 )}
+
+                <div className="max-w-2xl mx-auto mb-4">
+                    <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md">
+                        <p className="text-sm font-medium">{dateRangeMessage}</p>
+                    </div>
+                </div>
 
                 <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow-sm">
                     <div className="space-y-4">
