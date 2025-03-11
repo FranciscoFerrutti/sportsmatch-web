@@ -199,7 +199,6 @@ export const AssignSchedule = () => {
     };
 
     const getNextDatesForDay = (dayName: string): string[] => {
-        console.log(`Getting dates for day: ${dayName}`);
         
         // Map day names directly to JavaScript day numbers (0=Sunday, 1=Monday, etc.)
         const dayNameToJsDay: Record<string, number> = {
@@ -217,9 +216,7 @@ export const AssignSchedule = () => {
         if (targetDayNumber === undefined) {
             throw new Error(`Día inválido: ${dayName}`);
         }
-        
-        console.log(`Target index for ${dayName} (JS Date): ${targetDayNumber}`);
-        
+                
         // Create a copy of startDate to avoid modifying the original
         const baseDate = new Date(startDate);
         // Reset time to noon to avoid timezone issues
@@ -227,12 +224,10 @@ export const AssignSchedule = () => {
         
         // Get the current day number
         const currentDayNumber = baseDate.getDay();
-        console.log(`Base date day index (JS Date): ${currentDayNumber}`);
         
         // Calculate days to add to reach the next occurrence of the target day
         let daysToAdd = (targetDayNumber - currentDayNumber + 7) % 7;
         if (daysToAdd === 0 && source === 'new') daysToAdd = 7; // If today is the target day, go to next week for new schedules
-        console.log(`Days to add: ${daysToAdd}`);
         
         // Generate dates for the next 12 weeks
         const dates = [];
@@ -255,11 +250,7 @@ export const AssignSchedule = () => {
             // Create a new date with the formatted string, but set the time to noon
             const verifyDate = new Date(`${dateStr}T12:00:00`);
             const verifyDayNumber = verifyDate.getDay();
-            
-            // Get the day name in Spanish for logging
-            const verifyDayName = verifyDate.toLocaleDateString('es-ES', { weekday: 'long' });
-            console.log(`Generated date for ${dayName}: ${dateStr} (${verifyDayName}) - Day number: ${verifyDayNumber}`);
-            
+                        
             // Double-check that the day number matches
             if (verifyDayNumber !== targetDayNumber) {
                 console.error(`ERROR: Day mismatch! Expected day ${targetDayNumber} but got ${verifyDayNumber} for date ${dateStr}`);
@@ -301,16 +292,13 @@ export const AssignSchedule = () => {
     const syncTimeSlots = async () => {
         try {
             const existingSlots: GetTimeSlot[] = await fetchExistingTimeSlots();
-            console.log(`Existing slots: ${existingSlots}`);
 
             const today = new Date();
             const twoWeeksFromToday = new Date();
             twoWeeksFromToday.setDate(today.getDate() + 14);
 
             const slotsToDelete = existingSlots.filter(slot => {
-                console.log(`Slot date: ${slot.availability_date}`);
                 const slotDate = new Date(slot.availability_date);
-                console.log(`Slot date: ${slotDate}`);
                 return slotDate > twoWeeksFromToday;
             });
 
@@ -326,12 +314,8 @@ export const AssignSchedule = () => {
                             })
                         )
                     );
-
-                    console.log(`🗑️ Batch DELETE ${i / batchSize + 1} completado`);
                 }
             }
-
-            console.log("✅ Eliminación completada. Creando nuevos time slots...");
 
             const newSlots: Omit<TimeSlot, "id">[] = [];
 
@@ -358,8 +342,6 @@ export const AssignSchedule = () => {
                 return;
             }
 
-            console.log(`⏳ Creando ${newSlots.length} nuevos time slots en batches...`);
-
             const batchSize = 50;
             for (let i = 0; i < newSlots.length; i += batchSize) {
                 const batch = newSlots.slice(i, i + batchSize);
@@ -371,8 +353,6 @@ export const AssignSchedule = () => {
                         })
                     )
                 );
-
-                console.log(`✅ Batch POST ${i / batchSize + 1} completado`);
             }
 
             console.log("🚀 Todos los time slots han sido creados exitosamente.");
