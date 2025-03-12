@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { ReservationModal } from './ReservationModal';
 import { Reservation } from '@/types/reservation';
 import apiClient from '@/apiClients';
 import dayjs from 'dayjs';
@@ -16,7 +15,6 @@ dayjs.locale('es');
 
 export const ReservationsView = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const {clubId} = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
@@ -150,12 +148,6 @@ export const ReservationsView = () => {
         
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-[#000066]">Reservas</h1>
-
-          {/* Botón para abrir el modal de nueva reserva */}
-          <Button className="bg-[#000066] hover:bg-[#000088] text-white px-6 py-2 rounded-lg shadow-md"
-                  onClick={() => setIsModalOpen(true)}>
-            + Nueva Reserva
-          </Button>
         </div>
 
         {loading ? (
@@ -374,9 +366,6 @@ export const ReservationsView = () => {
               </section>
             </div>
         )}
-
-        {/* Modal para nueva reserva */}
-        <ReservationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}/>
       </div>
   );
 };
