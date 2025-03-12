@@ -6,3 +6,12 @@ export type TimeSlot = {
     slotStatus: "available" | "booked" | "maintenance";
     reservationId?: number
 };
+
+export type GetTimeSlot = {
+    id?: number;
+    availability_date: string;
+    start_time: string;
+    end_time: string;
+    slotStatus: "available" | "booked" | "maintenance";
+    reservationId?: number
+};

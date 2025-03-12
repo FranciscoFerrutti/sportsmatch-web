@@ -93,7 +93,7 @@ export const NewFieldsForm = () => {
       });
 
       const id = response.data.id;
-      navigate(`/fields/${id}/schedule`);
+      navigate(`/fields/${id}/schedule`, { state: { source: 'new' } });
     } catch (error) {
       console.error('❌ Error al crear la cancha:', error);
       setError('No se pudo crear la cancha. Verifica los datos e intenta nuevamente.');

@@ -91,7 +91,12 @@ export const ModifyFieldsForm = () => {
         params: { clubId }
       });
 
+      // Check if the redirect path is for the schedule
+      if (redirectPath.includes('/schedule')) {
+        navigate(redirectPath, { state: { source: 'modify' } });
+      } else {
       navigate(redirectPath);
+      }
     } catch (err: any) {
       console.error('❌ Error al actualizar la cancha:', err);
       setError(err.response?.data?.message || 'Error al conectar con el servidor.');
