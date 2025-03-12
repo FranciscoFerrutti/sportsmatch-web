@@ -20,7 +20,7 @@ export const AssignSchedule = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const location = useLocation();
-    const source = location.state?.source || 'new'; // Default to 'new' if not specified
+    const source = location.state?.source || 'new'; 
 
     const apiKey = localStorage.getItem('c-api-key');
     const [isLoading, setIsLoading] = useState(false);
@@ -33,16 +33,16 @@ export const AssignSchedule = () => {
     const [showDropdown, setShowDropdown] = useState<string | null>(null);
     const [formErrors, setFormErrors] = useState<string[]>([]);
 
-    // Calculate the start and end dates based on the source
+    
     const today = new Date();
     const startDate = new Date(today);
     if (source === 'modify') {
-        startDate.setDate(today.getDate() + 15); // Fifteen days from today (changed from 14)
+        startDate.setDate(today.getDate() + 15); 
     }
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + 2);
 
-    // Format dates for display
+    
     const formatDateForDisplay = (date: Date): string => {
         return date.toLocaleDateString('es-ES', { 
             day: 'numeric', 
@@ -65,18 +65,16 @@ export const AssignSchedule = () => {
                 const existingSlots: TimeSlot[] = response.data;
 
                 const updatedSchedule = DAYS_OF_WEEK.map(day => {
-                    // Map day names directly to JavaScript day numbers (0=Sunday, 1=Monday, etc.)
                     const dayNameToJsDay: Record<string, number> = {
-                        'Lunes': 1,      // Monday
-                        'Martes': 2,     // Tuesday
-                        'Miércoles': 3,  // Wednesday
-                        'Jueves': 4,     // Thursday
-                        'Viernes': 5,    // Friday
-                        'Sábado': 6,     // Saturday
-                        'Domingo': 0     // Sunday
+                        'Lunes': 1,      
+                        'Martes': 2,     
+                        'Miércoles': 3,  
+                        'Jueves': 4,     
+                        'Viernes': 5,    
+                        'Sábado': 6,     
+                        'Domingo': 0     
                     };
                     
-                    // Get the JavaScript day number for this day
                     const jsDateIndex = dayNameToJsDay[day];
                     
                     const slotsForDay = existingSlots.filter(slot => {
@@ -200,61 +198,48 @@ export const AssignSchedule = () => {
 
     const getNextDatesForDay = (dayName: string): string[] => {
         
-        // Map day names directly to JavaScript day numbers (0=Sunday, 1=Monday, etc.)
         const dayNameToJsDay: Record<string, number> = {
-            'Lunes': 1,      // Monday
-            'Martes': 2,     // Tuesday
-            'Miércoles': 3,  // Wednesday
-            'Jueves': 4,     // Thursday
-            'Viernes': 5,    // Friday
-            'Sábado': 6,     // Saturday
-            'Domingo': 0     // Sunday
+            'Lunes': 1,      
+            'Martes': 2,     
+            'Miércoles': 3,  
+            'Jueves': 4,     
+            'Viernes': 5,    
+            'Sábado': 6,     
+            'Domingo': 0     
         };
         
-        // Get the JavaScript day number for the requested day
         const targetDayNumber = dayNameToJsDay[dayName];
         if (targetDayNumber === undefined) {
             throw new Error(`Día inválido: ${dayName}`);
         }
                 
-        // Create a copy of startDate to avoid modifying the original
         const baseDate = new Date(startDate);
-        // Reset time to noon to avoid timezone issues
         baseDate.setHours(12, 0, 0, 0);
         
-        // Get the current day number
         const currentDayNumber = baseDate.getDay();
         
-        // Calculate days to add to reach the next occurrence of the target day
         let daysToAdd = (targetDayNumber - currentDayNumber + 7) % 7;
-        if (daysToAdd === 0 && source === 'new') daysToAdd = 7; // If today is the target day, go to next week for new schedules
+        if (daysToAdd === 0 && source === 'new') daysToAdd = 7; 
         
-        // Generate dates for the next 12 weeks
         const dates = [];
         for (let i = 0; i < 12; i++) {
-            // Create a new date object for each week
             const targetDate = new Date(baseDate);
-            targetDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+            targetDate.setHours(12, 0, 0, 0); 
             targetDate.setDate(baseDate.getDate() + daysToAdd + (i * 7));
             
-            // Skip if beyond end date
             if (targetDate > endDate) break;
             
-            // Format the date as YYYY-MM-DD (using local timezone)
             const year = targetDate.getFullYear();
             const month = String(targetDate.getMonth() + 1).padStart(2, '0');
             const day = String(targetDate.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${day}`;
             
-            // Verify the day of the week is correct
-            // Create a new date with the formatted string, but set the time to noon
             const verifyDate = new Date(`${dateStr}T12:00:00`);
             const verifyDayNumber = verifyDate.getDay();
                         
-            // Double-check that the day number matches
             if (verifyDayNumber !== targetDayNumber) {
                 console.error(`ERROR: Day mismatch! Expected day ${targetDayNumber} but got ${verifyDayNumber} for date ${dateStr}`);
-                continue; // Skip this date
+                continue; 
             }
             
             dates.push(dateStr);
@@ -295,7 +280,7 @@ export const AssignSchedule = () => {
 
             const today = new Date();
             const twoWeeksFromToday = new Date();
-            twoWeeksFromToday.setDate(today.getDate() + 15); // Changed from 14 to 15 days
+            twoWeeksFromToday.setDate(today.getDate() + 15); 
 
             const slotsToDelete = existingSlots.filter(slot => {
                 const slotDate = new Date(slot.availability_date);
