@@ -7,7 +7,7 @@ interface VerificationResponse {
 
 export const verifyEmail = async (token: string): Promise<VerificationResponse> => {
   try {
-    const response = await apiClient.post('/clubauth/verify', { token });
+    await apiClient.post('/clubauth/verify', { token });
     return {
       success: true,
       message: 'Email verificado exitosamente'

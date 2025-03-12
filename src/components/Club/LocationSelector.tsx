@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Loader } from '@googlemaps/js-api-loader';
 import apiClient from '@/apiClients';
 import { useAuth } from '@/context/AppContext';
@@ -14,7 +13,6 @@ const SHORT_NAME_ADDRESS_COMPONENT_TYPES = new Set([
 ]);
 
 export const LocationSelector = () => {
-  const navigate = useNavigate();
   const { clubId } = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
   const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | null>(null);

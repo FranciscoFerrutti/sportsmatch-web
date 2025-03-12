@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import apiClient from '@/apiClients';
 import { Participant } from '@/types/participant';
-import { Check, X, User, Star, Phone, MessageCircle } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Check, X, Star, Phone } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ParticipantRequestsProps {

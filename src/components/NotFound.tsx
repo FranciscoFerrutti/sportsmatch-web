@@ -1,16 +1,12 @@
-import React from 'react';
 import { Card } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { XCircle } from 'lucide-react';
 import { useAuth } from '@/context/AppContext';
 
 export const NotFound = () => {
-  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
   const handleNavigation = () => {
-    // Use window.location for a full page refresh to avoid React Router issues
     if (isAuthenticated) {
       window.location.href = '/home';
     } else {

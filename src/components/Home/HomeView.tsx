@@ -7,8 +7,10 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { Reservation } from '@/types/reservation';
 import { useAuth } from "../../context/AppContext.tsx";
-import { UserCircle, CalendarIcon, MapPin, ClockIcon, Users } from 'lucide-react';
+import { UserCircle, MapPin, ClockIcon, Users } from 'lucide-react';
 import isToday from 'dayjs/plugin/isToday';
+import { Event } from '@/types/event';
+
 
 dayjs.extend(isToday);
 dayjs.extend(utc);
@@ -99,7 +101,7 @@ export const HomeView = () => {
 
             if (response.data && Array.isArray(response.data.items)) {
                 // Filtrar eventos que sean de hoy
-                const todayEvents = response.data.items.filter(event =>
+                const todayEvents = response.data.items.filter((event: Event) =>
                     dayjs(event.schedule).isSame(dayjs(), 'day')
                 );
 
