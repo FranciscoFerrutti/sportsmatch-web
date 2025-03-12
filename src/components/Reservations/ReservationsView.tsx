@@ -366,6 +366,9 @@ export const ReservationsView = () => {
               </section>
             </div>
         )}
+        <div className="text-center text-gray-400 text-sm mt-8 pb-4">
+          Al ser usuario de la aplicacion tenemos tu consentimiento sobre los <a href="/terms-and-conditions" className="underline hover:text-gray-600">términos y condiciones</a>
+        </div>
       </div>
   );
 };
