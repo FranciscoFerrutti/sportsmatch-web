@@ -5,8 +5,14 @@ import { Field } from "../../types";
 import { TimeSlot } from "../../types/timeslot.ts";
 import { useAuth } from "../../context/AppContext.tsx";
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import 'dayjs/locale/es';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {DAYS_OF_WEEK} from "../../utils/constants.ts";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const CalendarView = () => {
   const [fields, setFields] = useState<Field[]>([]);
