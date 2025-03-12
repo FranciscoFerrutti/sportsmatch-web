@@ -203,7 +203,7 @@ export const ModifyFieldsForm = () => {
                   <Save className="w-5 h-5 mr-2" /> Guardar cambios
                 </Button>
                 <Button className="bg-[#000066] hover:bg-[#000088]" onClick={handleModifySchedule}>
-                  Modificar horarios
+                  Actualizar horarios
                 </Button>
               </div>
               {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
