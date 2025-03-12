@@ -37,7 +37,7 @@ export const AssignSchedule = () => {
     const today = new Date();
     const startDate = new Date(today);
     if (source === 'modify') {
-        startDate.setDate(today.getDate() + 14); // Two weeks from today
+        startDate.setDate(today.getDate() + 15); // Fifteen days from today (changed from 14)
     }
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + 2);
@@ -295,7 +295,7 @@ export const AssignSchedule = () => {
 
             const today = new Date();
             const twoWeeksFromToday = new Date();
-            twoWeeksFromToday.setDate(today.getDate() + 14);
+            twoWeeksFromToday.setDate(today.getDate() + 15); // Changed from 14 to 15 days
 
             const slotsToDelete = existingSlots.filter(slot => {
                 const slotDate = new Date(slot.availability_date);
