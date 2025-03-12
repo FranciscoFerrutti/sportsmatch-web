@@ -1,15 +1,16 @@
 /* Main container styling */
-.loginContainer {
+.signupContainer {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
+    padding: 4rem 0;
 }
 
 /* Background styling similar to club section */
-.loginBackground {
+.signupBackground {
     position: absolute;
     top: 0;
     left: 0;
@@ -21,8 +22,9 @@
 }
 
 /* Card styling */
-.loginCard {
+.signupCard {
     width: 100%;
+    margin-top: 11px;
     max-width: 480px;
     padding: 2.5rem;
     background-color: rgba(255, 255, 255, 0.95);
@@ -48,7 +50,7 @@
 }
 
 /* Heading styling */
-.loginHeading {
+.signupHeading {
     font-size: 1.875rem;
     font-weight: 700;
     text-align: center;
@@ -56,7 +58,7 @@
     margin-bottom: 0.5rem;
 }
 
-.loginSubtitle {
+.signupSubtitle {
     color: #4b5563;
     font-size: 1rem;
     text-align: center;
@@ -89,7 +91,47 @@
     outline: none;
 }
 
+/* Textarea styling */
+.textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    min-height: 100px;
+    resize: vertical;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.textarea:focus {
+    border-color: #000066;
+    box-shadow: 0 0 0 2px rgba(0, 0, 102, 0.2);
+    outline: none;
+}
+
+/* Password input wrapper */
+.passwordInputWrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Style for the eye icon */
+.passwordToggleIcon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #4b5563;
+}
+
 /* Error message styling */
+.errorText {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
 .errorMessage {
     color: #dc2626;
     font-size: 0.875rem;
@@ -127,14 +169,44 @@
     margin-top: 1rem;
 }
 
-.signupLink {
+.loginLink {
     color: #000066;
     font-weight: 500;
     transition: all 0.3s ease;
     text-decoration: none;
 }
 
-.signupLink:hover {
+.loginLink:hover {
     color: #000088;
     text-decoration: underline;
+}
+
+/* Success message styling */
+.successContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+}
+
+.successIcon {
+    width: 4rem;
+    height: 4rem;
+    color: #10b981;
+}
+
+.successHeading {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000066;
+}
+
+.successText {
+    color: #4b5563;
+}
+
+.redirectText {
+    color: #6b7280;
+    font-size: 0.875rem;
 }

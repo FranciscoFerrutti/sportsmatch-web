@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/context/AppContext';
 import apiClient, { setBasicAuthHeader } from '@/apiClients';
+import styles from './Login.module.css';
+import fieldBg from '../../images/field.jpg';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -88,66 +90,75 @@ export const Login = () => {
   };
 
   return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-white p-6">
-        <Card className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+      <div className={styles.loginContainer}>
+        <div
+            className={styles.loginBackground}
+            style={{
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${fieldBg})`,
+            }}
+        />
 
-          {/* Logo */}
-          <div className="flex justify-center mb-6">
+        <div className={styles.loginCard}>
+          <div className={styles.logoContainer}>
             <img
                 src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
                 alt="SportsMatch Logo"
-                className="w-24 h-24 object-contain"
+                className={styles.logoImage}
             />
           </div>
 
-          <h1 className="text-3xl font-bold text-center text-[#000066] mb-6">
+          <h1 className={styles.loginHeading}>
             Iniciar sesión
           </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Email:</label>
+          <p className={styles.loginSubtitle}>
+            Ingresá a tu cuenta de club para comenzar a administrar tus canchas.
+          </p>
+
+          <form onSubmit={handleSubmit}>
+            <div className={styles.formGroup}>
+              <label className={styles.inputLabel}>Email:</label>
               <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#000066]"
+                  className={styles.inputField}
                   required
               />
             </div>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Contraseña:</label>
+            <div className={styles.formGroup}>
+              <label className={styles.inputLabel}>Contraseña:</label>
               <Input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-[#000066]"
+                  className={styles.inputField}
                   required
               />
             </div>
 
             {error && (
-                <div className="text-red-600 text-sm text-center bg-red-100 border border-red-400 rounded-lg p-2">
+                <div className={styles.errorMessage}>
                   {error}
                 </div>
             )}
 
             <Button
                 type="submit"
-                className="w-full bg-[#000066] hover:bg-[#000088] text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-300"
+                className={styles.submitButton}
             >
               Ingresar
             </Button>
 
-            <p className="text-center text-gray-600 mt-4">
+            <p className={styles.linkText}>
               ¿No tienes una cuenta?{' '}
-              <Link to="/signup" className="text-[#000066] hover:text-[#000088] font-medium transition-all">
+              <Link to="/signup" className={styles.signupLink}>
                 Registrarse
               </Link>
             </p>
           </form>
-        </Card>
+        </div>
       </div>
   );
 };

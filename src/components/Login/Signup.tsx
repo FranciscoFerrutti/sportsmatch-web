@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import type { SignupData } from '@/types/auth';
 import apiClient from '@/apiClients.ts';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import styles from './Signup.module.css';
+import fieldBg from '../../images/field.jpg';
 
 export const Signup = () => {
   const navigate = useNavigate();
@@ -21,6 +23,8 @@ export const Signup = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -117,84 +121,178 @@ export const Signup = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-white p-6">
-        <Card className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-          <div className="flex flex-col items-center space-y-4">
-            <CheckCircle2 className="w-16 h-16 text-green-500" />
-            <h2 className="text-2xl font-bold text-center text-[#000066]">
-              ¡Registro exitoso!
-            </h2>
-            <p className="text-center text-gray-600">
-              Te enviamos un email de verificación.
-              Por favor, revisá tu bandeja de entrada y seguí las instrucciones para verificar tu cuenta.
-            </p>
-            <p className="text-gray-500 text-sm">
-              Serás redirigido al inicio de sesión en un momento...
-            </p>
+        <div className={styles.signupContainer}>
+          <div
+              className={styles.signupBackground}
+              style={{
+                backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${fieldBg})`,
+              }}
+          />
+
+          <div className={styles.signupCard}>
+            <div className={styles.logoContainer}>
+              <img
+                  src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
+                  alt="SportsMatch Logo"
+                  className={styles.logoImage}
+              />
+            </div>
+
+            <div className={styles.successContainer}>
+              <CheckCircle2 className={styles.successIcon} />
+              <h2 className={styles.successHeading}>
+                ¡Registro exitoso!
+              </h2>
+              <p className={styles.successText}>
+                Te enviamos un email de verificación.
+                Por favor, revisá tu bandeja de entrada y seguí las instrucciones para verificar tu cuenta.
+              </p>
+              <p className={styles.redirectText}>
+                Serás redirigido al inicio de sesión en un momento...
+              </p>
+            </div>
           </div>
-        </Card>
-      </div>
+        </div>
     );
   }
 
   return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 to-white p-6">
-        <Card className="w-full max-w-lg p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-          <h1 className="text-3xl font-bold text-center text-[#000066] mb-6">Registro de Club</h1>
+      <div className={styles.signupContainer}>
+        <div
+            className={styles.signupBackground}
+            style={{
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${fieldBg})`,
+            }}
+        />
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <InputField label="Nombre del club:" name="name" value={formData.name} onChange={handleInputChange} error={errors.name}/>
-            <InputField label="Teléfono:" name="phoneNumber" type="number" value={formData.phoneNumber} onChange={handleInputChange} error={errors.phoneNumber} />
-            <InputField label="Email:" name="email" type="text" value={formData.email} onChange={handleInputChange} error={errors.email} />
-            <InputField label="Descripción:" name="description" as="textarea" value={formData.description} onChange={handleInputChange} />
+        <div className={styles.signupCard}>
+          <div className={styles.logoContainer}>
+            <img
+                src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
+                alt="SportsMatch Logo"
+                className={styles.logoImage}
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <InputField label="Contraseña:" name="password" type="password" value={formData.password} onChange={handleInputChange} error={errors.password}/>
-              <InputField label="Confirmar contraseña:" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleInputChange}/>
+          <h1 className={styles.signupHeading}>Registro de Club</h1>
+
+          <p className={styles.signupSubtitle}>
+            Registra tu club para que los usuarios de nuestra app puedan alquilar tus instalaciones.
+          </p>
+
+          <form onSubmit={handleSubmit}>
+            <div className={styles.formGroup}>
+              <label className={styles.inputLabel}>Nombre del club:</label>
+              <Input
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                  required
+              />
+              {errors.name && <p className={styles.errorText}>{errors.name}</p>}
             </div>
 
-            {error && <div className="text-red-600 text-sm text-center bg-red-100 border border-red-400 rounded-lg p-2">{error}</div>}
+            <div className={styles.formGroup}>
+              <label className={styles.inputLabel}>Teléfono:</label>
+              <Input
+                  name="phoneNumber"
+                  type="number"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                  required
+              />
+              {errors.phoneNumber && <p className={styles.errorText}>{errors.phoneNumber}</p>}
+            </div>
 
-            <Button type="submit" className="w-full bg-[#000066] hover:bg-[#000088] text-white font-semibold py-3 rounded-lg shadow-md">
+            <div className={styles.formGroup}>
+              <label className={styles.inputLabel}>Email:</label>
+              <Input
+                  name="email"
+                  type="text"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                  required
+              />
+              {errors.email && <p className={styles.errorText}>{errors.email}</p>}
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.inputLabel}>Descripción:</label>
+              <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className={styles.textarea}
+                  rows={3}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.inputLabel}>Contraseña:</label>
+              <div className={styles.passwordInputWrapper}>
+                <Input
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required={true}
+                    className={styles.inputField}
+                />
+                <div
+                    className={styles.passwordToggleIcon}
+                    onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </div>
+              </div>
+              {errors.password && <p className={styles.errorText}>{errors.password}</p>}
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.inputLabel}>Confirmar contraseña:</label>
+              <div className={styles.passwordInputWrapper}>
+                <Input
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    required={true}
+                    className={styles.inputField}
+                />
+                <div
+                    className={styles.passwordToggleIcon}
+                    onClick={toggleConfirmPasswordVisibility}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </div>
+              </div>
+              {errors.confirmPassword && <p className={styles.errorText}>{errors.confirmPassword}</p>}
+            </div>
+
+            {error && <div className={styles.errorMessage}>{error}</div>}
+
+            <Button type="submit" className={styles.submitButton}>
               {isLoading ? "Registrando..." : "Registrarse"}
             </Button>
 
-            <p className="text-center text-gray-600 mt-4">
-              ¿Ya tienes una cuenta? <Link to="/login" className="text-[#000066] hover:text-[#000088] font-medium">Iniciar sesión</Link>
+            <p className={styles.linkText}>
+              ¿Ya tienes una cuenta? <Link to="/login" className={styles.loginLink}>Iniciar sesión</Link>
             </p>
           </form>
-        </Card>
-      </div>
-  );
-};
-
-
-const InputField = ({ label, name, type = "text", value, onChange, required = false, as = "input", error }: any) => {
-  return (
-      <div>
-        <label className="block font-medium text-gray-700 mb-1">{label}</label>
-        {as === "textarea" ? (
-            <textarea
-                name={name}
-                value={value}
-                onChange={onChange}
-                required={required}
-                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300"
-                rows={3}
-            />
-        ) : (
-            <Input
-                name={name}
-                type={type}
-                value={value}
-                onChange={onChange}
-                required={required}
-                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300"
-            />
-        )}
-        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+        </div>
       </div>
   );
 };
