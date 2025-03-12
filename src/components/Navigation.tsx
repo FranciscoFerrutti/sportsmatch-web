@@ -21,12 +21,17 @@ export const Navigation = () => {
         navigate('/club-profile');
     };
 
+    const handleTermsClick = () => {
+        setMenuOpen(false);
+        navigate('/terms-and-conditions');
+    };
+
     const navItems = [
         { path: '/home', label: 'Inicio' },
-        { path: '/fields', label: 'Mis canchas' },
         { path: '/reservations', label: 'Reservas' },
-        { path: '/calendar', label: 'Calendario' },
-        { path: '/events', label: 'Eventos' }
+        { path: '/events', label: 'Eventos' },
+        { path: '/fields', label: 'Mis canchas' },
+        { path: '/calendar', label: 'Calendario' }
     ];
 
     // 🔹 Cierra el menú si se hace clic fuera de él
@@ -125,6 +130,12 @@ export const Navigation = () => {
                             onClick={handleProfileClick}
                         >
                             Mi perfil
+                        </button>
+                        <button
+                            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                            onClick={handleTermsClick}
+                        >
+                            Términos y Condiciones
                         </button>
                         <button
                             className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 flex items-center"

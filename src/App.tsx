@@ -19,6 +19,7 @@ import {FieldDetailView} from "./components/Fields/FieldDetailView.tsx";
 import {EventsView} from "./components/Events/EventsView.tsx";
 import { EmailVerification } from './components/Login/EmailVerification';
 import { NotFound } from './components/NotFound';
+import { TermsAndConditionsView } from './components/TermsAndConditions/TermsAndConditionsView';
 
 function AppContent() {
   const location = useLocation();
@@ -50,6 +51,7 @@ function AppContent() {
           <Route path="/club-profile" element={<PrivateRoute><ClubProfileView /></PrivateRoute>} />
           <Route path="/club-profile/edit" element={<PrivateRoute><ModifyProfileView /></PrivateRoute>} />
           <Route path="/events" element={<PrivateRoute><EventsView /></PrivateRoute>} />
+          <Route path="/terms-and-conditions" element={<PrivateRoute><TermsAndConditionsView /></PrivateRoute>} />
           {/* Fallback route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
