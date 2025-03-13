@@ -47,12 +47,11 @@ export const NewFieldsForm = () => {
 
     if (!formData.name.trim()) errors.name = "El nombre es obligatorio.";
     if (!formData.description.trim()) errors.description = "La descripción es obligatoria.";
-    if (!formData.cost || isNaN(Number(formData.cost))) errors.cost = "Ingrese un costo válido.";
+    if (!formData.cost || isNaN(Number(formData.cost)) || Number(formData.cost) <= 0) errors.cost = "Ingrese un costo válido mayor a 0.";
     if (!formData.capacity || isNaN(Number(formData.capacity)) || Number(formData.capacity) < 1 || Number(formData.capacity) > 30) {
       errors.capacity = "La capacidad debe estar entre 1 y 30.";
     }
-    if (!formData.slot_duration || isNaN(Number(formData.slot_duration))) errors.slot_duration = "Ingrese una duración válida.";
-    if (Number(formData.slot_duration) > 0 && Number(formData.slot_duration) % 30 !== 0) errors.slot_duration = "La duración debe ser múltiplo de 30.";
+    if (!formData.slot_duration) errors.slot_duration = "Seleccione una duración válida.";
     if (formData.sports.length === 0) errors.sports = "Seleccione al menos un deporte.";
 
     setFormErrors(errors);
@@ -182,9 +181,45 @@ export const NewFieldsForm = () => {
                 {formErrors.sports && <p className="text-red-600 text-sm">{formErrors.sports}</p>}
               </div>
 
-              <InputField label="Costo por turno:" name="cost" type="number" value={formData.cost} onChange={handleInputChange} error={formErrors.cost} />
-              <InputField label="Capacidad:" name="capacity" type="number" value={formData.capacity} onChange={handleInputChange} error={formErrors.capacity} />
-              <InputField label="Duración del turno (en minutos):" name="slot_duration" type="number" value={formData.slot_duration} onChange={handleInputChange} error={formErrors.slot_duration} />
+              <InputField 
+                label="Costo por turno:" 
+                name="cost" 
+                type="number" 
+                min="0" 
+                step="0.01" 
+                value={formData.cost} 
+                onChange={handleInputChange} 
+                error={formErrors.cost} 
+                title="El valor debe ser mayor o igual a 0"
+              />
+              <InputField 
+                label="Capacidad:" 
+                name="capacity" 
+                type="number" 
+                min="1" 
+                max="30" 
+                value={formData.capacity} 
+                onChange={handleInputChange} 
+                error={formErrors.capacity} 
+                title="El valor debe estar entre 1 y 30"
+              />
+              
+              <div>
+                <label className="block font-medium text-gray-700 mb-1">Duración del turno (en minutos):</label>
+                <Select 
+                  name="slot_duration" 
+                  value={formData.slot_duration} 
+                  onChange={handleInputChange} 
+                  className="w-full"
+                >
+                  <option value="">Seleccione duración</option>
+                  <option value="30">30 minutos</option>
+                  <option value="60">60 minutos</option>
+                  <option value="90">90 minutos</option>
+                  <option value="120">120 minutos</option>
+                </Select>
+                {formErrors.slot_duration && <p className="text-red-600 text-sm mt-1">{formErrors.slot_duration}</p>}
+              </div>
 
               {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
 
@@ -199,15 +234,41 @@ export const NewFieldsForm = () => {
       </div>
   );
 };
+
 interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ label, error, ...props }) => (
+const InputField: React.FC<InputFieldProps> = ({ label, error, ...props }) => {
+  // Set custom validation message in Spanish
+  const handleInvalid = (e: React.InvalidEvent<HTMLInputElement>) => {
+    if (e.target.validity.rangeUnderflow) {
+      e.target.setCustomValidity(`El valor debe ser mayor o igual a ${e.target.min}`);
+    } else if (e.target.validity.rangeOverflow) {
+      e.target.setCustomValidity(`El valor debe ser menor o igual a ${e.target.max}`);
+    } else if (e.target.validity.valueMissing) {
+      e.target.setCustomValidity("Este campo es obligatorio");
+    } else {
+      e.target.setCustomValidity("");
+    }
+  };
+
+  // Reset custom validity when input changes
+  const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
+    e.currentTarget.setCustomValidity("");
+  };
+
+  return (
     <div>
       <label className="block font-medium text-gray-700 mb-1">{label}</label>
-      <Input className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300" {...props} />
+      <Input 
+        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-300" 
+        onInvalid={handleInvalid}
+        onInput={handleInput}
+        {...props} 
+      />
       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
-);
+  );
+};
