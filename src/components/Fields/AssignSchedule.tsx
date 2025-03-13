@@ -479,6 +479,7 @@ export const AssignSchedule = () => {
                                                 setCopyFromDay(slot.day);
                                                 setShowDropdown(prev => (prev === slot.day ? null : slot.day));
                                             }}
+                                            type="button"
                                         >
                                             <Copy className="w-4 h-4 mr-2"/> Copiar <ChevronDown
                                             className="w-4 h-4 ml-1"/>
@@ -503,6 +504,7 @@ export const AssignSchedule = () => {
                                                 <Button
                                                     className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white"
                                                     onClick={handleCopySchedule}
+                                                    type="button"
                                                 >
                                                     Confirmar
                                                 </Button>
