@@ -194,6 +194,7 @@ export const ModifyFieldsForm = () => {
 
               <InputField label="Costo por turno:" name="cost" type="number" value={formData.cost} onChange={handleInputChange} error={formErrors.cost} />
               {formErrors.cost && <p className="text-red-600 text-sm mt-1">{formErrors.cost}</p>}
+              <p className="text-[#000066] text-sm italic mt-1">La modificación del costo se aplicará únicamente a las nuevas reservas.</p>
               <InputField label="Capacidad:" name="capacity" type="number" value={formData.capacity} onChange={handleInputChange} error={formErrors.capacity} />
               {formErrors.capacity && <p className="text-red-600 text-sm mt-1">{formErrors.capacity}</p>}
               <InputField label="Duración del turno (en minutos):" name="slot_duration" type="number" value={formData.slot_duration} onChange={handleInputChange} error={formErrors.slot_duration} />
