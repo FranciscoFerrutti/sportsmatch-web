@@ -261,7 +261,11 @@ export const AssignSchedule = () => {
         const currentDayNumber = baseDate.getDay();
         
         let daysToAdd = (targetDayNumber - currentDayNumber + 7) % 7;
-        if (daysToAdd === 0 && source === 'new') daysToAdd = 7; 
+        if (source === 'new' && daysToAdd === 0) {
+            daysToAdd = 0;
+        } else if (daysToAdd === 0) {
+            daysToAdd = 7;
+        }
         
         const dates = [];
         for (let i = 0; i < 12; i++) {
@@ -361,6 +365,10 @@ export const AssignSchedule = () => {
             }
 
             const newSlots: Omit<TimeSlot, "id">[] = [];
+            const currentTime = new Date();
+            const currentHour = currentTime.getHours();
+            const currentMinute = currentTime.getMinutes();
+            const todayStr = currentTime.toISOString().split('T')[0];
 
             for (const slot of schedule) {
                 if (slot.closed || !slot.startTime || !slot.endTime) continue;
@@ -370,6 +378,13 @@ export const AssignSchedule = () => {
 
                 for (const date of availabilityDates) {
                     for (const timeSlot of slotsToCreate) {
+                        if (date === todayStr) {
+                            const [slotHour, slotMinute] = timeSlot.startTime.split(':').map(Number);
+                            if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {
+                                continue;
+                            }
+                        }
+                        
                         newSlots.push({
                             availabilityDate: date,
                             startTime: formatTime(timeSlot.startTime),
