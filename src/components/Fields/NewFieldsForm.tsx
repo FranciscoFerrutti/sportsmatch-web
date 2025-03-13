@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -9,9 +9,13 @@ import { useAuth } from '@/context/AppContext';
 
 export const NewFieldsForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { clubId } = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check if we have preserved data from the previous form
+  const preservedData = location.state?.preservedData;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,6 +30,20 @@ export const NewFieldsForm = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  // Load preserved data if available
+  useEffect(() => {
+    if (preservedData) {
+      setFormData({
+        name: preservedData.name || '',
+        description: preservedData.description || '',
+        cost: preservedData.cost?.toString() || '',
+        capacity: preservedData.capacity?.toString() || '',
+        slot_duration: preservedData.slot_duration?.toString() || '',
+        sports: preservedData.sports || [],
+      });
+    }
+  }, [preservedData]);
 
   useEffect(() => {
     const fetchSports = async () => {

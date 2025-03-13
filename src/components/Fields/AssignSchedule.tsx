@@ -6,6 +6,7 @@ import {ChevronDown, ChevronLeft, Copy} from 'lucide-react';
 import apiClient from '@/apiClients';
 import {DAYS_OF_WEEK} from "../../utils/constants.ts";
 import {GetTimeSlot, TimeSlot} from "../../types/timeslot.ts";
+import { useAuth } from '@/context/AppContext';
 
 interface ScheduleSlot {
     day: string;
@@ -18,6 +19,7 @@ interface ScheduleSlot {
 
 export const AssignSchedule = () => {
     const { id } = useParams<{ id: string }>();
+    const { clubId } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const source = location.state?.source || 'new'; 
@@ -170,7 +172,47 @@ export const AssignSchedule = () => {
         setShowDropdown(null);
     };
 
-    const handleBack = () => navigate(`/fields/${id}/edit`);
+    const handleBack = async () => {
+        if (source === 'new') {
+            try {
+                setIsLoading(true);
+                
+                // First fetch the field data to preserve the values
+                const fieldResponse = await apiClient.get(`/fields/${id}`, {
+                    headers: { 'c-api-key': apiKey }
+                });
+                
+                const fieldData = fieldResponse.data;
+                
+                // Then delete the field
+                await apiClient.delete(`/fields/${id}`, {
+                    headers: { 'c-api-key': apiKey },
+                    params: { clubId }
+                });
+                
+                // Navigate back with the field data as state
+                navigate('/fields/new', { 
+                    state: { 
+                        preservedData: {
+                            name: fieldData.name,
+                            description: fieldData.description,
+                            cost: fieldData.cost_per_slot,
+                            capacity: fieldData.capacity,
+                            slot_duration: fieldData.slot_duration,
+                            sports: fieldData.sports || []
+                        } 
+                    } 
+                });
+            } catch (error) {
+                console.error("❌ Error al procesar la cancha:", error);
+                alert("No se pudo completar la operación. Inténtalo de nuevo.");
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            navigate(`/fields/${id}/edit`);
+        }
+    };
 
     const handleTimeChange = (index: number, key: "startTime" | "endTime", value: string) => {
         setSchedule(prev => prev.map((slot, i) => {
