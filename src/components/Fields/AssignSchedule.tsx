@@ -256,6 +256,22 @@ export const AssignSchedule = () => {
         return `${hours}:${minutes}`;
     });
 
+    const getEndTimeOptions = (startTime: string, slotDuration: number | null): string[] => {
+        if (!startTime || !slotDuration) return [];
+        
+        const [hours, minutes] = startTime.split(":").map(Number);
+        const startTimeMinutes = hours * 60 + minutes;
+        
+        return timeOptions.filter(time => {
+            const [endHours, endMinutes] = time.split(":").map(Number);
+            const endTimeMinutes = endHours * 60 + endMinutes;
+            
+            if (endTimeMinutes <= startTimeMinutes) return false;
+            
+            const diffMinutes = endTimeMinutes - startTimeMinutes;
+            return diffMinutes % slotDuration === 0;
+        });
+    };
 
     const formatTime = (time: string): string => {
         return time ? time.slice(0, 5) : "";
@@ -482,7 +498,7 @@ export const AssignSchedule = () => {
                                             <Select value={slot.endTime}
                                                     onChange={(e) => handleTimeChange(index, "endTime", e.target.value)}>
                                                 <option value="">Seleccione...</option>
-                                                {timeOptions.map((time) => (
+                                                {getEndTimeOptions(slot.startTime, slotDuration).map((time) => (
                                                     <option key={time} value={time}>
                                                         {time}
                                                     </option>
