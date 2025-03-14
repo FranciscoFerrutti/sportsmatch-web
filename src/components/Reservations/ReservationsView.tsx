@@ -32,41 +32,51 @@ export const ReservationsView = () => {
       console.log(reservationsList);
 
       const detailedReservations = await Promise.all(
-          reservationsList.map(async (reservation: any) => {
+        reservationsList.map(async (reservation: any) => {
             try {
-              const detailsResponse = await apiClient.get(`/reservations/${reservation.id}`, {
-                headers: {'c-api-key': apiKey}
-              });
+                const detailsResponse = await apiClient.get(`/reservations/${reservation.id}`, {
+                    headers: { 'c-api-key': apiKey }
+                });
 
-              return {
-                ...detailsResponse.data,
-                field: {
-                  id: detailsResponse.data.field?.id,
-                  name: detailsResponse.data.field?.name,
-                  cost: detailsResponse.data.field?.cost || 0,
-                  description: detailsResponse.data.field?.description || '',
-                  capacity: detailsResponse.data.field?.capacity || 0,
-                  slot_duration: detailsResponse.data.field?.slot_duration || 0,
-                  clubName: detailsResponse.data.field?.club?.name || "Desconocido"
-                },
-                timeSlot: reservation.timeSlots[0],
-                event: {
-                  id: detailsResponse.data.event?.id,
-                  ownerId: detailsResponse.data.event?.ownerId,
-                  organizerType: detailsResponse.data.event?.organizerType || 'user',
-                  schedule: detailsResponse.data.event?.schedule || '',
-                  ownerName: detailsResponse.data.event?.userOwner
-                      ? `${detailsResponse.data.event.userOwner.firstname} ${detailsResponse.data.event.userOwner.lastname}`
-                      : 'Desconocido',
-                  ownerPhone: detailsResponse.data.event?.userOwner?.phone_number || 'Sin teléfono'
-                }
-              };
+                // Extraer correctamente los datos del timeSlot
+                const timeSlotData = detailsResponse.data.timeSlots[0] || {};
+                const timeSlot = {
+                    id: timeSlotData.id,
+                    startTime: timeSlotData.start_time,
+                    endTime: timeSlotData.end_time,
+                    availabilityDate: timeSlotData.availability_date
+                };
+
+                return {
+                    ...detailsResponse.data,
+                    field: {
+                        id: detailsResponse.data.field?.id,
+                        name: detailsResponse.data.field?.name,
+                        cost: detailsResponse.data.field?.cost || 0,
+                        description: detailsResponse.data.field?.description || '',
+                        capacity: detailsResponse.data.field?.capacity || 0,
+                        slot_duration: detailsResponse.data.field?.slot_duration || 0,
+                        clubName: detailsResponse.data.field?.club?.name || "Desconocido"
+                    },
+                    timeSlot: timeSlot,
+                    event: {
+                        id: detailsResponse.data.event?.id,
+                        ownerId: detailsResponse.data.event?.ownerId,
+                        organizerType: detailsResponse.data.event?.organizerType || 'user',
+                        schedule: detailsResponse.data.event?.schedule || '',
+                        ownerName: detailsResponse.data.event?.userOwner
+                            ? `${detailsResponse.data.event.userOwner.firstname} ${detailsResponse.data.event.userOwner.lastname}`
+                            : 'Desconocido',
+                        ownerPhone: detailsResponse.data.event?.userOwner?.phone_number || 'Sin teléfono',
+                        ownerImage: detailsResponse.data.event?.userOwner?.image_url || null
+                    }
+                };
             } catch (error) {
-              console.error(`❌ Error al obtener detalles de reserva ${reservation.id}:`, error);
-              return reservation; // Devolvemos la reserva original en caso de error
+                console.error(`❌ Error al obtener detalles de reserva ${reservation.id}:`, error);
+                return reservation; // Devolvemos la reserva original en caso de error
             }
-          })
-      );
+        })
+    );
 
       setReservations(detailedReservations);
     } catch (error) {
@@ -121,10 +131,10 @@ export const ReservationsView = () => {
         return;
       }
 
-      await apiClient.patch(`/reservations/${reservationId}/status`, {
-        status: 'cancelled'
-      }, {
-        headers: {'c-api-key': apiKey},
+      await apiClient.delete(`/reservations/${reservationId}`, {
+        headers: {'c-api-key': apiKey,
+          'x-auth-type': 'club'
+        },
       });
 
       fetchReservations();

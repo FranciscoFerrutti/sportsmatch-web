@@ -156,26 +156,25 @@ export const HomeView = () => {
             alert('No se pudo aceptar la reserva.');
         }
     };
-
     const handleReject = async (reservationId: number) => {
         try {
-            if (!apiKey) {
-                console.error('Error: API Key no encontrada en localStorage');
-                return;
-            }
-
-            await apiClient.patch(`/reservations/${reservationId}/status`, {
-                status: 'cancelled'
-            }, {
-                headers: { 'c-api-key': apiKey },
-            });
-
-            fetchReservations();
+          if (!apiKey) {
+            console.error('Error: API Key no encontrada en localStorage');
+            return;
+          }
+    
+          await apiClient.delete(`/reservations/${reservationId}`, {
+            headers: {'c-api-key': apiKey,
+              'x-auth-type': 'club'
+            },
+          });
+    
+          fetchReservations();
         } catch (error) {
-            console.error('Error al rechazar la reserva:', error);
-            alert('No se pudo rechazar la reserva.');
+          console.error('Error al rechazar la reserva:', error);
+          alert('No se pudo rechazar la reserva.');
         }
-    };
+      };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
