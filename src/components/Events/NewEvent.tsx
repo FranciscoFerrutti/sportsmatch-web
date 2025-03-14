@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { Card } from '@/components/ui/card';
 import apiClient from '@/apiClients';
 import { X } from 'lucide-react';
 import {SelectField} from "./SelectField.tsx";
+import styles from './Events.module.css';
 
 interface EventModalProps {
     isOpen: boolean;
@@ -224,101 +221,147 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg border">
-
+        <div className={styles.modalOverlay}>
+            <div className={styles.modalCard}>
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-semibold text-[#000066]">Nuevo Evento</h2>
+                    <h2 className={styles.modalTitle}>Nuevo Evento</h2>
                     <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
 
                 <form onSubmit={handleSearchFields} className="space-y-4">
-                    <h3 className="text-m font-semibold text-[#000066] mb-2">Deporte:</h3>
-                    <Select name="sportId" value={formData.sportId} onChange={handleInputChange} required>
-                        <option value="">Seleccionar deporte</option>
-                        {sports.map((sport: any) => (
-                            <option key={sport.id} value={sport.id}>{sport.name}</option>
-                        ))}
-                    </Select>
-
-                    <h3 className="text-m font-semibold text-[#000066] mb-2">Nivel:</h3>
-                    <Select name="expertise" value={formData.expertise} onChange={handleInputChange} required>
-                        <option value="">Seleccionar nivel</option>
-                        <option value="1">Principiante</option>
-                        <option value="2">Intermedio</option>
-                        <option value="3">Avanzado</option>
-                        <option value="4">Profesional</option>
-                    </Select>
-
-                    <h3 className="text-m font-semibold text-[#000066] mb-2">Fecha:</h3>
-                    <Input 
-                        name="date" 
-                        type="date" 
-                        value={formData.date} 
-                        onChange={handleInputChange} 
-                        min={formatDateForInput(today)}
-                        max={formatDateForInput(maxDate)}
-                        required
-                    />
-                    {dateError && (
-                        <div className="text-red-500 text-sm mt-1">{dateError}</div>
-                    )}
-                    <div className="text-[#000066] text-sm mt-1">
-                        Solo puedes crear eventos hasta 14 días desde hoy.
+                    <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Deporte:</label>
+                        <select
+                            className={styles.formSelect}
+                            name="sportId"
+                            value={formData.sportId}
+                            onChange={handleInputChange}
+                            required
+                        >
+                            <option value="">Seleccionar deporte</option>
+                            {sports.map((sport: any) => (
+                                <option key={sport.id} value={sport.id}>{sport.name}</option>
+                            ))}
+                        </select>
                     </div>
 
-                    <h3 className="text-m font-semibold text-[#000066] mb-2">Hora:</h3>
-                    <Select name="time" value={formData.time} onChange={handleInputChange} required>
-                        <option value="">Seleccionar hora</option>
-                        {timeOptions.map((time) => (
-                            <option key={time} value={time}>
-                                {time}
-                            </option>
-                        ))}
-                    </Select>
+                    <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Nivel:</label>
+                        <select
+                            className={styles.formSelect}
+                            name="expertise"
+                            value={formData.expertise}
+                            onChange={handleInputChange}
+                            required
+                        >
+                            <option value="">Seleccionar nivel</option>
+                            <option value="1">Principiante</option>
+                            <option value="2">Intermedio</option>
+                            <option value="3">Avanzado</option>
+                            <option value="4">Profesional</option>
+                        </select>
+                    </div>
 
-                    <h3 className="text-m font-semibold text-[#000066] mb-2">Participantes faltantes:</h3>
-                    <Input
-                        name="players"
-                        type="number"
-                        min="1"
-                        max="50"
-                        step="1"
-                        value={formData.players}
-                        onChange={handleInputChange}
-                        required
-                    />
+                    <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Fecha:</label>
+                        <input
+                            className={styles.formInput}
+                            name="date"
+                            type="date"
+                            value={formData.date}
+                            onChange={handleInputChange}
+                            min={formatDateForInput(today)}
+                            max={formatDateForInput(maxDate)}
+                            required
+                        />
+                        {dateError && (
+                            <div className={styles.formError}>{dateError}</div>
+                        )}
+                        <div className={styles.formHelp}>
+                            Solo puedes crear eventos hasta 14 días desde hoy.
+                        </div>
+                    </div>
 
-                    <h3 className="text-m font-semibold text-[#000066] mb-2">Duración:</h3>
-                    <Input
-                        name="duration"
-                        type="number"
-                        min="30"
-                        max="300"
-                        step="30"
-                        value={formData.duration}
-                        onChange={handleInputChange}
-                        required
-                    />
+                    <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Hora:</label>
+                        <select
+                            className={styles.formSelect}
+                            name="time"
+                            value={formData.time}
+                            onChange={handleInputChange}
+                            required
+                        >
+                            <option value="">Seleccionar hora</option>
+                            {timeOptions.map((time) => (
+                                <option key={time} value={time}>
+                                    {time}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                    <h3 className="text-m font-semibold text-[#000066] mb-2">Descripción:</h3>
-                    <textarea name="description" value={formData.description} onChange={handleInputChange}
-                              className="w-full p-2 border rounded" rows={3}/>
+                    <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Participantes faltantes:</label>
+                        <input
+                            className={styles.formInput}
+                            name="players"
+                            type="number"
+                            min="1"
+                            max="50"
+                            step="1"
+                            value={formData.players}
+                            onChange={handleInputChange}
+                            required
+                        />
+                    </div>
 
-                    <div className="flex justify-end space-x-2 mt-6">
-                        <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
-                        <Button 
-                            type="submit" 
-                            className="bg-[#000066] hover:bg-[#000088] text-white" 
-                            disabled={loading || !!dateError}
+                    <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Duración:</label>
+                        <input
+                            className={styles.formInput}
+                            name="duration"
+                            type="number"
+                            min="30"
+                            max="300"
+                            step="30"
+                            value={formData.duration}
+                            onChange={handleInputChange}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.formLabel}>Descripción:</label>
+                        <textarea
+                            name="description"
+                            value={formData.description}
+                            onChange={handleInputChange}
+                            className={styles.formInput}
+                            rows={3}
+                        />
+                    </div>
+
+                    <div className={styles.formActions}>
+                        <button
+                            type="button"
+                            className={styles.cancelButton}
+                            onClick={handleClose}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className={styles.createButton}
+                            disabled={!formData.sportId || !formData.expertise || !formData.date || !formData.time || !formData.players || !formData.duration || loading || !!dateError}
                         >
                             {loading ? 'Buscando...' : 'Buscar cancha'}
-                        </Button>
+                        </button>
                     </div>
                 </form>
-            </Card>
+            </div>
+
             {/* Modal de selección de canchas */}
             {isSelectFieldModalOpen && createdEventId && (
                 <SelectField

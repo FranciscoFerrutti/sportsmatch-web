@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import apiClient from '@/apiClients';
 import { Participant } from '@/types/participant';
 import { Check, X, Star, Phone } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import styles from './Events.module.css';
 
 interface ParticipantRequestsProps {
     eventId: number;
@@ -149,119 +148,124 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
     }
 
     return (
-        <Tabs defaultValue="pending" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="pending">
-                    Solicitudes Pendientes
-                </TabsTrigger>
-                <TabsTrigger value="accepted">
-                    Participantes Aceptados
-                </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="pending" className="space-y-4">
-                {pendingParticipants.length === 0 ? (
-                    <div className="text-center text-gray-500 py-4">No hay solicitudes pendientes</div>
-                ) : (
-                    <div className="space-y-3">
-                        {pendingParticipants.map((participant) => (
-                            <Card key={participant.userId} className="overflow-hidden">
-                                <div className="flex items-center p-4">
-                                    <div className="flex-shrink-0 mr-4">
-                                        <Avatar className="h-12 w-12">
-                                            <AvatarFallback>
-                                                {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </div>
-                                    
-                                    <div className="flex-grow">
-                                        <h4 className="font-medium">{participant.firstname} {participant.lastname}</h4>
-                                        <div className="flex flex-col text-sm text-gray-500">
-                                            {participant.phoneNumber && (
-                                                <p>{participant.phoneNumber}</p>
-                                            )}
-                                            {participant.rating && (
-                                                <div className="flex items-center mt-1">
-                                                    <Star className="h-5 w-5 text-yellow-500 mr-1" />
-                                                    <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+        <div className={styles.tabsList}>
+            <div className="w-full">
+                <div className="grid w-full grid-cols-2 mb-4">
+                    <button
+                        className={`${styles.tabsTrigger} ${pendingParticipants.length > 0 ? styles.tabsTriggerActive : ''}`}
+                        onClick={() => document.getElementById('pending-tab')?.scrollIntoView({ behavior: 'smooth' })}
+                    >
+                        Solicitudes Pendientes
+                    </button>
+                    <button
+                        className={`${styles.tabsTrigger} ${acceptedParticipants.length > 0 ? styles.tabsTriggerActive : ''}`}
+                        onClick={() => document.getElementById('accepted-tab')?.scrollIntoView({ behavior: 'smooth' })}
+                    >
+                        Participantes Aceptados
+                    </button>
+                </div>
+
+                <div id="pending-tab" className={styles.tabsContent}>
+                    {pendingParticipants.length === 0 ? (
+                        <div className="text-center text-gray-500 py-4">No hay solicitudes pendientes</div>
+                    ) : (
+                        <div className="space-y-3">
+                            {pendingParticipants.map((participant) => (
+                                <Card key={participant.userId} className="overflow-hidden">
+                                    <div className={styles.participantItem}>
+                                        <div className={styles.participantInfo}>
+                                            <Avatar className="h-12 w-12">
+                                                <AvatarFallback>
+                                                    {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
+                                                </AvatarFallback>
+                                            </Avatar>
+
+                                            <div>
+                                                <h4 className={styles.participantName}>{participant.firstname} {participant.lastname}</h4>
+                                                <div className="flex flex-col text-sm text-gray-500">
+                                                    {participant.phoneNumber && (
+                                                        <p>{participant.phoneNumber}</p>
+                                                    )}
+                                                    {participant.rating && (
+                                                        <div className="flex items-center mt-1">
+                                                            <Star className="h-5 w-5 text-yellow-500 mr-1" />
+                                                            <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.participantActions}>
+                                            <button
+                                                onClick={() => handleAccept(participant.userId)}
+                                                className={styles.acceptButton}
+                                            >
+                                                <Check className="h-4 w-4" />
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleReject(participant.userId)}
+                                                className={styles.rejectButton}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
                                         </div>
                                     </div>
-                                    
-                                    <div className="flex space-x-2">
-                                        <Button 
-                                            onClick={() => handleAccept(participant.userId)}
-                                            size="sm"
-                                            className="bg-green-600 hover:bg-green-700"
-                                        >
-                                            <Check className="h-4 w-4" />
-                                        </Button>
-                                        
-                                        <Button 
-                                            onClick={() => handleReject(participant.userId)}
-                                            size="sm"
-                                            variant="destructive"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                )}
-            </TabsContent>
-            
-            <TabsContent value="accepted" className="space-y-4">
-                {acceptedParticipants.length === 0 ? (
-                    <div className="text-center text-gray-500 py-4">No hay participantes aceptados</div>
-                ) : (
-                    <div className="space-y-3">
-                        {acceptedParticipants.map((participant) => (
-                            <Card key={participant.userId} className="overflow-hidden">
-                                <div className="flex items-center p-4">
-                                    <div className="flex-shrink-0 mr-4">
-                                        <Avatar className="h-12 w-12">
-                                            <AvatarFallback>
-                                                {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </div>
-                                    
-                                    <div className="flex-grow">
-                                        <h4 className="font-medium">{participant.firstname} {participant.lastname}</h4>
-                                        <div className="flex flex-col text-sm text-gray-500">
-                                            {participant.phoneNumber && (
-                                                <p>{participant.phoneNumber}</p>
-                                            )}
-                                            {participant.rating && (
-                                                <div className="flex items-center mt-1">
-                                                    <Star className="h-5 w-5 text-yellow-500 mr-1" />
-                                                    <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div id="accepted-tab" className={styles.tabsContent}>
+                    {acceptedParticipants.length === 0 ? (
+                        <div className="text-center text-gray-500 py-4">No hay participantes aceptados</div>
+                    ) : (
+                        <div className="space-y-3">
+                            {acceptedParticipants.map((participant) => (
+                                <Card key={participant.userId} className="overflow-hidden">
+                                    <div className={styles.participantItem}>
+                                        <div className={styles.participantInfo}>
+                                            <Avatar className="h-12 w-12">
+                                                <AvatarFallback>
+                                                    {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
+                                                </AvatarFallback>
+                                            </Avatar>
+
+                                            <div>
+                                                <h4 className={styles.participantName}>{participant.firstname} {participant.lastname}</h4>
+                                                <div className="flex flex-col text-sm text-gray-500">
+                                                    {participant.phoneNumber && (
+                                                        <p>{participant.phoneNumber}</p>
+                                                    )}
+                                                    {participant.rating && (
+                                                        <div className="flex items-center mt-1">
+                                                            <Star className="h-5 w-5 text-yellow-500 mr-1" />
+                                                            <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.participantActions}>
+                                            <button
+                                                onClick={() => handleContact(participant)}
+                                                className={styles.acceptButton}
+                                                disabled={!participant.phoneNumber}
+                                                title={participant.phoneNumber ? "Contactar" : "No hay número de teléfono"}
+                                            >
+                                                <Phone className="h-4 w-4" />
+                                            </button>
                                         </div>
                                     </div>
-                                    
-                                    <div className="flex space-x-2">
-                                        <Button 
-                                            onClick={() => handleContact(participant)}
-                                            size="sm"
-                                            className="bg-[#000066] hover:bg-[#000088]"
-                                            disabled={!participant.phoneNumber}
-                                            title={participant.phoneNumber ? "Contactar" : "No hay número de teléfono"}
-                                        >
-                                            <Phone className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                )}
-            </TabsContent>
-        </Tabs>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 };

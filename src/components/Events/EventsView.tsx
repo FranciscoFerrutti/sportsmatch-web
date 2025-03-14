@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { NewEvent } from './NewEvent';
 import { useAuth } from '@/context/AppContext';
 import apiClient from '@/apiClients';
@@ -10,6 +8,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { CalendarIcon, MapPin, ClockIcon, Users, ChevronDown, ChevronUp, UserPlus, UserCheck } from 'lucide-react';
 import { ParticipantRequests } from './ParticipantRequests';
+import styles from './Events.module.css';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -162,55 +161,60 @@ export const EventsView = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
-
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-[#000066]">Eventos organizados por mi</h1>
+        <div className={styles.eventsContainer}>
+            <div className={styles.pageHeader}>
+                <h1 className="text-2xl font-bold text-[#000066] mb-8">Eventos organizados por mi</h1>
 
                 {/* Botón para abrir el modal de nuevo evento */}
-                <Button className="bg-[#000066] hover:bg-[#000088] text-white px-6 py-2 rounded-lg shadow-md"
-                        onClick={() => setIsModalOpen(true)}>
+                <button
+                    className={styles.createButton}
+                    onClick={() => setIsModalOpen(true)}
+                >
                     + Nuevo Evento
-                </Button>
+                </button>
             </div>
 
             {loading ? (
-                <p className="text-center text-gray-500">Cargando eventos...</p>
+                <div className={styles.loadingSpinner}>
+                    <p className={styles.loadingText}>Cargando eventos</p>
+                </div>
             ) : (
-                <div className="max-w-6xl mx-auto space-y-12">
+                <div className="mx-auto space-y-12">
 
                     {/* 🔹 Próximos Eventos */}
                     <section>
-                        <h2 className="text-xl font-semibold text-[#000066] mb-4">📅 Próximos Eventos</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <h2 className={styles.sectionHeader}>
+                            <CalendarIcon className={styles.sectionIcon} />
+                            Próximos Eventos
+                        </h2>
+                        <div className={styles.dashboardGrid}>
                             {events.filter(e => isDateFuture(e.schedule)).length === 0 ? (
-                                <Card className="p-6 text-center text-gray-500">No hay próximos eventos</Card>
+                                <div className={styles.emptyState}>No hay próximos eventos</div>
                             ) : (
                                 events
                                     .filter(e => isDateFuture(e.schedule))
                                     .sort((a, b) => dayjs(a.schedule).valueOf() - dayjs(b.schedule).valueOf())
                                     .map((event: any) => (
-                                        <Card key={`event-${event.id}`}
-                                              className="shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white overflow-hidden">
-                                            <CardHeader>
-                                                <CardTitle>{event.sportName}</CardTitle>
-                                                <p className="text-gray-600 flex items-center">
+                                        <div key={`event-${event.id}`} className={styles.eventCard}>
+                                            <div className={styles.cardHeader}>
+                                                <h3 className={styles.cardTitle}>{event.sportName}</h3>
+                                                <div className={styles.cardDate}>
                                                     <CalendarIcon className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("DD/MM/YYYY")}
-                                                </p>
-                                                <p className="text-gray-600 flex items-center">
+                                                </div>
+                                                <div className={styles.cardTime}>
                                                     <ClockIcon className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("HH:mm")} hs
-                                                </p>
-                                            </CardHeader>
-                                            <CardContent className="pb-2">
-                                                <p className="text-gray-600 flex items-center">
+                                                </div>
+                                            </div>
+                                            <div className={styles.cardContent}>
+                                                <p className="flex items-center text-gray-600">
                                                     <MapPin className="w-4 h-4 mr-1" /> {event.location}
                                                 </p>
-                                                <p className="text-gray-600 flex items-center">
+                                                <p className="flex items-center text-gray-600">
                                                     <Users className="w-4 h-4 mr-1" /> {event.remaining} jugadores faltantes
                                                 </p>
-                                                
+
                                                 <div className="mt-3 space-y-1">
                                                     {pendingRequestsCounts[event.id] > 0 && (
                                                         <div className="flex items-center text-blue-600">
@@ -218,29 +222,27 @@ export const EventsView = () => {
                                                             <span>{pendingRequestsCounts[event.id]} solicitudes pendientes</span>
                                                         </div>
                                                     )}
-                                                    
+
                                                     {acceptedParticipantsCounts[event.id] > 0 && (
                                                         <div className="flex items-center text-green-600">
                                                             <UserCheck className="w-4 h-4 mr-1" />
                                                             <span>{acceptedParticipantsCounts[event.id]} participantes confirmados</span>
                                                         </div>
                                                     )}
-                                                    
-                                                    {(!pendingRequestsCounts[event.id] || pendingRequestsCounts[event.id] === 0) && 
-                                                     (!acceptedParticipantsCounts[event.id] || acceptedParticipantsCounts[event.id] === 0) && (
-                                                        <div className="flex items-center text-gray-500">
-                                                            <Users className="w-4 h-4 mr-1" />
-                                                            <span>Todavía no hay participantes</span>
-                                                        </div>
-                                                    )}
+
+                                                    {(!pendingRequestsCounts[event.id] || pendingRequestsCounts[event.id] === 0) &&
+                                                        (!acceptedParticipantsCounts[event.id] || acceptedParticipantsCounts[event.id] === 0) && (
+                                                            <div className="flex items-center text-gray-500">
+                                                                <Users className="w-4 h-4 mr-1" />
+                                                                <span>Todavía no hay participantes</span>
+                                                            </div>
+                                                        )}
                                                 </div>
 
                                                 {event.description && (
                                                     <div className="mt-2 mb-0">
-                                                        <Button 
-                                                            variant="ghost" 
-                                                            size="sm"
-                                                            className="w-full flex items-center justify-center text-[#000066]"
+                                                        <button
+                                                            className={styles.descriptionToggle}
                                                             onClick={() => toggleDescriptionVisibility(event.id)}
                                                         >
                                                             {visibleDescriptions.includes(event.id) ? (
@@ -252,22 +254,21 @@ export const EventsView = () => {
                                                                     Ver descripción <ChevronDown className="ml-1 h-4 w-4" />
                                                                 </span>
                                                             )}
-                                                        </Button>
-                                                        
+                                                        </button>
+
                                                         {visibleDescriptions.includes(event.id) && (
-                                                            <div className="mt-2 p-3 bg-blue-50 rounded-md text-gray-700">
+                                                            <div className={styles.descriptionContent}>
                                                                 {event.description}
                                                             </div>
                                                         )}
                                                     </div>
                                                 )}
-                                            </CardContent>
-                                            
+                                            </div>
+
                                             {(pendingRequestsCounts[event.id] > 0 || acceptedParticipantsCounts[event.id] > 0) && (
-                                                <CardFooter className="border-t border-gray-100 pt-0 pb-0 -mt-1">
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        className="w-full flex items-center justify-center text-[#000066]"
+                                                <div className={styles.cardFooter}>
+                                                    <button
+                                                        className={styles.descriptionToggle}
                                                         onClick={() => toggleEventExpansion(event.id)}
                                                     >
                                                         {expandedEvents.includes(event.id) ? (
@@ -275,19 +276,19 @@ export const EventsView = () => {
                                                         ) : (
                                                             <>Ver participantes <ChevronDown className="ml-1 h-4 w-4" /></>
                                                         )}
-                                                    </Button>
-                                                </CardFooter>
+                                                    </button>
+                                                </div>
                                             )}
-                                            
+
                                             {expandedEvents.includes(event.id) && (
-                                                <div className="px-4 pb-4 pt-2 bg-gray-50">
-                                                    <ParticipantRequests 
-                                                        eventId={event.id} 
+                                                <div className={styles.participantList}>
+                                                    <ParticipantRequests
+                                                        eventId={event.id}
                                                         onRequestsChange={(action) => handleRequestsChange(event.id, action)}
                                                     />
                                                 </div>
                                             )}
-                                        </Card>
+                                        </div>
                                     ))
                             )}
                         </div>
@@ -295,37 +296,39 @@ export const EventsView = () => {
 
                     {/* 🔹 Eventos Pasados */}
                     <section>
-                        <h2 className="text-xl font-semibold text-[#000066] mb-4">⏳ Eventos Pasados</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <h2 className={styles.sectionHeader}>
+                            <ClockIcon className={styles.sectionIcon} />
+                            Eventos Pasados
+                        </h2>
+                        <div className={styles.dashboardGrid}>
                             {events.filter(e => !isDateFuture(e.schedule)).length === 0 ? (
-                                <Card className="p-6 text-center text-gray-500">No hay eventos pasados</Card>
+                                <div className={styles.emptyState}>No hay eventos pasados</div>
                             ) : (
                                 events
                                     .filter(e => !isDateFuture(e.schedule))
                                     .sort((a, b) => dayjs(b.schedule).valueOf() - dayjs(a.schedule).valueOf())
                                     .map((event: any) => (
-                                        <Card key={`event-${event.id}`}
-                                              className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
-                                            <CardHeader>
-                                                <CardTitle>{event.sportName}</CardTitle>
-                                                <p className="text-gray-600 flex items-center">
+                                        <div key={`event-${event.id}`} className={styles.eventCard}>
+                                            <div className={styles.cardHeader}>
+                                                <h3 className={styles.cardTitle}>{event.sportName}</h3>
+                                                <div className={styles.cardDate}>
                                                     <CalendarIcon className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("DD/MM/YYYY")}
-                                                </p>
-                                                <p className="text-gray-600 flex items-center">
+                                                </div>
+                                                <div className={styles.cardTime}>
                                                     <ClockIcon className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("HH:mm")} hs
-                                                </p>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <p className="text-gray-600 flex items-center">
+                                                </div>
+                                            </div>
+                                            <div className={styles.cardContent}>
+                                                <p className="flex items-center text-gray-600">
                                                     <MapPin className="w-4 h-4 mr-1" /> {event.location}
                                                 </p>
-                                                <p className="text-gray-600 flex items-center">
+                                                <p className="flex items-center text-gray-600">
                                                     <Users className="w-4 h-4 mr-1" /> {event.remaining} jugadores faltantes
                                                 </p>
-                                            </CardContent>
-                                        </Card>
+                                            </div>
+                                        </div>
                                     ))
                             )}
                         </div>
