@@ -1,0 +1,87 @@
+/* Action Buttons */
+.editButton {
+    background-color: #000066;
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.editButton:hover:not(:disabled) {
+    background-color: #000088;
+}
+
+.editButton:disabled {
+    background-color: #9ca3af;
+    color: #e5e7eb;
+    cursor: not-allowed;
+    opacity: 0.7;
+    box-shadow: none;
+}
+
+.cancelButton {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+}
+
+.cancelButton:hover {
+    background-color: #e5e7eb;
+}
+
+/* Form Actions */
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Loading State */
+.loadingSpinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    color: #000066;
+}
+
+.loadingText {
+    color: #000066;
+    font-size: 1.125rem;
+}
+
+@keyframes dotsAnimation {
+    0%, 20% { content: '.'; }
+    40%, 60% { content: '..'; }
+    80%, 100% { content: '...'; }
+}
+
+.loadingText::after {
+    content: "";
+    animation: dotsAnimation 0.8s infinite;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+    .profileContainer {
+        padding: 1rem;
+    }
+
+    .pageTitle {
+        font-size: 1.5rem;
+    }
+
+    .profileImageContainer {
+        width: 6rem;
+        height: 6rem;
+    }
+}

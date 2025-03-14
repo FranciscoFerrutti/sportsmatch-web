@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Edit, UserCircle } from 'lucide-react';
 import apiClient from '@/apiClients';
+import styles from './Profile.module.css';
 
 export const ClubProfileView = () => {
     const { clubId, logout } = useAuth();
@@ -22,6 +23,7 @@ export const ClubProfileView = () => {
 
     const [error, setError] = useState<string | null>(null);
     const [imageError, setImageError] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         if (!clubId || !apiKey) {
@@ -49,11 +51,21 @@ export const ClubProfileView = () => {
             } catch (error) {
                 console.error('❌ Error al cargar datos del club:', error);
                 setError('No se pudo cargar la información del club.');
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchClubData();
     }, [clubId, apiKey, logout, navigate]);
+
+    if (loading) {
+        return (
+            <div className={styles.loadingSpinner}>
+                <p className={styles.loadingText}>Cargando datos</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 max-w-3xl mx-auto">
@@ -86,32 +98,40 @@ export const ClubProfileView = () => {
                 <div className="mt-6 space-y-4">
                     <div>
                         <p className="text-gray-600 text-sm">Nombre del club:</p>
-                        <p className="font-medium text-lg">{clubData.name}</p>
+                        <p className="font-medium text-lg text-[#000066]">{clubData.name}</p>
                     </div>
 
                     <div>
                         <p className="text-gray-600 text-sm">Correo electrónico:</p>
-                        <p className="font-medium text-lg">{clubData.email}</p>
+                        <p className="font-medium text-lg text-[#000066]">{clubData.email}</p>
                     </div>
 
                     <div>
                         <p className="text-gray-600 text-sm">Teléfono:</p>
-                        <p className="font-medium text-lg">{clubData.phone}</p>
+                        <p className="font-medium text-lg text-[#000066]">{clubData.phone}</p>
                     </div>
 
                     <div>
                         <p className="text-gray-600 text-sm">Dirección:</p>
-                        <p className="font-medium text-lg">{clubData.address}</p>
+                        <p className="font-medium text-lg text-[#000066]">{clubData.address}</p>
                     </div>
 
                     <div className="mt-6">
                         <p className="text-gray-600 text-sm">Descripción:</p>
-                        <p className="font-medium">{clubData.description || 'Sin descripción'}</p>
+                        <p
+                            className={`font-medium text-lg ${
+                                clubData.description === '' || clubData.description === 'Sin descripción'
+                                    ? 'text-gray-400'
+                                    : 'text-[#000066]'
+                            }`}
+                        >
+                            {clubData.description ? clubData.description : 'Sin descripción'}
+                        </p>
                     </div>
                 </div>
 
                 {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
             </Card>
         </div>
-    );
+);
 };

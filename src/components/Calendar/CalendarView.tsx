@@ -10,6 +10,7 @@ import timezone from 'dayjs/plugin/timezone';
 import 'dayjs/locale/es';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {DAYS_OF_WEEK} from "../../utils/constants.ts";
+import styles from './Calendar.module.css';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -18,7 +19,8 @@ const CalendarView = () => {
   const [fields, setFields] = useState<Field[]>([]);
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [timeSlotLoading, setTimeSlotLoading] = useState(false);
+  const [fieldsLoading, setFieldsLoading] = useState(true); // Loading state for fields
   const [weekOffset, setWeekOffset] = useState(0);
   const apiKey = localStorage.getItem('c-api-key');
   const { clubId } = useAuth();
@@ -49,6 +51,7 @@ const CalendarView = () => {
 
 
   const fetchFields = async () => {
+    setFieldsLoading(true);
     try {
       const response = await apiClient.get('/fields', {
         headers: { 'c-api-key': apiKey },
@@ -64,6 +67,8 @@ const CalendarView = () => {
       }
     } catch (error) {
       console.error('❌ Error al obtener las canchas:', error);
+    } finally {
+      setFieldsLoading(false);
     }
   };
 
@@ -73,8 +78,15 @@ const CalendarView = () => {
       return;
     }
 
-    setLoading(true);
+    setTimeSlotLoading(true);
     try {
+      // First fetch field details for slot duration
+      const fieldsResponse = await apiClient.get(`/fields/${fieldId}`, {
+        headers: { "c-api-key": apiKey },
+      });
+      // Set the slot duration right away
+      setSlotDuration(fieldsResponse.data.slot_duration);
+      // Then fetch time slots data
       const startOfCurrentWeek = dayjs().startOf('week').add(weekOffset * 7, 'day');
 
       const startDate = startOfCurrentWeek.format('YYYY-MM-DD');
@@ -83,10 +95,6 @@ const CalendarView = () => {
       const response = await apiClient.get(`/fields/${fieldId}/availability`, {
         headers: { "c-api-key": apiKey },
         params: { startDate, endDate },
-      });
-
-      const fieldsResponse = await apiClient.get(`/fields/${fieldId}`, {
-        headers: { "c-api-key": apiKey },
       });
 
       const formattedSlots = response.data.map((slot: any) => ({
@@ -103,13 +111,13 @@ const CalendarView = () => {
         return dateComparison !== 0 ? dateComparison : a.startTime.localeCompare(b.startTime);
       });
 
-      setSlotDuration(fieldsResponse.data.slot_duration)
       setTimeSlots(formattedSlots);
-      setLoading(false);
     } catch (error) {
       console.error('❌ Error al obtener los timeslots:', error);
       setTimeSlots([]);
-      setLoading(false);
+      setSlotDuration(null);
+    } finally {
+      setTimeSlotLoading(false);
     }
   };
 
@@ -327,107 +335,121 @@ const CalendarView = () => {
 
   return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
-          <h1 className="text-2xl font-bold text-[#000066]">Calendario semanal</h1>
+        <h1 className="text-2xl font-bold text-[#000066] mb-6">Calendario semanal</h1>
 
         {/* 📌 Manejo de canchas vacías */}
-        {fields.length === 0 ? (
-            <p className="text-center text-gray-500">No hay canchas registradas.</p>
+        {fieldsLoading ? (
+            <div className={styles.loadingSpinner}>
+              <p className={styles.loadingText}>Cargando canchas</p>
+            </div>
+        ) : fields.length === 0 ? (
+            <div className={styles.emptyState}>No hay canchas registradas.</div>
         ) : (
             <>
 
               {/* Selector de cancha */}
               <div className="mb-4">
-          <Select
-              value={selectedField || ''}
-              onChange={(e) => setSelectedField(e.target.value)}
-              className="w-48"
-          >
-            {fields.map(field => (
-                <option key={field.id} value={field.id.toString()}>
-                  {field.name}
-                </option>
-            ))}
-          </Select>
-        </div>
+                <Select
+                    value={selectedField || ''}
+                    onChange={(e) => setSelectedField(e.target.value)}
+                    className="w-48"
+                >
+                  {fields.map(field => (
+                      <option key={field.id} value={field.id.toString()}>
+                        {field.name}
+                      </option>
+                  ))}
+                </Select>
+              </div>
 
-        {slotDuration && (
-            <p className="text-center text-gray-700 font-medium mb-2">
-              Duración del slot: {slotDuration} minutos
-            </p>
-        )}
-
-        <div className="flex justify-between items-center mb-4">
-          <button onClick={() => setWeekOffset(weekOffset - 1)}
-                  className="p-2 border rounded-md bg-gray-100 hover:bg-gray-200">
-            <ChevronLeft className="h-5 w-5"/>
-          </button>
-          <span className="text-lg font-medium">
-          {dayjs().startOf('week').add(weekOffset * 7, 'day').format("DD MMM")} -
-            {dayjs().endOf('week').add(weekOffset * 7, 'day').format("DD MMM")}
-        </span>
-          <button onClick={() => setWeekOffset(weekOffset + 1)}
-                  className="p-2 border rounded-md bg-gray-100 hover:bg-gray-200">
-            <ChevronRight className="h-5 w-5"/>
-          </button>
-        </div>
-
-        {/* Tabla de horarios */}
-        {loading ? (
-            <p className="text-center text-gray-500">Cargando timeslots...</p>
-        ) : (
-            <>
-              {timeSlotsFormatted.length > 0 ? (
-                <div className="overflow-x-auto border rounded-lg bg-white shadow-lg">
-                  <table className="w-full border-collapse">
-                    <thead>
-                    <tr>
-                      <th className="border p-2 bg-gray-50">Horario</th>
-                      {DAYS_OF_WEEK.map((day, index) => {
-                        const dayDate = dayjs().startOf('week').add(weekOffset * 7 + index, 'day').format("DD");
-                        return (
-                            <th key={day} className="border p-2 bg-gray-50">
-                              {day} {dayDate}
-                            </th>
-                        );
-                      })}
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {timeSlotsFormatted.map((timeRange) => (
-                        <tr key={timeRange}>
-                          <td className="border p-2 text-center font-medium">{timeRange}</td>
-                          {DAYS_OF_WEEK.map((day) => (
-                              <td key={`${day}-${timeRange}`} className="border p-2"
-                                  onClick={() => handleSlotClick(day, timeRange.split(" - ")[0])}>
-                                <div
-                                    className={`text-center p-1 rounded ${getStatusClass(getTimeSlotStatus(day, timeRange.split(" - ")[0]))}`}
-                                >
-                                  {getTimeSlotStatus(day, timeRange.split(" - ")[0])}
-                                </div>
-                                {selectedSlot?.day === day && selectedSlot.hour === timeRange.split(" - ")[0] && (
-                                    <div id="slot-dropdown" className="absolute bg-white shadow-md rounded-md p-2 mt-1 z-10">
-                                      {getStatusOptions(selectedSlot.slot).map(option => (
-                                          <button key={option.label} className="block w-full text-left p-1 hover:bg-gray-200" onClick={option.action}>
-                                            {option.label}
-                                          </button>
-                                      ))}
-                                    </div>
-                                )}
-                              </td>
-                          ))}
-                        </tr>
-                    ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center p-6 bg-white rounded-lg shadow-sm border">
-                  <p className="text-gray-600">No hay horarios disponibles para esta cancha en la semana seleccionada.</p>
-                </div>
+              {slotDuration && (
+                  <p className="text-center text-gray-700 font-medium mb-4">
+                    Duración del slot: {slotDuration} minutos
+                  </p>
               )}
-            </>
-        )}
+
+              <div className="flex justify-between items-center mb-4">
+                <button onClick={() => setWeekOffset(weekOffset - 1)}
+                        className="p-2 border rounded-md bg-gray-100 hover:bg-gray-200">
+                  <ChevronLeft className="h-5 w-5"/>
+                </button>
+                <span className="text-lg font-medium">
+          {dayjs().startOf('week').add(weekOffset * 7, 'day').format("DD MMM")} -
+                  {dayjs().endOf('week').add(weekOffset * 7, 'day').format("DD MMM")}
+        </span>
+                <button onClick={() => setWeekOffset(weekOffset + 1)}
+                        className="p-2 border rounded-md bg-gray-100 hover:bg-gray-200">
+                  <ChevronRight className="h-5 w-5"/>
+                </button>
+              </div>
+
+              {/* Tabla de horarios */}
+              {timeSlotLoading ? (
+                  <div className={styles.loadingSpinner}>
+                    <p className={styles.loadingText}>Cargando timeslots</p>
+                  </div>
+              ) : (
+                  <>
+                    {timeSlotsFormatted.length > 0 ? (
+                        <div className="overflow-x-auto border rounded-lg bg-white shadow-lg">
+                          <table className="w-full border-collapse">
+                            <thead>
+                            <tr>
+                              <th className="border p-2 bg-gray-50">Horario</th>
+                              {DAYS_OF_WEEK.map((day, index) => {
+                                const dayDate = dayjs().startOf('week').add(weekOffset * 7 + index, 'day').format("DD");
+                                return (
+                                    <th key={day} className="border p-2 bg-gray-50">
+                                      {day} {dayDate}
+                                    </th>
+                                );
+                              })}
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            {timeSlotsFormatted.map((timeRange) => (
+                                <tr key={timeRange}>
+                                  <td className="border p-2 text-center font-medium">{timeRange}</td>
+                                  {DAYS_OF_WEEK.map((day) => (
+                                      <td key={`${day}-${timeRange}`} className="border p-2"
+                                          onClick={() => handleSlotClick(day, timeRange.split(" - ")[0])}>
+                                        <div
+                                            className={`text-center p-1 rounded ${getStatusClass(getTimeSlotStatus(day, timeRange.split(" - ")[0]))}`}
+                                        >
+                                          {getTimeSlotStatus(day, timeRange.split(" - ")[0])}
+                                        </div>
+                                        {selectedSlot?.day === day && selectedSlot.hour === timeRange.split(" - ")[0] && (
+                                            <div id="slot-dropdown"
+                                                 className="absolute bg-white shadow-md rounded-md p-2 mt-1 z-10">
+                                              {getStatusOptions(selectedSlot.slot).map(option => (
+                                                  <button key={option.label}
+                                                          className="block w-full text-left p-1 hover:bg-gray-200"
+                                                          onClick={option.action}>
+                                                    {option.label}
+                                                  </button>
+                                              ))}
+                                            </div>
+                                        )}
+                                      </td>
+                                  ))}
+                                </tr>
+                            ))}
+                            </tbody>
+                          </table>
+                        </div>
+                    ) : slotDuration ? (
+                        <div className="text-center p-6 bg-white rounded-lg shadow-sm border">
+                          <p className="text-gray-600">No hay horarios disponibles para esta cancha en la semana
+                            seleccionada.</p>
+                        </div>
+                    ) : (
+                        <div className="text-center p-6 bg-white rounded-lg shadow-sm border">
+                            <p className="text-gray-600">No se pudo cargar la información de la cancha.</p>
+                          </div>
+                    )}
+                  </>
+              )}
             </>
         )}
       </div>

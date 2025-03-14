@@ -1,0 +1,129 @@
+/* Loading spinner */
+.loadingSpinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    color: #000066;
+}
+
+.loadingText {
+    color: #000066;
+    font-size: 1.125rem;
+}
+
+@keyframes dotsAnimation {
+    0%, 20% {
+        content: '.';
+    }
+    40%, 60% {
+        content: '..';
+    }
+    80%, 100% {
+        content: '...';
+    }
+}
+
+.loadingText::after {
+    content: "";
+    animation: dotsAnimation 0.8s infinite;
+}
+
+/* Empty state */
+.emptyState {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+    border: 1px dashed #d1d5db;
+    border-radius: 0.5rem;
+}
+
+/* Calendar table */
+.calendarTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.calendarTable th {
+    background-color: #f3f4f6;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.calendarTable td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Calendar slot status */
+.slotAvailable {
+    background-color: #d1fae5;
+    color: #059669;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    text-align: center;
+}
+
+.slotBooked {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    text-align: center;
+}
+
+.slotUnavailable {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    text-align: center;
+}
+
+/* Calendar navigation */
+.calendarNav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.calendarNavButton {
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    background-color: #f9fafb;
+    cursor: pointer;
+}
+
+.calendarNavButton:hover {
+    background-color: #f3f4f6;
+}
+
+.calendarDate {
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+/* Calendar dropdown */
+.slotDropdown {
+    position: absolute;
+    z-index: 10;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+}
+
+.dropdownOption {
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 0.25rem;
+}
+
+.dropdownOption:hover {
+    background-color: #f3f4f6;
+}
