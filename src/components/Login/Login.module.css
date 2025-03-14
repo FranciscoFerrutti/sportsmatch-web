@@ -89,6 +89,22 @@
     outline: none;
 }
 
+/* Password input wrapper */
+.passwordInputWrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Style for the eye icon */
+.passwordToggleIcon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #4b5563;
+}
+
 /* Error message styling */
 .errorMessage {
     color: #dc2626;

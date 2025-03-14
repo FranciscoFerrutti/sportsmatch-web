@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
 import type { SignupData } from '@/types/auth';
 import apiClient from '@/apiClients.ts';
 import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
@@ -44,7 +43,7 @@ export const Signup = () => {
     let newErrors: Record<string, string> = {};
 
     Object.entries(formData).forEach(([key, value]) => {
-      if (key !== "description" && !value.trim()) {  // ⬅️ Excluir 'description'
+      if (key !== "description" && !value.trim()) {
         newErrors[key] = "Este campo es obligatorio";
       }
     });

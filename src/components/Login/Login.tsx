@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AppContext';
+import { Eye, EyeOff } from 'lucide-react';
 import apiClient, { setBasicAuthHeader } from '@/apiClients';
 import styles from './Login.module.css';
 import fieldBg from '../../images/field.jpg';
@@ -12,6 +13,11 @@ export const Login = () => {
   const { login } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,13 +134,21 @@ export const Login = () => {
 
             <div className={styles.formGroup}>
               <label className={styles.inputLabel}>Contraseña:</label>
-              <Input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  className={styles.inputField}
-                  required
-              />
+              <div className={styles.passwordInputWrapper}>
+                <Input
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    className={styles.inputField}
+                    required
+                />
+                <div
+                    className={styles.passwordToggleIcon}
+                    onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </div>
+              </div>
             </div>
 
             {error && (
