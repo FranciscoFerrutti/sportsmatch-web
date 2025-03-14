@@ -47,7 +47,13 @@ export const ReservationsView = () => {
                         slot_duration: detailsResponse.data.field?.slot_duration || 0,
                         clubName: detailsResponse.data.field?.club?.name || "Desconocido"
                     },
-                    timeSlot: reservation.timeSlots[0],
+                    timeSlot: reservation.timeSlots && reservation.timeSlots.length > 0 ? {
+                        id: reservation.timeSlots[0].id,
+                        availabilityDate: reservation.timeSlots[0].date,
+                        startTime: reservation.timeSlots[0].startTime || reservation.timeSlots[0].start_time,
+                        endTime: reservation.timeSlots[0].endTime || reservation.timeSlots[0].end_time,
+                        slotStatus: "booked"
+                    } : null,
                     event: {
                         id: detailsResponse.data.event?.id,
                         ownerId: detailsResponse.data.event?.ownerId,
@@ -248,14 +254,14 @@ export const ReservationsView = () => {
                         </h2>
                         <div className={styles.dashboardGrid}>
                             {reservations.filter(r =>
-                                (r.status === 'pending' || r.status === 'confirmed') &&
+                                (r.status === 'completed' || r.status === 'confirmed') &&
                                 isDateCurrentOrFuture(r.timeSlot?.availabilityDate)
                             ).length === 0 ? (
                                 <div className={styles.emptyState}>No hay próximas reservas</div>
                             ) : (
                                 reservations
                                     .filter(r =>
-                                        (r.status === 'pending' || r.status === 'confirmed') &&
+                                        (r.status === 'completed' || r.status === 'confirmed') &&
                                         isDateCurrentOrFuture(r.timeSlot?.availabilityDate)
                                     )
                                     .sort((a, b) =>
@@ -276,8 +282,8 @@ export const ReservationsView = () => {
                                                     <Clock className="w-4 h-4 mr-1" />
                                                     {reservation.timeSlot?.startTime} hs
                                                 </div>
-                                                <span className={`${styles.statusBadge} ${reservation.status === 'confirmed' ? styles.statusConfirmed : styles.statusPending}`}>
-                          {reservation.status === 'confirmed' ? 'Confirmado' : 'Pendiente'}
+                                                <span className={`${styles.statusBadge} ${reservation.status === 'confirmed' ? styles.statusConfirmed : styles.statusCompleted}`}>
+                          {reservation.status === 'confirmed' ? 'Confirmado' : 'Completado'}
                         </span>
                                             </div>
 
@@ -339,15 +345,15 @@ export const ReservationsView = () => {
                         </h2>
                         <div className={styles.dashboardGrid}>
                             {reservations.filter(r =>
-                                r.status === 'confirmed' &&
-                                dayjs(r.timeSlot?.availabilityDate).isBefore(dayjs(), 'day')
+                                (r.status === 'confirmed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate)) ||
+                                (r.status === 'completed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
                             ).length === 0 ? (
                                 <div className={styles.emptyState}>No hay reservas pasadas</div>
                             ) : (
                                 reservations
                                     .filter(r =>
-                                        r.status === 'confirmed' &&
-                                        dayjs(r.timeSlot?.availabilityDate).isBefore(dayjs(), 'day')
+                                        (r.status === 'confirmed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate)) ||
+                                        (r.status === 'completed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
                                     )
                                     .map((reservation: Reservation) => (
                                         <div key={`reservation-${reservation.id}`} className={styles.reservationCard}>
@@ -361,8 +367,8 @@ export const ReservationsView = () => {
                                                     <Clock className="w-4 h-4 mr-1" />
                                                     {reservation.timeSlot?.startTime} hs
                                                 </div>
-                                                <span className={`${styles.statusBadge} ${styles.statusConfirmed}`}>
-                          Completada
+                                                <span className={`${styles.statusBadge} ${reservation.status === 'completed' ? styles.statusCompleted : styles.statusConfirmed}`}>
+                          {reservation.status === 'completed' ? 'Completada' : 'Finalizada'}
                         </span>
                                             </div>
 
