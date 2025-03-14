@@ -411,11 +411,11 @@ export const ReservationsView = () => {
                                                 <h3 className={styles.cardTitle}>{reservation.field.name}</h3>
                                                 <div className={styles.cardDate}>
                                                     <Calendar className="w-4 h-4 mr-1" />
-                                                    {dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}
+                                                    {dayjs(reservation.event?.schedule).format("DD/MM/YYYY")}
                                                 </div>
                                                 <div className={styles.cardTime}>
                                                     <Clock className="w-4 h-4 mr-1" />
-                                                    {reservation.timeSlot?.startTime} hs
+                                                    {dayjs(reservation.event?.schedule).format("HH:mm")} hs
                                                 </div>
                                                 <span className={`${styles.statusBadge} ${styles.statusCancelled}`}>
                           Cancelada
