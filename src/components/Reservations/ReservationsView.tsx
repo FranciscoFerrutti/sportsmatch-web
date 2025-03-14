@@ -86,18 +86,6 @@ export const ReservationsView = () => {
     fetchReservations();
   }, [clubId, apiKey]);
 
-  const handleDeleteReservation = async (reservationId: number) => {
-    if (!apiKey) return;
-    try {
-      await apiClient.delete(`/reservations/${reservationId}`, {
-        headers: {'c-api-key': apiKey},
-      });
-      setReservations(prev => prev.filter(r => r.id !== reservationId));
-    } catch (error) {
-      console.error('❌ Error al eliminar la reserva:', error);
-      alert('No se pudo eliminar la reserva.');
-    }
-  };
 
   const handleAccept = async (reservationId: number) => {
     try {
@@ -322,10 +310,10 @@ export const ReservationsView = () => {
                                             </div>
 
                                             <div className={styles.cardFooter}>
-                                                {reservation.status === 'confirmed' && (
+                                                {(reservation.status === 'confirmed' || reservation.status === 'completed') && (
                                                     <button
                                                         className={styles.rejectButton}
-                                                        onClick={() => handleDeleteReservation(reservation.id)}
+                                                        onClick={() => handleReject(reservation.id)}
                                                     >
                                                         Cancelar
                                                     </button>
