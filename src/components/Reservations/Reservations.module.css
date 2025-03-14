@@ -1,0 +1,347 @@
+/* Card styling */
+.dashboardCard {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.dashboardCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Section headers */
+.sectionHeader {
+    color: #000066;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+}
+
+.sectionIcon {
+    margin-right: 0.5rem;
+}
+
+/* Reservation and event cards */
+.reservationCard {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background-color: white;
+    transition: all 0.3s ease;
+}
+
+.reservationCard:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem;
+}
+
+.cardTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #000066;
+}
+
+.cardDate {
+    display: flex;
+    align-items: center;
+    color: #6b7280;
+    margin-top: 0.5rem;
+}
+
+.cardTime {
+    display: flex;
+    align-items: center;
+    color: #6b7280;
+}
+
+.cardContent {
+    padding: 1rem;
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.userName {
+    background-color: #e0e7ff;
+    color: #000066;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+.userContact {
+    color: #000066;
+    text-decoration: underline;
+}
+
+.userContact:hover {
+    color: #2563eb;
+}
+
+.cardFooter {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Action buttons */
+.acceptButton {
+    background-color: #16a34a;
+    color: white;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+}
+
+.acceptButton:hover {
+    background-color: #15803d;
+}
+
+.rejectButton {
+    background-color: #dc2626;
+    color: white;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+}
+
+.rejectButton:hover {
+    background-color: #b91c1c;
+}
+
+/* Empty state */
+.emptyState {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+    border: 1px dashed #d1d5db;
+    border-radius: 0.5rem;
+}
+
+/* Reservations container */
+.reservationsContainer {
+    background: linear-gradient(to bottom, #eff6ff, #ffffff);
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+/* Page header */
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.createButton {
+    background-color: #000066;
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.createButton:hover {
+    background-color: #000088;
+}
+
+/* Dashboard grid */
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .dashboardGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboardGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Status badges */
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.statusPending {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.statusConfirmed {
+    background-color: #d1fae5;
+    color: #059669;
+}
+
+.statusCancelled {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+/* Avatar placeholder */
+.avatarPlaceholder {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+}
+
+/* Loading spinner */
+.loadingSpinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    color: #000066;
+}
+
+.loadingText {
+    color: #000066;
+    font-size: 1.125rem;
+}
+
+@keyframes dotsAnimation {
+    0%, 20% {
+        content: '.';
+    }
+    40%, 60% {
+        content: '..';
+    }
+    80%, 100% {
+        content: '...';
+    }
+}
+
+.loadingText::after {
+    content: "";
+    animation: dotsAnimation 0.8s infinite;
+}
+
+/* Modal styles */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modalCard {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 28rem;
+}
+
+.modalTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #000066;
+    margin-bottom: 1rem;
+}
+
+.formGroup {
+    margin-bottom: 1rem;
+}
+
+.formLabel {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.formInput {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+}
+
+.formSelect {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+}
+
+.formError {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.formDateHelp {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.cancelButton {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+}
+
+.cancelButton:hover {
+    background-color: #e5e7eb;
+}
+
+.submitButton {
+    background-color: #000066;
+    color: white;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+}
+
+.submitButton:hover:not(:disabled) {
+    background-color: #000088;
+}
+
+.submitButton:disabled {
+    background-color: #6b7280;
+    cursor: not-allowed;
+}
