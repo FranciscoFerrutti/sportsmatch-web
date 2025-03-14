@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { useAuth } from '@/context/AppContext';
-import {UserCircle, Calendar, Clock, Users, BookOpen, Hourglass } from "lucide-react";
+import {UserCircle, Calendar, Clock, Users, BookOpen, Hourglass, Phone } from "lucide-react";
 import styles from './Reservations.module.css';
 
 dayjs.extend(utc);
@@ -198,30 +198,31 @@ export const ReservationsView = () => {
                                                         <img
                                                             src={reservation.event.ownerImage}
                                                             alt="Owner"
-                                                            className="w-14 h-14 rounded-full object-cover border"
+                                                            className="w-10 h-10 rounded-full object-cover border"
                                                             onError={(e) => (e.currentTarget.style.display = "none")}
                                                         />
                                                     ) : (
                                                         <div className={styles.avatarPlaceholder}>
-                                                            <UserCircle className="w-8 h-8" />
+                                                            <UserCircle className="w-6 h-6" />
                                                         </div>
                                                     )}
-                                                    <div>
-                                                        <p className={styles.userName}>
-                                                            {reservation.event.ownerName}
-                                                        </p>
-                                                        <p>
-                                                            {reservation.event.ownerPhone ? (
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center justify-between">
+                                                            <p className={styles.userName}>
+                                                                {reservation.event.ownerName}
+                                                            </p>
+                                                            {reservation.event.ownerPhone && (
                                                                 <a
                                                                     href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className={styles.userContact}
+                                                                    className={styles.contactButton}
+                                                                    title="Contactar"
                                                                 >
-                                                                    Enviar mensaje
+                                                                    <Phone className="h-4 w-4" />
                                                                 </a>
-                                                            ) : 'Sin teléfono'}
-                                                        </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -279,7 +280,7 @@ export const ReservationsView = () => {
                                                     {reservation.timeSlot?.startTime} hs
                                                 </div>
                                                 <span className={`${styles.statusBadge} ${reservation.status === 'confirmed' ? styles.statusConfirmed : styles.statusCompleted}`}>
-                          {reservation.status === 'confirmed' ? 'Confirmado' : 'Completado'}
+                          {reservation.status === 'confirmed' ? 'Confirmada' : 'Pago realizado'}
                         </span>
                                             </div>
 
@@ -289,30 +290,31 @@ export const ReservationsView = () => {
                                                         <img
                                                             src={reservation.event.ownerImage}
                                                             alt="Owner"
-                                                            className="w-14 h-14 rounded-full object-cover border"
+                                                            className="w-10 h-10 rounded-full object-cover border"
                                                             onError={(e) => (e.currentTarget.style.display = "none")}
                                                         />
                                                     ) : (
                                                         <div className={styles.avatarPlaceholder}>
-                                                            <UserCircle className="w-8 h-8" />
+                                                            <UserCircle className="w-6 h-6" />
                                                         </div>
                                                     )}
-                                                    <div>
-                                                        <p className={styles.userName}>
-                                                            {reservation.event.ownerName}
-                                                        </p>
-                                                        <p>
-                                                            {reservation.event.ownerPhone ? (
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center justify-between">
+                                                            <p className={styles.userName}>
+                                                                {reservation.event.ownerName}
+                                                            </p>
+                                                            {reservation.event.ownerPhone && (
                                                                 <a
                                                                     href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className={styles.userContact}
+                                                                    className={styles.contactButton}
+                                                                    title="Contactar"
                                                                 >
-                                                                    Enviar mensaje
+                                                                    <Phone className="h-4 w-4" />
                                                                 </a>
-                                                            ) : 'Sin teléfono'}
-                                                        </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -412,30 +414,31 @@ export const ReservationsView = () => {
                                                         <img
                                                             src={reservation.event.ownerImage}
                                                             alt="Owner"
-                                                            className="w-14 h-14 rounded-full object-cover border"
+                                                            className="w-10 h-10 rounded-full object-cover border"
                                                             onError={(e) => (e.currentTarget.style.display = "none")}
                                                         />
                                                     ) : (
                                                         <div className={styles.avatarPlaceholder}>
-                                                            <UserCircle className="w-8 h-8" />
+                                                            <UserCircle className="w-6 h-6" />
                                                         </div>
                                                     )}
-                                                    <div>
-                                                        <p className={styles.userName}>
-                                                            {reservation.event.ownerName}
-                                                        </p>
-                                                        <p>
-                                                            {reservation.event.ownerPhone ? (
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center justify-between">
+                                                            <p className={styles.userName}>
+                                                                {reservation.event.ownerName}
+                                                            </p>
+                                                            {reservation.event.ownerPhone && (
                                                                 <a
                                                                     href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className={styles.userContact}
+                                                                    className={styles.contactButton}
+                                                                    title="Contactar"
                                                                 >
-                                                                    Enviar mensaje
+                                                                    <Phone className="h-4 w-4" />
                                                                 </a>
-                                                            ) : 'Sin teléfono'}
-                                                        </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -529,30 +532,31 @@ export const ReservationsView = () => {
                                                         <img
                                                             src={reservation.event.ownerImage}
                                                             alt="Owner"
-                                                            className="w-14 h-14 rounded-full object-cover border"
+                                                            className="w-10 h-10 rounded-full object-cover border"
                                                             onError={(e) => (e.currentTarget.style.display = "none")}
                                                         />
                                                     ) : (
                                                         <div className={styles.avatarPlaceholder}>
-                                                            <UserCircle className="w-8 h-8" />
+                                                            <UserCircle className="w-6 h-6" />
                                                         </div>
                                                     )}
-                                                    <div>
-                                                        <p className={styles.userName}>
-                                                            {reservation.event.ownerName}
-                                                        </p>
-                                                        <p>
-                                                            {reservation.event.ownerPhone ? (
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center justify-between">
+                                                            <p className={styles.userName}>
+                                                                {reservation.event.ownerName}
+                                                            </p>
+                                                            {reservation.event.ownerPhone && (
                                                                 <a
                                                                     href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className={styles.userContact}
+                                                                    className={styles.contactButton}
+                                                                    title="Contactar"
                                                                 >
-                                                                    Enviar mensaje
+                                                                    <Phone className="h-4 w-4" />
                                                                 </a>
-                                                            ) : 'Sin teléfono'}
-                                                        </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
