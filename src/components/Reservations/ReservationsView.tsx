@@ -54,6 +54,14 @@ export const ReservationsView = () => {
                         endTime: reservation.timeSlots[0].endTime || reservation.timeSlots[0].end_time,
                         slotStatus: "booked"
                     } : null,
+                    payment: reservation.payment || {
+                        isPaid: false,
+                        paymentDate: null,
+                        paymentAmount: null,
+                        isRefunded: false,
+                        refundDate: null,
+                        refundAmount: null
+                    },
                     event: {
                         id: detailsResponse.data.event?.id,
                         ownerId: detailsResponse.data.event?.ownerId,
@@ -307,6 +315,44 @@ export const ReservationsView = () => {
                                                         </p>
                                                     </div>
                                                 </div>
+
+                                                {reservation.status !== 'pending' && (
+                                                    <div className={styles.paymentInfo}>
+                                                        <h4 className={styles.paymentTitle}>Información de Pago</h4>
+                                                        <div className={styles.paymentDetails}>
+                                                            <div className={styles.paymentRow}>
+                                                                <span className={styles.paymentLabel}>Estado:</span>
+                                                                <span className={`${styles.paymentValue} ${reservation.payment?.isPaid ? styles.paymentPaid : styles.paymentUnpaid}`}>
+                                                                    {reservation.payment?.isPaid ? 'Pagado' : 'No pagado'}
+                                                                </span>
+                                                            </div>
+                                                            {reservation.payment?.isPaid && (
+                                                                <>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Monto:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${reservation.payment?.paymentAmount || reservation.cost}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Fecha:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                            {reservation.payment?.isRefunded && (
+                                                                <div className={styles.paymentRow}>
+                                                                    <span className={styles.paymentLabel}>Reembolsado:</span>
+                                                                    <span className={`${styles.paymentValue} ${styles.paymentRefunded}`}>
+                                                                        ${reservation.payment?.refundAmount} ({dayjs(reservation.payment?.refundDate).format("DD/MM/YYYY")})
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className={styles.cardFooter}>
@@ -378,8 +424,69 @@ export const ReservationsView = () => {
                                                         <p className={styles.userName}>
                                                             {reservation.event.ownerName}
                                                         </p>
+                                                        <p>
+                                                            {reservation.event.ownerPhone ? (
+                                                                <a
+                                                                    href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className={styles.userContact}
+                                                                >
+                                                                    Enviar mensaje
+                                                                </a>
+                                                            ) : 'Sin teléfono'}
+                                                        </p>
                                                     </div>
                                                 </div>
+
+                                                {reservation.status !== 'pending' && (
+                                                    <div className={styles.paymentInfo}>
+                                                        <h4 className={styles.paymentTitle}>Información de Pago</h4>
+                                                        <div className={styles.paymentDetails}>
+                                                            <div className={styles.paymentRow}>
+                                                                <span className={styles.paymentLabel}>Estado:</span>
+                                                                <span className={`${styles.paymentValue} ${reservation.payment?.isPaid ? styles.paymentPaid : styles.paymentUnpaid}`}>
+                                                                    {reservation.payment?.isPaid ? 'Pagado' : 'No pagado'}
+                                                                </span>
+                                                            </div>
+                                                            {reservation.payment?.isPaid && (
+                                                                <>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Monto:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${reservation.payment?.paymentAmount || reservation.cost}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Fecha:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                            {reservation.payment?.isRefunded && (
+                                                                <div className={styles.paymentRow}>
+                                                                    <span className={styles.paymentLabel}>Reembolsado:</span>
+                                                                    <span className={`${styles.paymentValue} ${styles.paymentRefunded}`}>
+                                                                        ${reservation.payment?.refundAmount} ({dayjs(reservation.payment?.refundDate).format("DD/MM/YYYY")})
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className={styles.cardFooter}>
+                                                {(reservation.status === 'confirmed' || reservation.status === 'completed') && (
+                                                    <button
+                                                        className={styles.rejectButton}
+                                                        onClick={() => handleReject(reservation.id)}
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))
@@ -434,8 +541,58 @@ export const ReservationsView = () => {
                                                         <p className={styles.userName}>
                                                             {reservation.event.ownerName}
                                                         </p>
+                                                        <p>
+                                                            {reservation.event.ownerPhone ? (
+                                                                <a
+                                                                    href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className={styles.userContact}
+                                                                >
+                                                                    Enviar mensaje
+                                                                </a>
+                                                            ) : 'Sin teléfono'}
+                                                        </p>
                                                     </div>
                                                 </div>
+
+                                                {reservation.status !== 'pending' && (
+                                                    <div className={styles.paymentInfo}>
+                                                        <h4 className={styles.paymentTitle}>Información de Pago</h4>
+                                                        <div className={styles.paymentDetails}>
+                                                            <div className={styles.paymentRow}>
+                                                                <span className={styles.paymentLabel}>Estado:</span>
+                                                                <span className={`${styles.paymentValue} ${reservation.payment?.isPaid ? styles.paymentPaid : styles.paymentUnpaid}`}>
+                                                                    {reservation.payment?.isPaid ? 'Pagado' : 'No pagado'}
+                                                                </span>
+                                                            </div>
+                                                            {reservation.payment?.isPaid && (
+                                                                <>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Monto:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${reservation.payment?.paymentAmount || reservation.cost}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Fecha:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                            {reservation.payment?.isRefunded && (
+                                                                <div className={styles.paymentRow}>
+                                                                    <span className={styles.paymentLabel}>Reembolsado:</span>
+                                                                    <span className={`${styles.paymentValue} ${styles.paymentRefunded}`}>
+                                                                        ${reservation.payment?.refundAmount} ({dayjs(reservation.payment?.refundDate).format("DD/MM/YYYY")})
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))

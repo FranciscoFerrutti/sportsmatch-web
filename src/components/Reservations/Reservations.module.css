@@ -208,6 +208,53 @@
     color: #4338ca;
 }
 
+/* Payment information */
+.paymentInfo {
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.paymentTitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+}
+
+.paymentDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.paymentRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.paymentLabel {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.paymentValue {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.paymentPaid {
+    color: #059669;
+}
+
+.paymentUnpaid {
+    color: #dc2626;
+}
+
+.paymentRefunded {
+    color: #7c3aed;
+}
+
 /* Avatar placeholder */
 .avatarPlaceholder {
     width: 3.5rem;
