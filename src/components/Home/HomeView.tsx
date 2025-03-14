@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import apiClient from '@/apiClients';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { Reservation } from '@/types/reservation';
 import { useAuth } from "../../context/AppContext.tsx";
-import { UserCircle, MapPin, ClockIcon, Users } from 'lucide-react';
+import { UserCircle, MapPin, Clock, Users, Calendar, CheckCircle } from 'lucide-react';
 import isToday from 'dayjs/plugin/isToday';
 import { Event } from '@/types/event';
-
+import styles from './HomeView.module.css';
 
 dayjs.extend(isToday);
 dayjs.extend(utc);
@@ -177,20 +175,25 @@ export const HomeView = () => {
       };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
-            <h1 className="text-2xl font-bold text-[#000066]">Inicio</h1>
+        <div className={styles.dashboardContainer}>
+            <h1 className="text-2xl font-bold text-[#000066] mb-8">Inicio</h1>
 
             {loading ? (
-                <p className="text-center text-gray-500">Cargando reservas...</p>
+                <div className={styles.loadingSpinner}>
+                    <p className={styles.loadingText}>Cargando reservas</p>
+                </div>
             ) : (
-                <div className="max-w-6xl mx-auto space-y-12">
+                <div className="mx-auto space-y-12">
 
                     {/* 🔹 Reservas Pendientes */}
                     <section>
-                        <h2 className="text-xl font-semibold text-[#000066] mb-4">📌 Reservas Pendientes</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <h2 className={styles.sectionHeader}>
+                            <Calendar className={`${styles.sectionIcon} text-[#000066]`} />
+                            Reservas Pendientes
+                        </h2>
+                        <div className={styles.dashboardGrid}>
                             {reservations.filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate)).length === 0 ? (
-                                <Card className="p-6 text-center text-gray-500">No hay reservas pendientes</Card>
+                                <div className={styles.emptyState}>No hay reservas pendientes</div>
                             ) : (
                                 reservations
                                     .filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
@@ -201,17 +204,24 @@ export const HomeView = () => {
                                         dayjs(`2000-01-01T${b.timeSlot?.startTime}`).valueOf()
                                     )
                                     .map((reservation: Reservation) => (
-                                        <Card key={`reservation-${reservation.id}`}
-                                              className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
-                                            <CardHeader>
-                                                <CardTitle>{reservation.field.name}</CardTitle>
-                                                <p className="text-gray-600">{dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}</p>
-                                                <p className="text-gray-600">{reservation.timeSlot?.startTime} hs</p>
-                                            </CardHeader>
+                                        <div key={`reservation-${reservation.id}`} className={styles.reservationCard}>
+                                            <div className={styles.cardHeader}>
+                                                <h3 className={styles.cardTitle}>{reservation.field.name}</h3>
+                                                <div className={styles.cardDate}>
+                                                    <Calendar className="w-4 h-4 mr-1" />
+                                                    {dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}
+                                                </div>
+                                                <div className={styles.cardTime}>
+                                                    <Clock className="w-4 h-4 mr-1" />
+                                                    {reservation.timeSlot?.startTime} hs
+                                                </div>
+                                                <span className={`${styles.statusBadge} ${styles.statusPending} mt-2`}>
+                                                    Pendiente
+                                                </span>
+                                            </div>
 
-                                            <CardContent>
-                                                <div
-                                                    className="border-t border-gray-300 pt-2 text-right flex justify-end items-center gap-3">
+                                            <div className={styles.cardContent}>
+                                                <div className={styles.userInfo}>
                                                     {reservation.event.ownerImage ? (
                                                         <img
                                                             src={reservation.event.ownerImage}
@@ -220,19 +230,21 @@ export const HomeView = () => {
                                                             onError={(e) => (e.currentTarget.style.display = "none")}
                                                         />
                                                     ) : (
-                                                        <UserCircle className="w-14 h-14 text-gray-400"/>
+                                                        <div className={styles.avatarPlaceholder}>
+                                                            <UserCircle className="w-8 h-8" />
+                                                        </div>
                                                     )}
                                                     <div>
-                                                        <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">
+                                                        <p className={styles.userName}>
                                                             {reservation.event.ownerName}
                                                         </p>
-                                                        <p className="text-gray-600">
+                                                        <p>
                                                             {reservation.event.ownerPhone ? (
                                                                 <a
                                                                     href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="text-blue-800 underline hover:text-blue-600"
+                                                                    className={styles.userContact}
                                                                 >
                                                                     Enviar mensaje
                                                                 </a>
@@ -240,29 +252,32 @@ export const HomeView = () => {
                                                         </p>
                                                     </div>
                                                 </div>
-                                            </CardContent>
+                                            </div>
 
-                                            <CardFooter className="flex justify-between">
-                                                <Button
-                                                    className="bg-green-500 text-white hover:bg-green-600"
+                                            <div className={styles.cardFooter}>
+                                                <button
+                                                    className={styles.acceptButton}
                                                     onClick={() => handleAccept(reservation.id)}
-                                                >Aceptar</Button>
-                                                <Button
-                                                    className="bg-red-500 text-white hover:bg-red-600"
+                                                >Aceptar</button>
+                                                <button
+                                                    className={styles.rejectButton}
                                                     onClick={() => handleReject(reservation.id)}
-                                                >Rechazar</Button>
-                                            </CardFooter>
-                                        </Card>
+                                                >Rechazar</button>
+                                            </div>
+                                        </div>
                                     ))
                             )}
                         </div>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-[#000066] mb-4">📅 Reservas del Día de Hoy</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <h2 className={styles.sectionHeader}>
+                            <CheckCircle className={`${styles.sectionIcon} text-[#000066]`} />
+                            Reservas del Día de Hoy
+                        </h2>
+                        <div className={styles.dashboardGrid}>
                             {reservations.filter(r => r.status === 'confirmed' && isDateToday(r.timeSlot?.availabilityDate)).length === 0 ? (
-                                <Card className="p-6 text-center text-gray-500">No hay reservas para hoy</Card>
+                                <div className={styles.emptyState}>No hay reservas para hoy</div>
                             ) : (
                                 reservations
                                     .filter(r => r.status === 'confirmed' && isDateToday(r.timeSlot?.availabilityDate))
@@ -271,17 +286,24 @@ export const HomeView = () => {
                                         dayjs(`2000-01-01T${b.timeSlot?.startTime}`).valueOf()
                                     )
                                     .map((reservation: Reservation) => (
-                                        <Card key={`confirmed-${reservation.id}`}
-                                              className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
-                                            <CardHeader>
-                                                <CardTitle>{reservation.field.name}</CardTitle>
-                                                <p className="text-gray-600">{dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}</p>
-                                                <p className="text-gray-600">{reservation.timeSlot?.startTime} hs</p>
-                                            </CardHeader>
+                                        <div key={`confirmed-${reservation.id}`} className={styles.reservationCard}>
+                                            <div className={styles.cardHeader}>
+                                                <h3 className={styles.cardTitle}>{reservation.field.name}</h3>
+                                                <div className={styles.cardDate}>
+                                                    <Calendar className="w-4 h-4 mr-1" />
+                                                    {dayjs(reservation.timeSlot?.availabilityDate).format("DD/MM/YYYY")}
+                                                </div>
+                                                <div className={styles.cardTime}>
+                                                    <Clock className="w-4 h-4 mr-1" />
+                                                    {reservation.timeSlot?.startTime} hs
+                                                </div>
+                                                <span className={`${styles.statusBadge} ${styles.statusConfirmed} mt-2`}>
+                                                    Confirmado
+                                                </span>
+                                            </div>
 
-                                            <CardContent>
-                                                <div
-                                                    className="border-t border-gray-300 pt-2 text-right flex justify-end items-center gap-3">
+                                            <div className={styles.cardContent}>
+                                                <div className={styles.userInfo}>
                                                     {reservation.event.ownerImage ? (
                                                         <img
                                                             src={reservation.event.ownerImage}
@@ -290,19 +312,21 @@ export const HomeView = () => {
                                                             onError={(e) => (e.currentTarget.style.display = "none")}
                                                         />
                                                     ) : (
-                                                        <UserCircle className="w-14 h-14 text-gray-400"/>
+                                                        <div className={styles.avatarPlaceholder}>
+                                                            <UserCircle className="w-8 h-8" />
+                                                        </div>
                                                     )}
                                                     <div>
-                                                        <p className="text-md font-semibold bg-blue-50 text-blue-800 px-2 py-1 rounded-md inline-block">
+                                                        <p className={styles.userName}>
                                                             {reservation.event.ownerName}
                                                         </p>
-                                                        <p className="text-gray-600">
+                                                        <p>
                                                             {reservation.event.ownerPhone ? (
                                                                 <a
                                                                     href={`https://api.whatsapp.com/send?phone=${reservation.event.ownerPhone.replace('+', '')}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="text-blue-800 underline hover:text-blue-600"
+                                                                    className={styles.userContact}
                                                                 >
                                                                     Enviar mensaje
                                                                 </a>
@@ -310,13 +334,14 @@ export const HomeView = () => {
                                                         </p>
                                                     </div>
                                                 </div>
-                                            </CardContent>
+                                            </div>
 
-                                            <CardFooter className="flex justify-end">
-                                                <Button className="bg-red-500 text-white hover:bg-red-600">Cancelar
-                                                    Reserva</Button>
-                                            </CardFooter>
-                                        </Card>
+                                            <div className={styles.cardFooter}>
+                                                <button className={styles.rejectButton}>
+                                                    Cancelar Reserva
+                                                </button>
+                                            </div>
+                                        </div>
                                     ))
                             )}
                         </div>
@@ -324,32 +349,34 @@ export const HomeView = () => {
 
                     {/* 🔹 Eventos del Día de Hoy */}
                     <section>
-                        <h2 className="text-xl font-semibold text-[#000066] mb-4">🎉 Eventos del Día de Hoy</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <h2 className={styles.sectionHeader}>
+                            <Users className={`${styles.sectionIcon} text-[#000066]`} />
+                            Eventos del Día de Hoy
+                        </h2>
+                        <div className={styles.dashboardGrid}>
                             {eventsToday.length === 0 ? (
-                                <Card className="p-6 text-center text-gray-500">No hay eventos para hoy</Card>
+                                <div className={styles.emptyState}>No hay eventos para hoy</div>
                             ) : (
                                 eventsToday
-                                    .sort((a, b) => dayjs(a.schedule).valueOf() - dayjs(b.schedule).valueOf()) // Ordenar por horario
+                                    .sort((a, b) => dayjs(a.schedule).valueOf() - dayjs(b.schedule).valueOf())
                                     .map((event) => (
-                                        <Card key={`event-${event.id}`}
-                                              className="p-4 shadow-lg hover:shadow-xl transition-shadow border border-gray-200 rounded-xl bg-white">
-                                            <CardHeader>
-                                                <CardTitle>{event.sportName}</CardTitle>
-                                                <p className="text-gray-600 flex items-center">
-                                                    <ClockIcon className="w-4 h-4 mr-1" />
+                                        <div key={`event-${event.id}`} className={styles.reservationCard}>
+                                            <div className={styles.cardHeader}>
+                                                <h3 className={styles.cardTitle}>{event.sportName}</h3>
+                                                <div className={styles.cardTime}>
+                                                    <Clock className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("HH:mm")} hs
-                                                </p>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <p className="text-gray-600 flex items-center">
+                                                </div>
+                                            </div>
+                                            <div className={styles.cardContent}>
+                                                <p className="flex items-center text-gray-600 mb-2">
                                                     <MapPin className="w-4 h-4 mr-1" /> {event.location}
                                                 </p>
-                                                <p className="text-gray-600 flex items-center">
+                                                <p className="flex items-center text-gray-600">
                                                     <Users className="w-4 h-4 mr-1" /> {event.remaining} jugadores faltantes
                                                 </p>
-                                            </CardContent>
-                                        </Card>
+                                            </div>
+                                        </div>
                                     ))
                             )}
                         </div>
