@@ -7,6 +7,7 @@ import { TimeSlot } from "@/types/timeslot.ts";
 import { ChevronLeft } from "lucide-react";
 import dayjs from "dayjs";
 import { DAYS_OF_WEEK } from "../../utils/constants.ts";
+import styles from './Fields.module.css';
 
 export const FieldDetailView = () => {
     const { id } = useParams<{ id: string }>();
@@ -16,6 +17,7 @@ export const FieldDetailView = () => {
     const [field, setField] = useState<Field | null>(null);
     const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!id) return;
@@ -32,8 +34,10 @@ export const FieldDetailView = () => {
                     ...fieldData,
                     cost: fieldData.cost_per_slot, 
                 });
+                setError(null);
             } catch (error) {
                 console.error("❌ Error obteniendo la cancha:", error);
+                setError("No se pudo cargar la información de la cancha");
             }
         };
 
@@ -66,16 +70,20 @@ export const FieldDetailView = () => {
                 });
 
                 setTimeSlots(formattedSlots);
-                setLoading(false);
             } catch (error) {
                 console.error("❌ Error obteniendo los horarios:", error);
                 setTimeSlots([]);
             }
         };
 
-        fetchFieldDetails();
-        fetchTimeSlots();
-        setLoading(false);
+        setLoading(true);
+        Promise.all([fetchFieldDetails(), fetchTimeSlots()])
+            .catch(error => {
+                console.error("Error fetching data:", error);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }, [id]);
 
     const getOpeningHours = (dayIndex: number) => {
@@ -111,7 +119,11 @@ export const FieldDetailView = () => {
                 </Button>
 
                 {loading ? (
-                    <p className="text-center text-gray-500">Cargando detalles...</p>
+                    <div className={styles.loadingSpinner}>
+                        <p className={styles.loadingText}>Cargando detalles de la cancha</p>
+                    </div>
+                ) : error ? (
+                    <div className="text-center text-red-600 p-4">{error}</div>
                 ) : field ? (
                     <>
                         <div className="flex justify-between items-center mb-4">
@@ -132,28 +144,28 @@ export const FieldDetailView = () => {
                                 ? field.sports.map((s) => s.name).join(", ")
                                 : "No especificado"}
                         </p>
-                            <p className="text-gray-600 mb-2">
-                                <strong>Costo por reserva:</strong> ${field.cost}
-                            </p>
-                            <p className="text-gray-600 mb-2">
-                                <strong>Capacidad:</strong> {field.capacity} personas
-                            </p>
-                            <p className="text-gray-600 mb-4">
-                                <strong>Duración:</strong> {field.slot_duration} minutos
-                            </p>
+                        <p className="text-gray-600 mb-2">
+                            <strong>Costo por reserva:</strong> ${field.cost}
+                        </p>
+                        <p className="text-gray-600 mb-2">
+                            <strong>Capacidad:</strong> {field.capacity} personas
+                        </p>
+                        <p className="text-gray-600 mb-4">
+                            <strong>Duración:</strong> {field.slot_duration} minutos
+                        </p>
 
-                            <h2 className="text-xl font-semibold text-[#000066] mt-6 mb-4">Horarios de la semana</h2>
-                            <div className="border rounded-lg shadow p-4 bg-gray-50">
-                                {DAYS_OF_WEEK.map((day, index) => (
-                                    <div key={day} className="flex justify-between border-b py-2 last:border-none">
-                                        <span className="font-medium">{day}:</span>
-                                        <span>{getOpeningHours(index)}</span>
-                                    </div>
-                                ))}
-                            </div>
+                        <h2 className="text-xl font-semibold text-[#000066] mt-6 mb-4">Horarios de la semana</h2>
+                        <div className="border rounded-lg shadow p-4 bg-gray-50">
+                            {DAYS_OF_WEEK.map((day, index) => (
+                                <div key={day} className="flex justify-between border-b py-2 last:border-none">
+                                    <span className="font-medium">{day}:</span>
+                                    <span>{getOpeningHours(index)}</span>
+                                </div>
+                            ))}
+                        </div>
                     </>
                 ) : (
-                    <p className="text-center text-red-600">No se encontró la cancha.</p>
+                    <div className={styles.emptyState}>No se encontró la cancha.</div>
                 )}
             </div>
         </div>
