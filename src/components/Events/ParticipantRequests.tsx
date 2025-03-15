@@ -16,6 +16,7 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
     const [acceptedParticipants, setAcceptedParticipants] = useState<Participant[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'pending' | 'accepted'>('pending');
     const apiKey = localStorage.getItem('c-api-key');
 
     const fetchParticipants = async (status: string) => {
@@ -57,6 +58,14 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
             
             setPendingParticipants(pending);
             setAcceptedParticipants(accepted);
+            
+            // Set the active tab to the one with content, prioritizing pending
+            if (pending.length > 0) {
+                setActiveTab('pending');
+            } else if (accepted.length > 0) {
+                setActiveTab('accepted');
+            }
+            
             setError(null);
         } catch (err) {
             console.error('Error al cargar participantes:', err);
@@ -140,56 +149,56 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
     };
 
     if (loading) {
-        return <div className="text-center py-4">Cargando participantes...</div>;
+        return <div className="text-center py-2 text-sm">Cargando participantes...</div>;
     }
 
     if (error) {
-        return <div className="text-center text-red-500 py-4">{error}</div>;
+        return <div className="text-center text-red-500 py-2 text-sm">{error}</div>;
     }
 
     return (
-        <div className={styles.tabsList}>
-            <div className="w-full">
-                <div className="grid w-full grid-cols-2 mb-4">
-                    <button
-                        className={`${styles.tabsTrigger} ${pendingParticipants.length > 0 ? styles.tabsTriggerActive : ''}`}
-                        onClick={() => document.getElementById('pending-tab')?.scrollIntoView({ behavior: 'smooth' })}
-                    >
-                        Solicitudes Pendientes
-                    </button>
-                    <button
-                        className={`${styles.tabsTrigger} ${acceptedParticipants.length > 0 ? styles.tabsTriggerActive : ''}`}
-                        onClick={() => document.getElementById('accepted-tab')?.scrollIntoView({ behavior: 'smooth' })}
-                    >
-                        Participantes Aceptados
-                    </button>
-                </div>
+        <div className="w-full">
+            <div className="flex w-full border-b border-gray-200">
+                <button
+                    className={`${styles.tabsTrigger} ${activeTab === 'pending' ? styles.tabsTriggerActive : ''}`}
+                    onClick={() => setActiveTab('pending')}
+                >
+                    Solicitudes ({pendingParticipants.length})
+                </button>
+                <button
+                    className={`${styles.tabsTrigger} ${activeTab === 'accepted' ? styles.tabsTriggerActive : ''}`}
+                    onClick={() => setActiveTab('accepted')}
+                >
+                    Aceptados ({acceptedParticipants.length})
+                </button>
+            </div>
 
-                <div id="pending-tab" className={styles.tabsContent}>
+            {activeTab === 'pending' && (
+                <div className={styles.tabsContent}>
                     {pendingParticipants.length === 0 ? (
-                        <div className="text-center text-gray-500 py-4">No hay solicitudes pendientes</div>
+                        <div className="text-center text-gray-500 py-2 text-xs">No hay solicitudes pendientes</div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             {pendingParticipants.map((participant) => (
-                                <Card key={participant.userId} className="overflow-hidden">
+                                <Card key={participant.userId} className="overflow-hidden border-gray-200">
                                     <div className={styles.participantItem}>
                                         <div className={styles.participantInfo}>
-                                            <Avatar className="h-12 w-12">
-                                                <AvatarFallback>
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarFallback className="text-xs">
                                                     {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
                                                 </AvatarFallback>
                                             </Avatar>
 
                                             <div>
                                                 <h4 className={styles.participantName}>{participant.firstname} {participant.lastname}</h4>
-                                                <div className="flex flex-col text-sm text-gray-500">
+                                                <div className="flex flex-col text-xs text-gray-500">
                                                     {participant.phoneNumber && (
-                                                        <p>{participant.phoneNumber}</p>
+                                                        <p className="text-xs">{participant.phoneNumber}</p>
                                                     )}
                                                     {participant.rating && (
-                                                        <div className="flex items-center mt-1">
-                                                            <Star className="h-5 w-5 text-yellow-500 mr-1" />
-                                                            <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+                                                        <div className="flex items-center">
+                                                            <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                                                            <span className="text-xs">{participant.rating.rate.toFixed(1)}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -201,14 +210,14 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                                                 onClick={() => handleAccept(participant.userId)}
                                                 className={styles.acceptButton}
                                             >
-                                                <Check className="h-4 w-4" />
+                                                <Check className="h-3 w-3" />
                                             </button>
 
                                             <button
                                                 onClick={() => handleReject(participant.userId)}
                                                 className={styles.rejectButton}
                                             >
-                                                <X className="h-4 w-4" />
+                                                <X className="h-3 w-3" />
                                             </button>
                                         </div>
                                     </div>
@@ -217,32 +226,34 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                         </div>
                     )}
                 </div>
+            )}
 
-                <div id="accepted-tab" className={styles.tabsContent}>
+            {activeTab === 'accepted' && (
+                <div className={styles.tabsContent}>
                     {acceptedParticipants.length === 0 ? (
-                        <div className="text-center text-gray-500 py-4">No hay participantes aceptados</div>
+                        <div className="text-center text-gray-500 py-2 text-xs">No hay participantes aceptados</div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             {acceptedParticipants.map((participant) => (
-                                <Card key={participant.userId} className="overflow-hidden">
+                                <Card key={participant.userId} className="overflow-hidden border-gray-200">
                                     <div className={styles.participantItem}>
                                         <div className={styles.participantInfo}>
-                                            <Avatar className="h-12 w-12">
-                                                <AvatarFallback>
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarFallback className="text-xs">
                                                     {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
                                                 </AvatarFallback>
                                             </Avatar>
 
                                             <div>
                                                 <h4 className={styles.participantName}>{participant.firstname} {participant.lastname}</h4>
-                                                <div className="flex flex-col text-sm text-gray-500">
+                                                <div className="flex flex-col text-xs text-gray-500">
                                                     {participant.phoneNumber && (
-                                                        <p>{participant.phoneNumber}</p>
+                                                        <p className="text-xs">{participant.phoneNumber}</p>
                                                     )}
                                                     {participant.rating && (
-                                                        <div className="flex items-center mt-1">
-                                                            <Star className="h-5 w-5 text-yellow-500 mr-1" />
-                                                            <span>{participant.rating.rate.toFixed(1)} ({participant.rating.count})</span>
+                                                        <div className="flex items-center">
+                                                            <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                                                            <span className="text-xs">{participant.rating.rate.toFixed(1)}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -256,7 +267,7 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                                                 disabled={!participant.phoneNumber}
                                                 title={participant.phoneNumber ? "Contactar" : "No hay número de teléfono"}
                                             >
-                                                <Phone className="h-4 w-4" />
+                                                <Phone className="h-3 w-3" />
                                             </button>
                                         </div>
                                     </div>
@@ -265,7 +276,7 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                         </div>
                     )}
                 </div>
-            </div>
+            )}
         </div>
     );
 };

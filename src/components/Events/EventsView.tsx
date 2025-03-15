@@ -28,7 +28,7 @@ export const EventsView = () => {
 
     const fetchEvents = async () => {
         if (!apiKey || !clubId) {
-            console.error('🚨 Error: Falta API Key o clubId', { apiKey, clubId });
+            console.error('🚨 Error: Falta API Key o clubId', {apiKey, clubId});
             setLoading(false);
             return;
         }
@@ -161,9 +161,9 @@ export const EventsView = () => {
     };
 
     return (
-        <div className={styles.eventsContainer}>
-            <div className={styles.pageHeader}>
-                <h1 className="text-2xl font-bold text-[#000066] mb-8">Eventos organizados por mi</h1>
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-[#000066]">Eventos</h1>
 
                 {/* Botón para abrir el modal de nuevo evento */}
                 <button
@@ -184,7 +184,7 @@ export const EventsView = () => {
                     {/* 🔹 Próximos Eventos */}
                     <section>
                         <h2 className={styles.sectionHeader}>
-                            <CalendarIcon className={styles.sectionIcon} />
+                            <CalendarIcon className={`${styles.sectionIcon} text-[#000066]`} />
                             Próximos Eventos
                         </h2>
                         <div className={styles.dashboardGrid}>
@@ -208,50 +208,54 @@ export const EventsView = () => {
                                                 </div>
                                             </div>
                                             <div className={styles.cardContent}>
-                                                <p className="flex items-center text-gray-600">
-                                                    <MapPin className="w-4 h-4 mr-1" /> {event.location}
-                                                </p>
-                                                <p className="flex items-center text-gray-600">
-                                                    <Users className="w-4 h-4 mr-1" /> {event.remaining} jugadores faltantes
-                                                </p>
+                                                <div className="flex flex-col space-y-1">
+                                                    <p className="flex items-center text-gray-600 text-sm">
+                                                        <MapPin className="w-4 h-4 mr-1 flex-shrink-0" /> 
+                                                        <span className="truncate">{event.location}</span>
+                                                    </p>
+                                                    <p className="flex items-center text-gray-600 text-sm">
+                                                        <Users className="w-4 h-4 mr-1 flex-shrink-0" /> 
+                                                        {event.remaining} jugadores faltantes
+                                                    </p>
+                                                </div>
 
-                                                <div className="mt-3 space-y-1">
+                                                <div className="mt-2 space-y-1">
                                                     {pendingRequestsCounts[event.id] > 0 && (
-                                                        <div className="flex items-center text-blue-600">
-                                                            <UserPlus className="w-4 h-4 mr-1" />
-                                                            <span>{pendingRequestsCounts[event.id]} solicitudes pendientes</span>
+                                                        <div className="flex items-center text-blue-600 text-sm">
+                                                            <UserPlus className="w-4 h-4 mr-1 flex-shrink-0" />
+                                                            <span>{pendingRequestsCounts[event.id]} solicitudes</span>
                                                         </div>
                                                     )}
 
                                                     {acceptedParticipantsCounts[event.id] > 0 && (
-                                                        <div className="flex items-center text-green-600">
-                                                            <UserCheck className="w-4 h-4 mr-1" />
-                                                            <span>{acceptedParticipantsCounts[event.id]} participantes confirmados</span>
+                                                        <div className="flex items-center text-green-600 text-sm">
+                                                            <UserCheck className="w-4 h-4 mr-1 flex-shrink-0" />
+                                                            <span>{acceptedParticipantsCounts[event.id]} confirmados</span>
                                                         </div>
                                                     )}
 
                                                     {(!pendingRequestsCounts[event.id] || pendingRequestsCounts[event.id] === 0) &&
                                                         (!acceptedParticipantsCounts[event.id] || acceptedParticipantsCounts[event.id] === 0) && (
-                                                            <div className="flex items-center text-gray-500">
-                                                                <Users className="w-4 h-4 mr-1" />
-                                                                <span>Todavía no hay participantes</span>
+                                                            <div className="flex items-center text-gray-500 text-sm">
+                                                                <Users className="w-4 h-4 mr-1 flex-shrink-0" />
+                                                                <span>Sin participantes</span>
                                                             </div>
                                                         )}
                                                 </div>
 
                                                 {event.description && (
-                                                    <div className="mt-2 mb-0">
+                                                    <div className="mt-2">
                                                         <button
                                                             className={styles.descriptionToggle}
                                                             onClick={() => toggleDescriptionVisibility(event.id)}
                                                         >
                                                             {visibleDescriptions.includes(event.id) ? (
-                                                                <span className="flex items-center">
-                                                                    Ocultar descripción <ChevronUp className="ml-1 h-4 w-4" />
+                                                                <span className="flex items-center text-sm">
+                                                                    Ocultar descripción <ChevronUp className="ml-1 h-3 w-3" />
                                                                 </span>
                                                             ) : (
-                                                                <span className="flex items-center">
-                                                                    Ver descripción <ChevronDown className="ml-1 h-4 w-4" />
+                                                                <span className="flex items-center text-sm">
+                                                                    Ver descripción <ChevronDown className="ml-1 h-3 w-3" />
                                                                 </span>
                                                             )}
                                                         </button>
@@ -272,9 +276,13 @@ export const EventsView = () => {
                                                         onClick={() => toggleEventExpansion(event.id)}
                                                     >
                                                         {expandedEvents.includes(event.id) ? (
-                                                            <>Ocultar participantes <ChevronUp className="ml-1 h-4 w-4" /></>
+                                                            <span className="flex items-center text-sm">
+                                                                Ocultar participantes <ChevronUp className="ml-1 h-3 w-3" />
+                                                            </span>
                                                         ) : (
-                                                            <>Ver participantes <ChevronDown className="ml-1 h-4 w-4" /></>
+                                                            <span className="flex items-center text-sm">
+                                                                Ver participantes <ChevronDown className="ml-1 h-3 w-3" />
+                                                            </span>
                                                         )}
                                                     </button>
                                                 </div>
@@ -297,7 +305,7 @@ export const EventsView = () => {
                     {/* 🔹 Eventos Pasados */}
                     <section>
                         <h2 className={styles.sectionHeader}>
-                            <ClockIcon className={styles.sectionIcon} />
+                            <ClockIcon className={`${styles.sectionIcon} text-[#000066]`} />
                             Eventos Pasados
                         </h2>
                         <div className={styles.dashboardGrid}>
@@ -321,12 +329,41 @@ export const EventsView = () => {
                                                 </div>
                                             </div>
                                             <div className={styles.cardContent}>
-                                                <p className="flex items-center text-gray-600">
-                                                    <MapPin className="w-4 h-4 mr-1" /> {event.location}
-                                                </p>
-                                                <p className="flex items-center text-gray-600">
-                                                    <Users className="w-4 h-4 mr-1" /> {event.remaining} jugadores faltantes
-                                                </p>
+                                                <div className="flex flex-col space-y-1">
+                                                    <p className="flex items-center text-gray-600 text-sm">
+                                                        <MapPin className="w-4 h-4 mr-1 flex-shrink-0" /> 
+                                                        <span className="truncate">{event.location}</span>
+                                                    </p>
+                                                    <p className="flex items-center text-gray-600 text-sm">
+                                                        <Users className="w-4 h-4 mr-1 flex-shrink-0" /> 
+                                                        {acceptedParticipantsCounts[event.id] || 0} participantes
+                                                    </p>
+                                                </div>
+                                                
+                                                {event.description && (
+                                                    <div className="mt-2">
+                                                        <button
+                                                            className={styles.descriptionToggle}
+                                                            onClick={() => toggleDescriptionVisibility(event.id)}
+                                                        >
+                                                            {visibleDescriptions.includes(event.id) ? (
+                                                                <span className="flex items-center text-sm">
+                                                                    Ocultar descripción <ChevronUp className="ml-1 h-3 w-3" />
+                                                                </span>
+                                                            ) : (
+                                                                <span className="flex items-center text-sm">
+                                                                    Ver descripción <ChevronDown className="ml-1 h-3 w-3" />
+                                                                </span>
+                                                            )}
+                                                        </button>
+
+                                                        {visibleDescriptions.includes(event.id) && (
+                                                            <div className={styles.descriptionContent}>
+                                                                {event.description}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))
@@ -338,6 +375,10 @@ export const EventsView = () => {
 
             {/* Modal para nuevo evento */}
             <NewEvent isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            
+            <div className="text-center text-gray-400 text-sm mt-8 pb-4">
+                Al ser usuario de la aplicación tenemos tu consentimiento sobre los <a href="/terms-and-conditions" className="underline hover:text-gray-600">términos y condiciones</a>
+            </div>
         </div>
     );
 };
