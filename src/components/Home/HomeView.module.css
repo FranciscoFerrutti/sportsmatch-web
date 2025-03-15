@@ -239,6 +239,11 @@
     color: #dc2626;
 }
 
+.statusInProgress {
+    background-color: #dbeafe;
+    color: #2563eb;
+}
+
 /* Avatar placeholder */
 .avatarPlaceholder {
     width: 2.5rem;
@@ -374,4 +379,53 @@
 .tabsContent {
     padding-top: 0.5rem;
     min-height: 50px;
+}
+
+/* Payment information */
+.paymentInfo {
+    padding: 0.5rem 0.75rem 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 0.25rem;
+}
+
+.paymentTitle {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+}
+
+.paymentDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.paymentRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.paymentLabel {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.paymentValue {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.paymentPaid {
+    color: #059669;
+}
+
+.paymentUnpaid {
+    color: #dc2626;
+}
+
+.paymentRefunded {
+    color: #7c3aed;
 }

@@ -108,11 +108,17 @@ export const HomeView = () => {
             const response = await apiClient.get(`/events?userId=${clubId}&organizerType=club`, { headers: { 'c-api-key': apiKey } });
 
             if (response.data && Array.isArray(response.data.items)) {
-                // Filtrar eventos que sean de hoy y que no hayan pasado
+                // Filtrar eventos que sean de hoy y que no hayan terminado
                 const now = dayjs();
                 const todayEvents = response.data.items.filter((event: Event) => {
                     const eventTime = dayjs(event.schedule);
-                    return eventTime.isSame(now, 'day') && eventTime.isAfter(now);
+                    
+                    // Calcular el tiempo de finalización del evento (asumiendo 90 minutos de duración por defecto)
+                    // Si el evento tiene una duración específica, se podría usar esa información
+                    const eventEndTime = dayjs(event.schedule).add(90, 'minutes');
+                    
+                    // Incluir eventos que son hoy y que su tiempo de finalización es después de ahora
+                    return eventTime.isSame(now, 'day') && eventEndTime.isAfter(now);
                 });
 
                 setEventsToday(todayEvents);
@@ -467,9 +473,15 @@ export const HomeView = () => {
                                                     <Clock className="w-4 h-4 mr-1" />
                                                     {reservation.timeSlot?.startTime} hs
                                                 </div>
-                                                <span className={`${styles.statusBadge} ${styles.statusConfirmed}`}>
-                                                    Confirmado
-                                                </span>
+                                                {dayjs().isAfter(dayjs(`${reservation.timeSlot?.availabilityDate}T${reservation.timeSlot?.startTime}`)) ? (
+                                                    <span className={`${styles.statusBadge} ${styles.statusInProgress}`}>
+                                                        En progreso
+                                                    </span>
+                                                ) : (
+                                                    <span className={`${styles.statusBadge} ${styles.statusConfirmed}`}>
+                                                        Confirmado
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <div className={styles.cardContent}>
@@ -505,15 +517,46 @@ export const HomeView = () => {
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                <div className={styles.paymentInfo}>
+                                                    <h4 className={styles.paymentTitle}>Información de Pago</h4>
+                                                    <div className={styles.paymentDetails}>
+                                                        <div className={styles.paymentRow}>
+                                                            <span className={styles.paymentLabel}>Estado:</span>
+                                                            <span className={`${styles.paymentValue} ${reservation.payment?.isPaid ? styles.paymentPaid : styles.paymentUnpaid}`}>
+                                                                {reservation.payment?.isPaid ? 'Pagado' : 'No pagado'}
+                                                            </span>
+                                                        </div>
+                                                        {reservation.payment?.isPaid && (
+                                                            <>
+                                                                <div className={styles.paymentRow}>
+                                                                    <span className={styles.paymentLabel}>Monto:</span>
+                                                                    <span className={styles.paymentValue}>
+                                                                        ${reservation.payment?.paymentAmount || reservation.cost}
+                                                                    </span>
+                                                                </div>
+                                                                <div className={styles.paymentRow}>
+                                                                    <span className={styles.paymentLabel}>Fecha:</span>
+                                                                    <span className={styles.paymentValue}>
+                                                                        {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).subtract(3, 'hour').format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                    </span>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div className={styles.cardFooter}>
-                                                <button 
-                                                    className={styles.rejectButton}
-                                                    onClick={() => handleReject(reservation.id)}
-                                                >
-                                                    Cancelar Reserva
-                                                </button>
+                                                <div className="flex-grow"></div>
+                                                {!dayjs().isAfter(dayjs(`${reservation.timeSlot?.availabilityDate}T${reservation.timeSlot?.startTime}`)) && (
+                                                    <button 
+                                                        className={styles.rejectButton}
+                                                        onClick={() => handleReject(reservation.id)}
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))
@@ -545,6 +588,15 @@ export const HomeView = () => {
                                                     <Clock className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("HH:mm")} hs
                                                 </div>
+                                                {dayjs().isAfter(dayjs(event.schedule)) ? (
+                                                    <span className={`${styles.statusBadge} ${styles.statusInProgress}`}>
+                                                        En progreso
+                                                    </span>
+                                                ) : (
+                                                    <span className={`${styles.statusBadge} ${styles.statusConfirmed}`}>
+                                                        Próximo
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className={styles.cardContent}>
                                                 <div className="flex flex-col space-y-1">
