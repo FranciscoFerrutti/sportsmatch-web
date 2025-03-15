@@ -9,4 +9,5 @@ export interface Event {
     remaining?: number;
     location?: string;
     sportName?: string;
+    description?: string;
 }
