@@ -135,11 +135,32 @@ export const ReservationsView = () => {
     }
   };
 
-  const isDateCurrentOrFuture = (dateString: string | undefined) => {
+  const isDateCurrentOrFuture = (dateString: string | undefined, startTime?: string) => {
     if (!dateString) return false;
-    const today = dayjs().startOf('day');
-    const date = dayjs(dateString).startOf('day');
-    return date.isSame(today, 'day') || date.isAfter(today);
+    
+    const now = dayjs();
+    const date = dayjs(dateString);
+    
+    // If the date is in the future, it's always valid
+    if (date.isAfter(now, 'day')) {
+      return true;
+    }
+    
+    // If the date is today, check the time
+    if (date.isSame(now, 'day')) {
+      // If no start time provided, consider it as future
+      if (!startTime) return true;
+      
+      // Parse the start time (format: "HH:mm")
+      const [hours, minutes] = startTime.split(':');
+      const reservationTime = date.hour(parseInt(hours)).minute(parseInt(minutes));
+      
+      // Return true if the reservation time is in the future
+      return reservationTime.isAfter(now);
+    }
+    
+    // If the date is in the past
+    return false;
   };
 
 
@@ -164,11 +185,11 @@ export const ReservationsView = () => {
                             Reservas Pendientes
                         </h2>
                         <div className={styles.dashboardGrid}>
-                            {reservations.filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate)).length === 0 ? (
+                            {reservations.filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime)).length === 0 ? (
                                 <div className={styles.emptyState}>No hay reservas pendientes</div>
                             ) : (
                                 reservations
-                                    .filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
+                                    .filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime))
                                     .sort((a, b) =>
                                         dayjs(a.timeSlot?.availabilityDate).valueOf() -
                                         dayjs(b.timeSlot?.availabilityDate).valueOf() ||
@@ -252,14 +273,14 @@ export const ReservationsView = () => {
                         <div className={styles.dashboardGrid}>
                             {reservations.filter(r =>
                                 (r.status === 'completed' || r.status === 'confirmed') &&
-                                isDateCurrentOrFuture(r.timeSlot?.availabilityDate)
+                                isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime)
                             ).length === 0 ? (
                                 <div className={styles.emptyState}>No hay próximas reservas</div>
                             ) : (
                                 reservations
                                     .filter(r =>
                                         (r.status === 'completed' || r.status === 'confirmed') &&
-                                        isDateCurrentOrFuture(r.timeSlot?.availabilityDate)
+                                        isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime)
                                     )
                                     .sort((a, b) =>
                                         dayjs(a.timeSlot?.availabilityDate).valueOf() -
@@ -375,15 +396,15 @@ export const ReservationsView = () => {
                         </h2>
                         <div className={styles.dashboardGrid}>
                             {reservations.filter(r =>
-                                (r.status === 'confirmed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate)) ||
-                                (r.status === 'completed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
+                                (r.status === 'confirmed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime)) ||
+                                (r.status === 'completed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime))
                             ).length === 0 ? (
                                 <div className={styles.emptyState}>No hay reservas pasadas</div>
                             ) : (
                                 reservations
                                     .filter(r =>
-                                        (r.status === 'confirmed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate)) ||
-                                        (r.status === 'completed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
+                                        (r.status === 'confirmed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime)) ||
+                                        (r.status === 'completed' && !isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime))
                                     )
                                     .map((reservation: Reservation) => (
                                         <div key={`reservation-${reservation.id}`} className={styles.reservationCard}>
@@ -467,18 +488,6 @@ export const ReservationsView = () => {
                                                 )}
                                             </div>
 
-                                            <div className={styles.cardFooter}>
-                                                {(reservation.status === 'confirmed' || reservation.status === 'completed') && (
-                                                    <div className="flex justify-end w-full">
-                                                        <button
-                                                            className={styles.rejectButton}
-                                                            onClick={() => handleReject(reservation.id)}
-                                                        >
-                                                            Cancelar
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
                                         </div>
                                     ))
                             )}

@@ -128,11 +128,32 @@ export const HomeView = () => {
     };
 
     // Función para verificar si una fecha es actual o futura
-    const isDateCurrentOrFuture = (dateString: string | undefined) => {
+    const isDateCurrentOrFuture = (dateString: string | undefined, startTime?: string) => {
         if (!dateString) return false;
-        const today = dayjs().format('YYYY-MM-DD');
-        const date = dayjs(dateString).format('YYYY-MM-DD');
-        return date >= today;
+        
+        const now = dayjs();
+        const date = dayjs(dateString);
+        
+        // If the date is in the future, it's always valid
+        if (date.isAfter(now, 'day')) {
+            return true;
+        }
+        
+        // If the date is today, check the time
+        if (date.isSame(now, 'day')) {
+            // If no start time provided, consider it as future
+            if (!startTime) return true;
+            
+            // Parse the start time (format: "HH:mm")
+            const [hours, minutes] = startTime.split(':');
+            const reservationTime = date.hour(parseInt(hours)).minute(parseInt(minutes));
+            
+            // Return true if the reservation time is in the future
+            return reservationTime.isAfter(now);
+        }
+        
+        // If the date is in the past
+        return false;
     };
 
     const handleAccept = async (reservationId: number) => {
@@ -192,11 +213,11 @@ export const HomeView = () => {
                             Reservas Pendientes
                         </h2>
                         <div className={styles.dashboardGrid}>
-                            {reservations.filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate)).length === 0 ? (
+                            {reservations.filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime)).length === 0 ? (
                                 <div className={styles.emptyState}>No hay reservas pendientes</div>
                             ) : (
                                 reservations
-                                    .filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate))
+                                    .filter(r => r.status === 'pending' && isDateCurrentOrFuture(r.timeSlot?.availabilityDate, r.timeSlot?.startTime))
                                     .sort((a, b) =>
                                         dayjs(a.timeSlot?.availabilityDate).valueOf() -
                                         dayjs(b.timeSlot?.availabilityDate).valueOf() ||

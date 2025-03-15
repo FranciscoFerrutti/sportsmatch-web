@@ -106,7 +106,30 @@ export const EventsView = () => {
 
     const isDateFuture = (dateString: string | undefined) => {
         if (!dateString) return false;
-        return dayjs(dateString).isAfter(dayjs(), 'day');
+        
+        const now = dayjs();
+        const eventDate = dayjs(dateString);
+        
+        // If the date is in the future, it's always valid
+        if (eventDate.isAfter(now, 'day')) {
+            return true;
+        }
+        
+        // If the date is today, check the time
+        if (eventDate.isSame(now, 'day')) {
+            // Extract the time from the event date
+            const eventHour = eventDate.hour();
+            const eventMinute = eventDate.minute();
+            
+            // Create a datetime with today's date and the event time
+            const eventDateTime = now.hour(eventHour).minute(eventMinute).second(0);
+            
+            // Return true if the event time is in the future
+            return eventDateTime.isAfter(now);
+        }
+        
+        // If the date is in the past
+        return false;
     };
 
     const toggleEventExpansion = (eventId: number) => {
