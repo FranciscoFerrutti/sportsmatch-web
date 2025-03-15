@@ -94,7 +94,6 @@ export const Signup = () => {
     }
 
     try {
-
       const response = await apiClient.post('/clubauth', {
         name: formData.name,
         phoneNumber: formData.phoneNumber,
@@ -114,7 +113,24 @@ export const Signup = () => {
 
     } catch (err: any) {
       console.error('❌ Error en el registro:', err);
-      setError(err.response?.data?.message || 'Error al registrar el club.');
+      if (err.response) {
+        const { status, data } = err.response;
+
+        if (status === 409) {
+          if (data.message.includes("email")) {
+            setErrors(prev => ({ ...prev, email: "Este email ya está registrado." }));
+          }
+          if (data.message.includes("phone")) {
+            setErrors(prev => ({ ...prev, phoneNumber: "Este número de teléfono ya está registrado." }));
+          }
+        } else if (status === 400) {
+          setError("Hubo un problema con los datos ingresados. Verifica los campos.");
+        } else {
+          setError("Error al registrar el club. Intenta nuevamente.");
+        }
+      } else {
+        setError("No se pudo conectar con el servidor. Intenta más tarde.");
+      }
     } finally {
       setIsLoading(false);
     }
