@@ -468,7 +468,16 @@ export const ReservationsView = () => {
                                             </div>
 
                                             <div className={styles.cardFooter}>
-                                                {/* Removed cancel button from Reservas Pasadas */}
+                                                {(reservation.status === 'confirmed' || reservation.status === 'completed') && (
+                                                    <div className="flex justify-end w-full">
+                                                        <button
+                                                            className={styles.rejectButton}
+                                                            onClick={() => handleReject(reservation.id)}
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))
