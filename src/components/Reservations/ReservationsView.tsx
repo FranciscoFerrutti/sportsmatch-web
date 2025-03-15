@@ -339,18 +339,10 @@ export const ReservationsView = () => {
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Fecha:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).subtract(3, 'hour').format("DD/MM/YYYY HH:mm") : 'N/A'}
                                                                         </span>
                                                                     </div>
                                                                 </>
-                                                            )}
-                                                            {reservation.payment?.isRefunded && (
-                                                                <div className={styles.paymentRow}>
-                                                                    <span className={styles.paymentLabel}>Reembolsado:</span>
-                                                                    <span className={`${styles.paymentValue} ${styles.paymentRefunded}`}>
-                                                                        ${reservation.payment?.refundAmount} ({dayjs(reservation.payment?.refundDate).format("DD/MM/YYYY")})
-                                                                    </span>
-                                                                </div>
                                                             )}
                                                         </div>
                                                     </div>
@@ -359,12 +351,14 @@ export const ReservationsView = () => {
 
                                             <div className={styles.cardFooter}>
                                                 {(reservation.status === 'confirmed' || reservation.status === 'completed') && (
-                                                    <button
-                                                        className={styles.rejectButton}
-                                                        onClick={() => handleReject(reservation.id)}
-                                                    >
-                                                        Cancelar
-                                                    </button>
+                                                    <div className="flex justify-end w-full">
+                                                        <button
+                                                            className={styles.rejectButton}
+                                                            onClick={() => handleReject(reservation.id)}
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
@@ -463,18 +457,10 @@ export const ReservationsView = () => {
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Fecha:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).subtract(3, 'hour').format("DD/MM/YYYY HH:mm") : 'N/A'}
                                                                         </span>
                                                                     </div>
                                                                 </>
-                                                            )}
-                                                            {reservation.payment?.isRefunded && (
-                                                                <div className={styles.paymentRow}>
-                                                                    <span className={styles.paymentLabel}>Reembolsado:</span>
-                                                                    <span className={`${styles.paymentValue} ${styles.paymentRefunded}`}>
-                                                                        ${reservation.payment?.refundAmount} ({dayjs(reservation.payment?.refundDate).format("DD/MM/YYYY")})
-                                                                    </span>
-                                                                </div>
                                                             )}
                                                         </div>
                                                     </div>
@@ -482,14 +468,7 @@ export const ReservationsView = () => {
                                             </div>
 
                                             <div className={styles.cardFooter}>
-                                                {(reservation.status === 'confirmed' || reservation.status === 'completed') && (
-                                                    <button
-                                                        className={styles.rejectButton}
-                                                        onClick={() => handleReject(reservation.id)}
-                                                    >
-                                                        Cancelar
-                                                    </button>
-                                                )}
+                                                {/* Removed cancel button from Reservas Pasadas */}
                                             </div>
                                         </div>
                                     ))
@@ -581,16 +560,18 @@ export const ReservationsView = () => {
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Fecha:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).subtract(3, 'hour').format("DD/MM/YYYY HH:mm") : 'N/A'}
                                                                         </span>
                                                                     </div>
                                                                 </>
                                                             )}
-                                                            {reservation.payment?.isRefunded && (
+                                                            {reservation.payment?.isPaid && (
                                                                 <div className={styles.paymentRow}>
-                                                                    <span className={styles.paymentLabel}>Reembolsado:</span>
-                                                                    <span className={`${styles.paymentValue} ${styles.paymentRefunded}`}>
-                                                                        ${reservation.payment?.refundAmount} ({dayjs(reservation.payment?.refundDate).format("DD/MM/YYYY")})
+                                                                    <span className={styles.paymentLabel}>Reembolso:</span>
+                                                                    <span className={`${styles.paymentValue} ${reservation.payment?.isRefunded ? styles.paymentRefunded : ''}`}>
+                                                                        {reservation.payment?.isRefunded 
+                                                                            ? `$${reservation.payment?.refundAmount} (${dayjs(reservation.payment?.refundDate).subtract(3, 'hour').format("DD/MM/YYYY")})` 
+                                                                            : 'No aplica'}
                                                                     </span>
                                                                 </div>
                                                             )}

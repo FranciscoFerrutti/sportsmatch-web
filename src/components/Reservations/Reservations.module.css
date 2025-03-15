@@ -121,9 +121,10 @@
 
 .cardFooter {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 0.75rem;
     border-top: 1px solid #e5e7eb;
+    min-height: 3.5rem;
 }
 
 /* Action buttons */
