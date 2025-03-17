@@ -10,4 +10,5 @@ export interface Event {
     location?: string;
     sportName?: string;
     description?: string;
+    duration?: number;
 }

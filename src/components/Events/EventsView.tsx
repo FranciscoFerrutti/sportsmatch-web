@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { Event } from '@/types/event'
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { CalendarIcon, MapPin, ClockIcon, Users, ChevronDown, ChevronUp, UserPlus, UserCheck } from 'lucide-react';
+import { CalendarIcon, MapPin, ClockIcon, Users, ChevronDown, ChevronUp, UserPlus, UserCheck, Hourglass } from 'lucide-react';
 import { ParticipantRequests } from './ParticipantRequests';
 import styles from './Events.module.css';
 
@@ -229,6 +229,12 @@ export const EventsView = () => {
                                                     <ClockIcon className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("HH:mm")} hs
                                                 </div>
+                                                {event.duration && (
+                                                    <div className={styles.cardTime}>
+                                                        <Hourglass className="w-4 h-4 mr-1" />
+                                                        Duración: {event.duration} min
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className={styles.cardContent}>
                                                 <div className="flex flex-col space-y-1">
@@ -350,6 +356,12 @@ export const EventsView = () => {
                                                     <ClockIcon className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("HH:mm")} hs
                                                 </div>
+                                                {event.duration && (
+                                                    <div className={styles.cardTime}>
+                                                        <Hourglass className="w-4 h-4 mr-1" />
+                                                        Duración: {event.duration} min
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className={styles.cardContent}>
                                                 <div className="flex flex-col space-y-1">
