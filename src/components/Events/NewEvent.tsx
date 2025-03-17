@@ -319,17 +319,18 @@ export const NewEvent: React.FC<EventModalProps> = ({ isOpen, onClose }) => {
 
                     <div className={styles.formGroup}>
                         <label className={styles.formLabel}>Duración:</label>
-                        <input
-                            className={styles.formInput}
+                        <select
+                            className={styles.formSelect}
                             name="duration"
-                            type="number"
-                            min="30"
-                            max="300"
-                            step="30"
                             value={formData.duration}
                             onChange={handleInputChange}
                             required
-                        />
+                        >
+                            <option value="30">30 minutos</option>
+                            <option value="60">60 minutos</option>
+                            <option value="90">90 minutos</option>
+                            <option value="120">120 minutos</option>
+                        </select>
                     </div>
 
                     <div className={styles.formGroup}>

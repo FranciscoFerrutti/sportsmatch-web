@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AppContext';
 import apiClient from '@/apiClients';
 import dayjs from 'dayjs';
-import { ClockIcon, Users } from 'lucide-react';
+import { ClockIcon, Users, Hourglass } from 'lucide-react';
 import {Field} from "../../types/fields";
 import { useNavigate } from 'react-router-dom';
 import styles from './Events.module.css';
@@ -27,7 +27,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
 
     const [fields, setFields] = useState<FieldWithTimeSlots[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedField, setSelectedField] = useState<{ id: number; name: string; capacity: number; timeSlotId: number; startTime: string } | null>(null);
+    const [selectedField, setSelectedField] = useState<{ id: number; name: string; capacity: number; timeSlotId: number; startTime: string; duration: number } | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -107,6 +107,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
             await apiClient.patch(`/events/${eventId}`, {
                 description: selectedField.name,
                 schedule: formattedTime,
+                duration: selectedField.duration
             }, {
                 headers: { 'c-api-key': apiKey, 'x-auth-type': 'club' }
             });
@@ -145,6 +146,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
                                     <p className="flex items-center text-gray-600">
                                         <Users className="w-4 h-4 mr-1"/> Capacidad: {field.capacity} personas
                                     </p>
+                                    <p className="flex items-center text-gray-600">
+                                        <Hourglass className="w-4 h-4 mr-1"/> Duración: {field.slot_duration} minutos
+                                    </p>
                                 </div>
 
                                 {/* Lista de horarios disponibles */}
@@ -162,7 +166,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
                                                         name: field.name,
                                                         capacity: field.capacity,
                                                         timeSlotId: slot.timeSlotId,
-                                                        startTime: slot.startTime
+                                                        startTime: slot.startTime,
+                                                        duration: field.slot_duration
                                                     })}
                                                 >
                                                     <ClockIcon className="w-4 h-4 mr-1 inline"/>
