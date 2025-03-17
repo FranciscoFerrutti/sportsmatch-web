@@ -8,6 +8,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { CalendarIcon, MapPin, ClockIcon, Users, ChevronDown, ChevronUp, UserPlus, UserCheck, Hourglass } from 'lucide-react';
 import { ParticipantRequests } from './ParticipantRequests';
+import { AcceptedParticipants } from './AcceptedParticipants';
 import styles from './Events.module.css';
 
 dayjs.extend(utc);
@@ -400,6 +401,31 @@ export const EventsView = () => {
                                                     </div>
                                                 )}
                                             </div>
+                                            
+                                            {acceptedParticipantsCounts[event.id] > 0 && (
+                                                <div className={styles.cardFooter}>
+                                                    <button
+                                                        className={styles.descriptionToggle}
+                                                        onClick={() => toggleEventExpansion(event.id)}
+                                                    >
+                                                        {expandedEvents.includes(event.id) ? (
+                                                            <span className="flex items-center text-sm">
+                                                                Ocultar participantes <ChevronUp className="ml-1 h-3 w-3" />
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center text-sm">
+                                                                Ver participantes <ChevronDown className="ml-1 h-3 w-3" />
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {expandedEvents.includes(event.id) && (
+                                                <div className={styles.participantList}>
+                                                    <AcceptedParticipants eventId={event.id} />
+                                                </div>
+                                            )}
                                         </div>
                                     ))
                             )}

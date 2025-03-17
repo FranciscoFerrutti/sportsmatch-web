@@ -5,7 +5,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { Reservation } from '@/types/reservation';
 import { useAuth } from "../../context/AppContext.tsx";
-import { UserCircle, MapPin, Clock, Users, Calendar, CheckCircle, BookOpen, Phone, UserPlus, UserCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { UserCircle, MapPin, Clock, Users, Calendar, CheckCircle, BookOpen, Phone, UserPlus, UserCheck, ChevronDown, ChevronUp, Hourglass } from 'lucide-react';
 import isToday from 'dayjs/plugin/isToday';
 import { Event } from '@/types/event';
 import styles from './HomeView.module.css';
@@ -108,22 +108,18 @@ export const HomeView = () => {
             const response = await apiClient.get(`/events?userId=${clubId}&organizerType=club`, { headers: { 'c-api-key': apiKey } });
 
             if (response.data && Array.isArray(response.data.items)) {
-                // Filtrar eventos que sean de hoy y que no hayan terminado
                 const now = dayjs();
                 const todayEvents = response.data.items.filter((event: Event) => {
                     const eventTime = dayjs(event.schedule);
                     
-                    // Calcular el tiempo de finalización del evento (asumiendo 90 minutos de duración por defecto)
-                    // Si el evento tiene una duración específica, se podría usar esa información
-                    const eventEndTime = dayjs(event.schedule).add(90, 'minutes');
+                    const duration = event.duration || 60;
+                    const eventEndTime = dayjs(event.schedule).add(duration, 'minutes');
                     
-                    // Incluir eventos que son hoy y que su tiempo de finalización es después de ahora
                     return eventTime.isSame(now, 'day') && eventEndTime.isAfter(now);
                 });
 
                 setEventsToday(todayEvents);
                 
-                // Fetch participant counts for today's events
                 fetchParticipantsCounts(todayEvents);
             } else {
                 console.error("❌ Error: La API no devolvió un array de eventos en 'items'");
@@ -588,6 +584,12 @@ export const HomeView = () => {
                                                     <Clock className="w-4 h-4 mr-1" />
                                                     {dayjs(event.schedule).format("HH:mm")} hs
                                                 </div>
+                                                {event.duration && (
+                                                    <div className={styles.cardTime}>
+                                                        <Hourglass className="w-4 h-4 mr-1" />
+                                                        Duración: {event.duration} min
+                                                    </div>
+                                                )}
                                                 {dayjs().isAfter(dayjs(event.schedule)) ? (
                                                     <span className={`${styles.statusBadge} ${styles.statusInProgress}`}>
                                                         En progreso
