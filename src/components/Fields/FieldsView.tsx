@@ -78,8 +78,8 @@ export const FieldsView = () => {
 
   return (
       <div className={styles.fieldsContainer}>
-        <div className={styles.pageHeader}>
-          <h1 className="text-2xl font-bold text-[#000066] mb-8">Mis canchas</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-[#000066]">Mis canchas</h1>
           <button
               className={styles.createButton}
               onClick={handleNewField}
