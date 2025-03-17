@@ -516,7 +516,7 @@ export const ReservationsView = () => {
                                                 </div>
                                                 <div className={styles.cardTime}>
                                                     <Clock className="w-4 h-4 mr-1" />
-                                                    {dayjs(reservation.event?.schedule).format("HH:mm")} hs
+                                                    {dayjs(reservation.event?.schedule).add(3, 'hour').format("HH:mm")} hs
                                                 </div>
                                                 <span className={`${styles.statusBadge} ${styles.statusCancelled}`}>
                           Cancelada
