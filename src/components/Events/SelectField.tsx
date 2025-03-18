@@ -21,6 +21,11 @@ interface FieldWithTimeSlots extends Field {
     availableSlots: { timeSlotId: number; startTime: string }[];
 }
 
+interface TimeSlot {
+    timeSlotId: number;
+    startTime: string;
+}
+
 export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuccess, sportId, date, eventId }) => {
     const { clubId } = useAuth();
     const apiKey = localStorage.getItem('c-api-key');
@@ -29,6 +34,16 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
     const [loading, setLoading] = useState(true);
     const [selectedField, setSelectedField] = useState<{ id: number; name: string; capacity: number; timeSlotId: number; startTime: string; duration: number } | null>(null);
     const navigate = useNavigate();
+
+    const getSelectedHour = () => {
+        if (!date) return null;
+        const timeStr = date.includes('T') ? date.split('T')[1] : '';
+        if (!timeStr) return null;
+        
+        return parseInt(timeStr.split(':')[0], 10);
+    };
+
+    const selectedHour = getSelectedHour();
 
     useEffect(() => {
         if (isOpen) {
@@ -65,10 +80,23 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
                     params: { startDate: date, endDate: date }
                 });
 
-                const availableSlots = availableSlotsResponse.data.map((slot: { id: number; start_time: string }) => ({
+                let availableSlots = availableSlotsResponse.data.map((slot: { id: number; start_time: string }) => ({
                     timeSlotId: slot.id,
                     startTime: slot.start_time
                 }));
+
+                if (selectedHour !== null) {
+                    availableSlots = availableSlots.filter((slot: TimeSlot) => {
+                        const slotHour = dayjs(`2025-01-01T${slot.startTime}`).hour();
+                        return Math.abs(slotHour - selectedHour) <= 3;
+                    });
+                }
+
+                availableSlots.sort((a: TimeSlot, b: TimeSlot) => {
+                    const timeA = dayjs(`2025-01-01T${a.startTime}`);
+                    const timeB = dayjs(`2025-01-01T${b.startTime}`);
+                    return timeA.diff(timeB);
+                });
 
                 formattedFields.push({
                     ...field,
@@ -151,10 +179,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
                                     </p>
                                 </div>
 
-                                {/* Lista de horarios disponibles */}
                                 <div className={styles.cardContent}>
                                     {field.availableSlots.length === 0 ? (
-                                        <p className="text-sm text-gray-500">No hay horarios disponibles.</p>
+                                        <p className="text-sm text-gray-500">No hay horarios disponibles cercanos a la hora seleccionada.</p>
                                     ) : (
                                         <div className="space-y-2">
                                             {field.availableSlots.map(slot => (
@@ -182,7 +209,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({ isOpen, onClose, onSuc
                     </div>
                 )}
 
-                {/* Botón de Confirmación */}
                 <div className={styles.formActions}>
                     <button
                         className={styles.cancelButton}
