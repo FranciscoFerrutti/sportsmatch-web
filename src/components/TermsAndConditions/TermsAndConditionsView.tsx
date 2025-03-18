@@ -15,7 +15,7 @@ export const TermsAndConditionsView = () => {
                     </p>
                     <p className="text-gray-700 mt-3">
                         Los clubes deportivos que se registran en nuestra plataforma pueden listar sus canchas, establecer horarios de disponibilidad, 
-                        gestionar reservas y recibir pagos directamente a través de nuestro sistema. A cambio, SportsMatch cobra una comisión del 5% 
+                        gestionar reservas y recibir pagos directamente a través de nuestro sistema. A cambio, SportsMatch cobra una comisión del 2.5% 
                         sobre cada reserva completada a través de la plataforma.
                     </p>
                     <p className="text-gray-700 mt-3">
@@ -74,7 +74,7 @@ export const TermsAndConditionsView = () => {
                             que cancelen reservas confirmadas de forma recurrente sin justificación adecuada.
                         </li>
                         <li className="mt-2">
-                            <strong>Pagos:</strong> Los pagos se procesan a través de la plataforma SportsMatch. El importe, menos la comisión de SportsMatch, 
+                            <strong>Pagos:</strong> Los pagos se procesan a través de la plataforma SportsMatch cobrando un 50% del valor de la reserva. El importe, menos la comisión de SportsMatch, 
                             se transferirá a la cuenta bancaria del club en un plazo de 3-5 días hábiles después de la fecha de la reserva.
                         </li>
                         <li className="mt-2">

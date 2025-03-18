@@ -110,11 +110,10 @@ export const HomeView = () => {
             if (response.data && Array.isArray(response.data.items)) {
                 const now = dayjs();
                 const todayEvents = response.data.items.filter((event: Event) => {
-                    const eventTime = dayjs(event.schedule);
-                    
+                    const eventTime = dayjs(event.schedule).add(3, 'hour');
                     const duration = event.duration || 60;
-                    const eventEndTime = dayjs(event.schedule).add(duration, 'minutes');
-                    
+                    const eventEndTime = eventTime.add(duration, 'minutes');
+
                     return eventTime.isSame(now, 'day') && eventEndTime.isAfter(now);
                 });
 
@@ -441,7 +440,7 @@ export const HomeView = () => {
                         </h2>
                         <div className={styles.dashboardGrid}>
                             {reservations.filter(r => 
-                                r.status === 'confirmed' && 
+                                (r.status === 'confirmed' || r.status === 'completed') && 
                                 isDateToday(r.timeSlot?.availabilityDate) && 
                                 isEndTimeAfterNow(r.timeSlot?.availabilityDate, r.timeSlot?.endTime)
                             ).length === 0 ? (
@@ -449,7 +448,7 @@ export const HomeView = () => {
                             ) : (
                                 reservations
                                     .filter(r => 
-                                        r.status === 'confirmed' && 
+                                        (r.status === 'confirmed' || r.status === 'completed') && 
                                         isDateToday(r.timeSlot?.availabilityDate) && 
                                         isEndTimeAfterNow(r.timeSlot?.availabilityDate, r.timeSlot?.endTime)
                                     )
@@ -458,7 +457,7 @@ export const HomeView = () => {
                                         dayjs(`2000-01-01T${b.timeSlot?.startTime}`).valueOf()
                                     )
                                     .map((reservation: Reservation) => (
-                                        <div key={`confirmed-${reservation.id}`} className={styles.reservationCard}>
+                                        <div key={`reservation-${reservation.id}`} className={styles.reservationCard}>
                                             <div className={styles.cardHeader}>
                                                 <h3 className={styles.cardTitle}>{reservation.field.name}</h3>
                                                 <div className={styles.cardDate}>
@@ -474,8 +473,8 @@ export const HomeView = () => {
                                                         En progreso
                                                     </span>
                                                 ) : (
-                                                    <span className={`${styles.statusBadge} ${styles.statusConfirmed}`}>
-                                                        Confirmado
+                                                    <span className={`${styles.statusBadge} ${reservation.status === 'confirmed' ? styles.statusConfirmed : styles.statusCompleted}`}>
+                                                        {reservation.status === 'confirmed' ? 'Confirmado' : 'Pago realizado'}
                                                     </span>
                                                 )}
                                             </div>
@@ -514,33 +513,56 @@ export const HomeView = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className={styles.paymentInfo}>
-                                                    <h4 className={styles.paymentTitle}>Información de Pago</h4>
-                                                    <div className={styles.paymentDetails}>
-                                                        <div className={styles.paymentRow}>
-                                                            <span className={styles.paymentLabel}>Estado:</span>
-                                                            <span className={`${styles.paymentValue} ${reservation.payment?.isPaid ? styles.paymentPaid : styles.paymentUnpaid}`}>
-                                                                {reservation.payment?.isPaid ? 'Pagado' : 'No pagado'}
-                                                            </span>
+                                                {reservation.status !== 'pending' && (
+                                                    <div className={styles.paymentInfo}>
+                                                        <h4 className={styles.paymentTitle}>Información de Pago</h4>
+                                                        <div className={styles.paymentDetails}>
+                                                            <div className={styles.paymentRow}>
+                                                                <span className={styles.paymentLabel}>Estado:</span>
+                                                                <span className={`${styles.paymentValue} ${reservation.payment?.isPaid ? styles.paymentPaid : styles.paymentUnpaid}`}>
+                                                                    {reservation.payment?.isPaid ? 'Pagado' : 'No pagado'}
+                                                                </span>
+                                                            </div>
+                                                            {reservation.payment?.isPaid ? (
+                                                                <>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Monto:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Fecha:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a pagar en club:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a señar:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a pagar en club:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
-                                                        {reservation.payment?.isPaid && (
-                                                            <>
-                                                                <div className={styles.paymentRow}>
-                                                                    <span className={styles.paymentLabel}>Monto:</span>
-                                                                    <span className={styles.paymentValue}>
-                                                                        ${reservation.payment?.paymentAmount || reservation.cost}
-                                                                    </span>
-                                                                </div>
-                                                                <div className={styles.paymentRow}>
-                                                                    <span className={styles.paymentLabel}>Fecha:</span>
-                                                                    <span className={styles.paymentValue}>
-                                                                        {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).subtract(3, 'hour').format("DD/MM/YYYY HH:mm") : 'N/A'}
-                                                                    </span>
-                                                                </div>
-                                                            </>
-                                                        )}
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
 
                                             <div className={styles.cardFooter}>
@@ -582,7 +604,7 @@ export const HomeView = () => {
                                                 </div>
                                                 <div className={styles.cardTime}>
                                                     <Clock className="w-4 h-4 mr-1" />
-                                                    {dayjs(event.schedule).format("HH:mm")} hs
+                                                    {dayjs(event.schedule).add(3, 'hour').format("HH:mm")} hs
                                                 </div>
                                                 {event.duration && (
                                                     <div className={styles.cardTime}>
@@ -590,7 +612,7 @@ export const HomeView = () => {
                                                         Duración: {event.duration} min
                                                     </div>
                                                 )}
-                                                {dayjs().isAfter(dayjs(event.schedule)) ? (
+                                                {dayjs().isAfter(dayjs(event.schedule).add(3, 'hour')) ? (
                                                     <span className={`${styles.statusBadge} ${styles.statusInProgress}`}>
                                                         En progreso
                                                     </span>

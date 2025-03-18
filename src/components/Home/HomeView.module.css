@@ -244,6 +244,11 @@
     color: #2563eb;
 }
 
+.statusCompleted {
+    background-color: #c7d2fe;
+    color: #4338ca;
+}
+
 /* Avatar placeholder */
 .avatarPlaceholder {
     width: 2.5rem;

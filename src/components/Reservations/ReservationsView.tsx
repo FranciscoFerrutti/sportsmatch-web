@@ -349,18 +349,39 @@ export const ReservationsView = () => {
                                                                     {reservation.payment?.isPaid ? 'Pagado' : 'No pagado'}
                                                                 </span>
                                                             </div>
-                                                            {reservation.payment?.isPaid && (
+                                                            {reservation.payment?.isPaid ? (
                                                                 <>
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Monto:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            ${reservation.payment?.paymentAmount || reservation.cost}
+                                                                            ${(reservation.cost / 2).toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Fecha:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).subtract(3, 'hour').format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a pagar en club:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a señar:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a pagar en club:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                 </>
@@ -467,18 +488,39 @@ export const ReservationsView = () => {
                                                                     {reservation.payment?.isPaid ? 'Pagado' : 'No pagado'}
                                                                 </span>
                                                             </div>
-                                                            {reservation.payment?.isPaid && (
+                                                            {reservation.payment?.isPaid ? (
                                                                 <>
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Monto:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            ${reservation.payment?.paymentAmount || reservation.cost}
+                                                                            ${(reservation.cost / 2).toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Fecha:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).subtract(3, 'hour').format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a pagar en club:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a señar:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.paymentRow}>
+                                                                        <span className={styles.paymentLabel}>Total a pagar en club:</span>
+                                                                        <span className={styles.paymentValue}>
+                                                                            ${(reservation.cost / 2).toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                 </>
@@ -572,13 +614,13 @@ export const ReservationsView = () => {
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Monto:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            ${reservation.payment?.paymentAmount || reservation.cost}
+                                                                            ${(reservation.cost / 2).toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                     <div className={styles.paymentRow}>
                                                                         <span className={styles.paymentLabel}>Fecha:</span>
                                                                         <span className={styles.paymentValue}>
-                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).subtract(3, 'hour').format("DD/MM/YYYY HH:mm") : 'N/A'}
+                                                                            {reservation.payment?.paymentDate ? dayjs(reservation.payment.paymentDate).format("DD/MM/YYYY HH:mm") : 'N/A'}
                                                                         </span>
                                                                     </div>
                                                                 </>
@@ -588,7 +630,7 @@ export const ReservationsView = () => {
                                                                     <span className={styles.paymentLabel}>Reembolso:</span>
                                                                     <span className={`${styles.paymentValue} ${reservation.payment?.isRefunded ? styles.paymentRefunded : ''}`}>
                                                                         {reservation.payment?.isRefunded 
-                                                                            ? `$${reservation.payment?.refundAmount} (${dayjs(reservation.payment?.refundDate).subtract(3, 'hour').format("DD/MM/YYYY")})` 
+                                                                            ? `$${(reservation.cost / 2).toFixed(2)} (${dayjs(reservation.payment?.refundDate).format("DD/MM/YYYY")})` 
                                                                             : 'No aplica'}
                                                                     </span>
                                                                 </div>

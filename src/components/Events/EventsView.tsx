@@ -109,7 +109,7 @@ export const EventsView = () => {
         if (!dateString) return false;
         
         const now = dayjs();
-        const eventDate = dayjs(dateString);
+        const eventDate = dayjs(dateString).add(3, 'hour');
         
         // If the date is in the future, it's always valid
         if (eventDate.isAfter(now, 'day')) {
@@ -228,7 +228,7 @@ export const EventsView = () => {
                                                 </div>
                                                 <div className={styles.cardTime}>
                                                     <ClockIcon className="w-4 h-4 mr-1" />
-                                                    {dayjs(event.schedule).format("HH:mm")} hs
+                                                    {dayjs(event.schedule).add(3, 'hour').format("HH:mm")} hs
                                                 </div>
                                                 {event.duration && (
                                                     <div className={styles.cardTime}>
@@ -355,7 +355,7 @@ export const EventsView = () => {
                                                 </div>
                                                 <div className={styles.cardTime}>
                                                     <ClockIcon className="w-4 h-4 mr-1" />
-                                                    {dayjs(event.schedule).format("HH:mm")} hs
+                                                    {dayjs(event.schedule).add(3, 'hour').format("HH:mm")} hs
                                                 </div>
                                                 {event.duration && (
                                                     <div className={styles.cardTime}>
