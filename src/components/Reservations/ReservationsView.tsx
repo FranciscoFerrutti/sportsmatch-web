@@ -301,7 +301,7 @@ export const ReservationsView = () => {
                                                     {reservation.timeSlot?.startTime} hs
                                                 </div>
                                                 <span className={`${styles.statusBadge} ${reservation.status === 'confirmed' ? styles.statusConfirmed : styles.statusCompleted}`}>
-                          {reservation.status === 'confirmed' ? 'Confirmada' : 'Pago realizado'}
+                          {reservation.status === 'confirmed' ? 'Confirmada' : 'Señado'}
                         </span>
                                             </div>
 
@@ -440,7 +440,7 @@ export const ReservationsView = () => {
                                                     {reservation.timeSlot?.startTime} hs
                                                 </div>
                                                 <span className={`${styles.statusBadge} ${reservation.status === 'completed' ? styles.statusCompleted : styles.statusConfirmed}`}>
-                          {reservation.status === 'completed' ? 'Completada' : 'Finalizada'}
+                          {reservation.status === 'completed' ? 'Señado' : 'Finalizada'}
                         </span>
                                             </div>
 
