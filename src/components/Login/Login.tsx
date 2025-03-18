@@ -73,13 +73,14 @@ export const Login = () => {
 
         const errorMessage = err.response.data?.message || '';
         const internalStatus = err.response.data?.internalStatus;
+        const status = err.response.status;
 
-        if (err.response.status === 404) {
-          setError('El email no se encuentra registrado.');
-        } else if (err.response.status === 401) {
-          setError('Contraseña incorrecta.');
-        } else if (err.response.status === 403 && internalStatus === 'EMAIL_NOT_VERIFIED') {
+        if (status === 401) {
+          setError('Email o contraseña incorrectos.');
+        } else if (status === 403 && internalStatus === 'EMAIL_NOT_VERIFIED') {
           setError('Por favor, verifica tu dirección de email antes de iniciar sesión.');
+        } else if (status === 403) {
+          setError('Acceso denegado. Verifica tus credenciales.');
         } else {
           setError(errorMessage || 'Error al conectar con el servidor.');
         }
