@@ -9,13 +9,13 @@ export const TermsAndConditionsView = () => {
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Modelo de Negocio</h2>
                 <div className="prose max-w-none">
                     <p className="text-gray-700">
-                        SportsMatch es una plataforma que conecta a clubes deportivos con jugadores y equipos que buscan reservar canchas para sus actividades. 
+                        SportsMatch+ es una plataforma que conecta a clubes deportivos con jugadores y equipos que buscan reservar canchas para sus actividades. 
                         Nuestro modelo de negocio se basa en proporcionar a los clubes deportivos una herramienta eficiente para gestionar sus instalaciones, 
                         mientras que ofrecemos a los usuarios finales una forma sencilla de encontrar y reservar espacios deportivos.
                     </p>
                     <p className="text-gray-700 mt-3">
                         Los clubes deportivos que se registran en nuestra plataforma pueden listar sus canchas, establecer horarios de disponibilidad, 
-                        gestionar reservas y recibir pagos directamente a través de nuestro sistema. A cambio, SportsMatch cobra una comisión del 2.5% 
+                        gestionar reservas y recibir pagos directamente a través de nuestro sistema. A cambio, SportsMatch+ cobra una comisión del 2.5% 
                         sobre cada reserva completada a través de la plataforma.
                     </p>
                     <p className="text-gray-700 mt-3">
@@ -70,20 +70,20 @@ export const TermsAndConditionsView = () => {
                         </li>
                         <li className="mt-2">
                             <strong>Cancelaciones por parte del club:</strong> Si un club necesita cancelar una reserva con el pago efectuado 
-                            el usuario recibirá un reembolso completo. SportsMatch se reserva el derecho de aplicar penalizaciones a los clubes 
+                            el usuario recibirá un reembolso completo. SportsMatch+ se reserva el derecho de aplicar penalizaciones a los clubes 
                             que cancelen reservas confirmadas de forma recurrente sin justificación adecuada.
                         </li>
                         <li className="mt-2">
-                            <strong>Pagos:</strong> Los pagos se procesan a través de la plataforma SportsMatch cobrando un 50% del valor de la reserva. El importe, menos la comisión de SportsMatch, 
+                            <strong>Pagos:</strong> Los pagos se procesan a través de la plataforma SportsMatch+ cobrando un 50% del valor de la reserva. El importe, menos la comisión de SportsMatch+, 
                             se transferirá a la cuenta bancaria del club en un plazo de 3-5 días hábiles después de la fecha de la reserva.
                         </li>
                         <li className="mt-2">
-                            <strong>Disputas:</strong> En caso de disputa entre un club y un usuario, SportsMatch actuará como mediador para encontrar una 
-                            solución justa. La decisión final de SportsMatch será vinculante para ambas partes.
+                            <strong>Disputas:</strong> En caso de disputa entre un club y un usuario, SportsMatch+ actuará como mediador para encontrar una 
+                            solución justa. La decisión final de SportsMatch+ será vinculante para ambas partes.
                         </li>
                     </ol>
                     <p className="text-gray-700 mt-3">
-                        SportsMatch se reserva el derecho de modificar estos términos y condiciones en cualquier momento. Los cambios entrarán en vigor 
+                        SportsMatch+ se reserva el derecho de modificar estos términos y condiciones en cualquier momento. Los cambios entrarán en vigor 
                         inmediatamente después de su publicación en la plataforma, y se notificará a todos los usuarios registrados.
                     </p>
                 </div>
@@ -99,10 +99,10 @@ export const TermsAndConditionsView = () => {
                     <div className="flex items-center mt-4 bg-blue-50 p-4 rounded-lg">
                         <Mail className="text-[#000066] w-6 h-6 mr-3" />
                         <a 
-                            href="mailto:sportsmatch010@gmail.com" 
+                            href="mailto:SportsMatch+010@gmail.com" 
                             className="text-[#000066] font-medium hover:underline"
                         >
-                            sportsmatch010@gmail.com
+                            SportsMatch010@gmail.com
                         </a>
                     </div>
                     <p className="text-gray-700 mt-4">

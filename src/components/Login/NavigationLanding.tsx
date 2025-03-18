@@ -12,7 +12,7 @@ export const NavigationLanding = () => {
                     alt="SportsMatch Logo"
                     className="h-10 w-10 object-cover rounded-md"
                 />
-                <h1 className="text-2xl font-bold text-[#000066]">SportsMatch</h1>
+                <h1 className="text-2xl font-bold text-[#000066]">SportsMatch+</h1>
             </div>
 
             {/* Club Button */}

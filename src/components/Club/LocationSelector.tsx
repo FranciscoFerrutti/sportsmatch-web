@@ -256,7 +256,7 @@ export const LocationSelector = () => {
             className="w-20 h-20 object-contain mx-auto mb-4"
           />
           <h1 className="text-2xl md:text-3xl font-bold text-[#000066] mb-2">
-            ¡Bienvenido a Sportsmatch!
+            ¡Bienvenido a Sportsmatch+!
           </h1>
           <p className="text-gray-600 text-lg">
             Por favor agrega la ubicación de tu club

@@ -1,6 +1,6 @@
-# SportsMatch Web
+# SportsMatch+ Web
 
-Este repositorio contiene el código fuente de la aplicación web de **SportsMatch**, desarrollada en **React.js con Vite**. Está diseñada para que los clubes deportivos gestionen sus canchas, horarios y reservas de manera eficiente.
+Este repositorio contiene el código fuente de la aplicación web de **SportsMatch+**, desarrollada en **React.js con Vite**. Está diseñada para que los clubes deportivos gestionen sus canchas, horarios y reservas de manera eficiente.
 
 ## Tecnologías utilizadas
 
