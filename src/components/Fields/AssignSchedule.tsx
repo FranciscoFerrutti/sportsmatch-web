@@ -44,7 +44,7 @@ export const AssignSchedule = () => {
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + 18);
 
-
+    /*
     const formatDateForDisplay = (date: Date): string => {
         return date.toLocaleDateString('es-ES', { 
             day: 'numeric', 
@@ -53,9 +53,15 @@ export const AssignSchedule = () => {
         });
     };
 
+    
     const dateRangeMessage = source === 'new' 
         ? `Estás cargando los horarios desde hoy hasta ${formatDateForDisplay(endDate)}`
         : `Estás actualizando los horarios desde ${formatDateForDisplay(startDate)} hasta ${formatDateForDisplay(endDate)}.<br /> Si quieres actualizar los horarios dentro de los siguientes 14 días, puedes hacerlo sobre el calendario de la cancha.`;
+
+     */
+    const dateRangeMessage = source === 'new'
+        ? `Estás cargando los horarios desde hoy hasta el 20 de mayo de 2025`
+        : `Estás actualizando los horarios desde el 7 de abril de 2025 hasta 7 de junio de 2025.<br /> Si quieres actualizar los horarios dentro de los siguientes 14 días, puedes hacerlo sobre el calendario de la cancha.`;
 
     useEffect(() => {
         const fetchExistingTimeSlots = async () => {
