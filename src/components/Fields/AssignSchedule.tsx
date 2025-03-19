@@ -42,9 +42,9 @@ export const AssignSchedule = () => {
         startDate.setDate(today.getDate() + 15); 
     }
     const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + 2);
+    endDate.setDate(endDate.getDate() + 18);
 
-    
+
     const formatDateForDisplay = (date: Date): string => {
         return date.toLocaleDateString('es-ES', { 
             day: 'numeric', 
@@ -350,7 +350,7 @@ export const AssignSchedule = () => {
             });
 
             if (slotsToDelete.length > 0) {
-                const batchSize = 50;
+                const batchSize = 10;
                 for (let i = 0; i < slotsToDelete.length; i += batchSize) {
                     const batch = slotsToDelete.slice(i, i + batchSize);
 
@@ -400,7 +400,7 @@ export const AssignSchedule = () => {
                 return;
             }
 
-            const batchSize = 50;
+            const batchSize = 10;
             for (let i = 0; i < newSlots.length; i += batchSize) {
                 const batch = newSlots.slice(i, i + batchSize);
 
