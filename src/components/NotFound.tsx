@@ -21,7 +21,7 @@ export const NotFound = () => {
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <img
-              src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
+              src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
               alt="SportsMatch Logo"
               className="w-24 h-24 object-contain"
             />

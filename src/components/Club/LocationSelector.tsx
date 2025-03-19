@@ -251,7 +251,7 @@ export const LocationSelector = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <img
-            src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
+            src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
             alt="SportsMatch Logo"
             className="w-20 h-20 object-contain mx-auto mb-4"
           />

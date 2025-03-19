@@ -79,7 +79,7 @@ export const EmailVerification = () => {
         <div className={styles.signupCard}>
           <div className={styles.logoContainer}>
             <img
-                src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo_square.png"
+                src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
                 alt="SportsMatch Logo"
                 className={styles.logoImage}
             />
