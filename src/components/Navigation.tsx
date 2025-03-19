@@ -84,7 +84,7 @@ export const Navigation = () => {
                         alt="SportsMatch Logo"
                         className="h-10 w-10 object-cover rounded-md"
                     />
-                    <h1 className="text-2xl font-bold text-white">SportsMatch</h1>
+                    <h1 className="text-2xl font-bold text-white">SportsMatch+</h1>
                 </NavLink>
 
                 {/* Navegación */}
