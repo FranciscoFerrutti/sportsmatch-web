@@ -3,7 +3,10 @@ import { useAuth } from '@/context/AppContext';
 import { LogOut, UserCircle, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import apiClient from '@/apiClients';
-import logo from '../images/logo_sportsmatch.png';
+
+const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
+
+const logo = `${baseS3Url}/logo_sportsmatch.png`;
 
 export const Navigation = () => {
     const { clubId, logout } = useAuth();

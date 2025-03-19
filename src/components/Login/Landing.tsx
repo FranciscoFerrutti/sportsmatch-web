@@ -4,34 +4,31 @@ import { Users, MapPin, Calendar } from 'lucide-react';
 import styles from './Landing.module.css';
 import {NavigationLanding} from "./NavigationLanding";
 
-import soccerBg from '../../images/soccer-background.jpg';
-import tennisBg from '../../images/tennis-background.jpg';
-import paddleBg from '../../images/paddle-background.jpg';
-import hockeyBg from '../../images/hockey-background.jpg';
-import fieldBg from '../../images/field.jpg';
-import SMApp from '../../images/sportsmatch-app.png';
-import playStoreLogo from '../../images/logo_playstore.png';
-import appStoreLogo from '../../images/logo_appstore.png';
+const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
 
+const fieldBg = `${baseS3Url}/field.jpg`;
+const SMApp = `${baseS3Url}/sportsmatch-app.png`;
+const playStoreLogo = `${baseS3Url}/logo_playstore.png`;
+const appStoreLogo = `${baseS3Url}/logo_appstore.png`;
 
 const sportsBackgrounds = [
     {
-        image: soccerBg,
+        image: `${baseS3Url}/soccer-background.jpg`,
         sport: "Soccer",
         alt: "Soccer field with players"
     },
     {
-        image: tennisBg,
+        image: `${baseS3Url}/tennis-background.jpg`,
         sport: "Tennis",
         alt: "Tennis court with players"
     },
     {
-        image: paddleBg,
+        image: `${baseS3Url}/paddle-background.jpg`,
         sport: "Paddle",
         alt: "Paddle tennis court"
     },
     {
-        image: hockeyBg,
+        image: `${baseS3Url}/hockey-background.jpg`,
         sport: "Hockey",
         alt: "Grass hockey field"
     }

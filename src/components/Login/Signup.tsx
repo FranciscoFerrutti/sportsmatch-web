@@ -6,7 +6,10 @@ import type { SignupData } from '@/types/auth';
 import apiClient from '@/apiClients.ts';
 import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import styles from './Signup.module.css';
-import fieldBg from '../../images/field.jpg';
+
+const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
+
+const fieldBg = `${baseS3Url}/field.jpg`;
 
 export const Signup = () => {
   const navigate = useNavigate();

@@ -3,7 +3,10 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { verifyEmail } from '@/services/authService';
 import styles from './Signup.module.css';
-import fieldBg from '../../images/field.jpg';
+
+const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
+
+const fieldBg = `${baseS3Url}/field.jpg`;
 
 export const EmailVerification = () => {
   const [searchParams] = useSearchParams();
