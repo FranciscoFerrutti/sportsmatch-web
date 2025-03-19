@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import apiClient from '@/apiClients';
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -25,6 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (apiKey) {
       localStorage.setItem('c-api-key', apiKey);
+      apiClient.defaults.headers.common['c-api-key'] = apiKey;
     }
 
     if (clubId) {
@@ -39,11 +41,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('c-api-key');
     localStorage.removeItem('clubId');
+    delete apiClient.defaults.headers.common['c-api-key'];
   };
 
   useEffect(() => {
     localStorage.setItem('isAuthenticated', isAuthenticated.toString());
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('c-api-key');
+    if (savedApiKey) {
+      apiClient.defaults.headers.common['c-api-key'] = savedApiKey;
+    }
+  }, []);
 
   return (
       <AuthContext.Provider value={{ isAuthenticated, clubId, login, logout }}>
