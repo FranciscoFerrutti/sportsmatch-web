@@ -144,7 +144,7 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
     const handleContact = (participant: Participant) => {
         // Open phone dialer or messaging app
         if (participant.phoneNumber) {
-            window.open(`tel:${participant.phoneNumber}`, '_blank');
+            window.open(`https://api.whatsapp.com/send?phone=${participant.phoneNumber.replace('+', '')}`, '_blank');
         }
     };
 

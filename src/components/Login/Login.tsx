@@ -78,7 +78,7 @@ export const Login = () => {
         const errorMessage = err.response.data?.message || '';
         const internalStatus = err.response.data?.internalStatus;
         const status = err.response.status;
-        
+
         if (status === 401 || status === 404) {
             setError('Email o contraseña incorrectos.');
         } else if (status === 403 && internalStatus === 'EMAIL_NOT_VERIFIED') {

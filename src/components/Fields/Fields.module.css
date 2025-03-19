@@ -19,7 +19,6 @@
     background-color: white;
     transition: all 0.3s ease;
     max-width: 280px;
-    margin: 0 auto;
     width: 100%;
 }
 
@@ -106,6 +105,7 @@
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     gap: 0.5rem;
+    justify-items: start;
 }
 
 @media (min-width: 640px) {
