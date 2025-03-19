@@ -17,6 +17,7 @@ export const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -31,6 +32,7 @@ export const Login = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       setBasicAuthHeader(formData.email, formData.password);
       const response = await apiClient.get('/clubauth');
@@ -50,7 +52,6 @@ export const Login = () => {
         login(apiKey, clubId);
         console.log('✅ Inicio de sesión exitoso');
 
-        // Check if club has location
         try {
           const clubResponse = await apiClient.get(`/clubs`, {
             params: { clubId }
@@ -77,9 +78,9 @@ export const Login = () => {
         const errorMessage = err.response.data?.message || '';
         const internalStatus = err.response.data?.internalStatus;
         const status = err.response.status;
-
-        if (status === 401) {
-          setError('Email o contraseña incorrectos.');
+        
+        if (status === 401 || status === 404) {
+            setError('Email o contraseña incorrectos.');
         } else if (status === 403 && internalStatus === 'EMAIL_NOT_VERIFIED') {
           setError('Por favor, verifica tu dirección de email antes de iniciar sesión.');
         } else if (status === 403) {
@@ -95,6 +96,8 @@ export const Login = () => {
         console.error("⚠️ Error en la configuración de la solicitud:", err.message);
         setError('Error desconocido.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -164,8 +167,9 @@ export const Login = () => {
             <Button
                 type="submit"
                 className={styles.submitButton}
+                disabled={isLoading}
             >
-              Ingresar
+              {isLoading ? "Ingresando..." : "Ingresar"}
             </Button>
 
             <p className={styles.linkText}>
