@@ -14,7 +14,7 @@ export const TermsAndConditionsView = () => {
                         mientras que ofrecemos a los usuarios finales una forma sencilla de encontrar y reservar espacios deportivos.
                     </p>
                     <p className="text-gray-700 mt-3">
-                        Los clubes deportivos que se registran en nuestra plataforma pueden listar sus canchas, establecer horarios de disponibilidad, 
+                        Los clubes deportivos que se registren en nuestra plataforma pueden listar sus canchas, establecer horarios de disponibilidad,
                         gestionar reservas y recibir pagos directamente a través de nuestro sistema. A cambio, SportsMatch+ cobra una comisión del 2.5% 
                         sobre cada reserva completada a través de la plataforma.
                     </p>
@@ -42,8 +42,8 @@ export const TermsAndConditionsView = () => {
                         actualizar los horarios de forma manual en la plataforma cada 1 mes. De igual manera el 15 de cada mes recibirá un correo informativo para que pueda actualizar los horarios.
                     </p>
                     <p className="text-gray-700 mt-3">
-                        En caso que se este acercando la fecha de la reserva y no se haya efectuado el pago de la misma, el club debe notificar al usuario para que pueda cancelar la reserva. 
-                        Dentro de la información de la reserva figura el contacto del usuario para que el club pueda notificarle.
+                        En caso que se esté acercando la fecha de la reserva y no se haya efectuado el pago de la misma, el club puede contactar al usuario para efectuar el mismo.
+                        Dentro de la información de la reserva figura el contacto del usuario. Si 24hs anteriores a la reserva el usuario no pagó la seña, el club puede cancelar la reserva sin penalidad alguna.
                     </p>
                 </div>
             </div>
@@ -64,7 +64,7 @@ export const TermsAndConditionsView = () => {
                             <strong>Cancelaciones por parte del usuario:</strong> Los usuarios pueden cancelar sus reservas según la política de cancelación 
                             establecida por la aplicación:
                             <ul className="list-disc pl-6 mt-1 text-gray-700">
-                                <li>Cancelación con más de 24 horas de anticipación: reembolso del 100%</li>
+                                <li>Cancelación con más de 24 horas de anticipación: reembolso del 100% de la seña</li>
                                 <li>Cancelación con menos de 24 horas de anticipación: sin reembolso</li>
                             </ul>
                         </li>
@@ -90,10 +90,10 @@ export const TermsAndConditionsView = () => {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Contáctanos</h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Contactanos</h2>
                 <div className="prose max-w-none">
                     <p className="text-gray-700">
-                        Si tienes alguna pregunta, comentario o necesitas asistencia relacionada con estos términos y condiciones, 
+                        Si tenés alguna pregunta, comentario o necesitás asistencia relacionada con estos términos y condiciones,
                         no dudes en contactarnos a través de nuestro correo electrónico:
                     </p>
                     <div className="flex items-center mt-4 bg-blue-50 p-4 rounded-lg">
