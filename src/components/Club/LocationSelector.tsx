@@ -12,6 +12,9 @@ const SHORT_NAME_ADDRESS_COMPONENT_TYPES = new Set([
   'postal_code'
 ]);
 
+const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
+const fieldBg = `${baseS3Url}/field.jpg`;
+
 export const LocationSelector = () => {
   const { clubId } = useAuth();
   const apiKey = localStorage.getItem('c-api-key');
@@ -247,62 +250,71 @@ export const LocationSelector = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <img
-            src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
-            alt="SportsMatch Logo"
-            className="w-20 h-20 object-contain mx-auto mb-4"
-          />
-          <h1 className="text-2xl md:text-3xl font-bold text-[#000066] mb-2">
-            ¡Bienvenido a Sportsmatch+!
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Por favor agrega la ubicación de tu club
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Form Column */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center mb-4">
-              <img className="h-6 w-6 mr-2" src="https://fonts.gstatic.com/s/i/googlematerialicons/location_pin/v5/24px.svg" alt="" />
-              <h1 className="text-xl font-semibold">Seleccionar Ubicación</h1>
+    <div className="min-h-screen relative">
+      <div 
+        className="absolute top-0 left-0 right-0 bottom-0 bg-cover bg-center z-0"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${fieldBg})`,
+        }}
+      ></div>
+      
+      <div className="relative z-10 py-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <img
+              src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
+              alt="SportsMatch Logo"
+              className="w-20 h-20 object-contain mx-auto mb-4"
+            />
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+              ¡Bienvenido a Sportsmatch+!
+            </h1>
+            <p className="text-gray-200 text-lg">
+              Por favor agrega la ubicación de tu club
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Form Column */}
+            <div className="bg-white rounded-lg shadow p-6 backdrop-blur-sm bg-opacity-95">
+              <div className="flex items-center mb-4">
+                <img className="h-6 w-6 mr-2" src="https://fonts.gstatic.com/s/i/googlematerialicons/location_pin/v5/24px.svg" alt="" />
+                <h1 className="text-xl font-semibold">Seleccionar Ubicación</h1>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+                <input
+                  type="text"
+                  placeholder="Dirección"
+                  id="location-input"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  autoComplete="off"
+                  role="presentation"
+                />
+                {fullAddressDisplay && !error && (
+                  <div className="p-3 bg-gray-50 rounded-lg text-sm">
+                    <p className="font-medium mb-1">Dirección completa:</p>
+                    <p className="text-gray-600">{fullAddressDisplay}</p>
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  className="w-full bg-[#000066] hover:bg-[#000088] text-white p-2 rounded"
+                  disabled={isLoading || !!error}
+                >
+                  {isLoading ? "Guardando..." : "Confirmar dirección"}
+                </button>
+                {error && <div className="text-red-600 mt-2 text-center">{error}</div>}
+              </form>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-              <input
-                type="text"
-                placeholder="Dirección"
-                id="location-input"
-                className="w-full p-2 border border-gray-300 rounded"
-                autoComplete="off"
-                role="presentation"
-              />
-              {fullAddressDisplay && !error && (
-                <div className="p-3 bg-gray-50 rounded-lg text-sm">
-                  <p className="font-medium mb-1">Dirección completa:</p>
-                  <p className="text-gray-600">{fullAddressDisplay}</p>
-                </div>
-              )}
-              <button
-                type="submit"
-                className="w-full bg-[#000066] hover:bg-[#000088] text-white p-2 rounded"
-                disabled={isLoading || !!error}
-              >
-                {isLoading ? "Guardando..." : "Confirmar dirección"}
-              </button>
-              {error && <div className="text-red-600 mt-2 text-center">{error}</div>}
-            </form>
-          </div>
-
-          {/* Map Column */}
-          <div className="bg-white rounded-lg shadow">
-            <div 
-              id="map" 
-              className="w-full h-full min-h-[500px] rounded-lg"
-            ></div>
+            {/* Map Column */}
+            <div className="bg-white rounded-lg shadow backdrop-blur-sm bg-opacity-95">
+              <div 
+                id="map" 
+                className="w-full h-full min-h-[500px] rounded-lg"
+              ></div>
+            </div>
           </div>
         </div>
       </div>
