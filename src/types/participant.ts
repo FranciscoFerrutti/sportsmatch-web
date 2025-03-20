@@ -5,6 +5,7 @@ export interface Participant {
     email: string;
     participantStatus: boolean;
     phoneNumber: string;
+    imageUrl?: string;
     rating: {
         rate: number,
         count: number

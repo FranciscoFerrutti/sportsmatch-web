@@ -183,11 +183,20 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                                 <Card key={participant.userId} className="overflow-hidden border-gray-200">
                                     <div className={styles.participantItem}>
                                         <div className={styles.participantInfo}>
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarFallback className="text-xs">
-                                                    {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
-                                                </AvatarFallback>
-                                            </Avatar>
+                                            {participant.imageUrl ? (
+                                                <img
+                                                    src={participant.imageUrl}
+                                                    alt={`${participant.firstname} ${participant.lastname}`}
+                                                    className="w-8 h-8 rounded-full object-cover border"
+                                                    onError={(e) => (e.currentTarget.style.display = "none")}
+                                                />
+                                            ) : (
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarFallback className="text-xs">
+                                                        {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                            )}
 
                                             <div>
                                                 <h4 className={styles.participantName}>{participant.firstname} {participant.lastname}</h4>
@@ -238,11 +247,20 @@ export const ParticipantRequests = ({ eventId, onRequestsChange }: ParticipantRe
                                 <Card key={participant.userId} className="overflow-hidden border-gray-200">
                                     <div className={styles.participantItem}>
                                         <div className={styles.participantInfo}>
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarFallback className="text-xs">
-                                                    {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
-                                                </AvatarFallback>
-                                            </Avatar>
+                                            {participant.imageUrl ? (
+                                                <img
+                                                    src={participant.imageUrl}
+                                                    alt={`${participant.firstname} ${participant.lastname}`}
+                                                    className="w-8 h-8 rounded-full object-cover border"
+                                                    onError={(e) => (e.currentTarget.style.display = "none")}
+                                                />
+                                            ) : (
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarFallback className="text-xs">
+                                                        {participant.firstname.charAt(0)}{participant.lastname.charAt(0)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                            )}
 
                                             <div>
                                                 <h4 className={styles.participantName}>{participant.firstname} {participant.lastname}</h4>
