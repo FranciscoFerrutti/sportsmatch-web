@@ -474,7 +474,7 @@ export const HomeView = () => {
                                                     </span>
                                                 ) : (
                                                     <span className={`${styles.statusBadge} ${reservation.status === 'confirmed' ? styles.statusConfirmed : styles.statusCompleted}`}>
-                                                        {reservation.status === 'confirmed' ? 'Confirmado' : 'Pago realizado'}
+                                                        {reservation.status === 'confirmed' ? 'Confirmado' : 'Señado'}
                                                     </span>
                                                 )}
                                             </div>
