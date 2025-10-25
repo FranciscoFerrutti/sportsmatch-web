@@ -203,7 +203,7 @@ export const ReservationsView = () => {
     let date = "";
 
     if (reservation.status === 'pending' && reservation.timeSlot) {
-      date = reservation.timeSlot.date;
+      date = reservation.timeSlot.availabilityDate;
     }
 
     else if (reservation.event?.schedule) {
