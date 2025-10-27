@@ -4,7 +4,7 @@ import { LogOut, UserCircle, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import apiClient from '@/apiClients';
 
-const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
+const baseS3Url = 'https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/backgrounds';
 
 const logo = `${baseS3Url}/logo_sportsmatch.png`;
 

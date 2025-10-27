@@ -8,7 +8,7 @@ export const NavigationLanding = () => {
             {/* Logo and Title */}
             <div className="flex items-center space-x-2">
                 <img
-                    src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
+                    src="https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/logo.png"
                     alt="SportsMatch Logo"
                     className="h-10 w-10 object-cover rounded-md"
                 />

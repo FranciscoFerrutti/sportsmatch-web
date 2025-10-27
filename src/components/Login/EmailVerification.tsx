@@ -4,7 +4,7 @@ import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { verifyEmail } from '@/services/authService';
 import styles from './Signup.module.css';
 
-const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
+const baseS3Url = 'https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/backgrounds';
 
 const fieldBg = `${baseS3Url}/field.jpg`;
 
@@ -79,7 +79,7 @@ export const EmailVerification = () => {
         <div className={styles.signupCard}>
           <div className={styles.logoContainer}>
             <img
-                src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
+                src="https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/logo.png"
                 alt="SportsMatch Logo"
                 className={styles.logoImage}
             />

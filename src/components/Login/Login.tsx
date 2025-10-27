@@ -7,7 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import apiClient, { setBasicAuthHeader } from '@/apiClients';
 import styles from './Login.module.css';
 
-const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
+const baseS3Url = 'https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/backgrounds';
 
 const fieldBg = `${baseS3Url}/field.jpg`;
 
@@ -113,7 +113,7 @@ export const Login = () => {
         <div className={styles.loginCard}>
           <div className={styles.logoContainer}>
             <img
-                src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
+                src="https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/logo.png"
                 alt="SportsMatch Logo"
                 className={styles.logoImage}
             />

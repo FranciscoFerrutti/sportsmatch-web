@@ -7,7 +7,7 @@ import apiClient from '@/apiClients.ts';
 import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import styles from './Signup.module.css';
 
-const baseS3Url = 'https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/backgrounds';
+const baseS3Url = 'https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/backgrounds';
 
 const fieldBg = `${baseS3Url}/field.jpg`;
 
@@ -159,7 +159,7 @@ export const Signup = () => {
           <div className={styles.signupCard}>
             <div className={styles.logoContainer}>
               <img
-                  src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
+                  src="https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/logo.png"
                   alt="SportsMatch Logo"
                   className={styles.logoImage}
               />
@@ -195,7 +195,7 @@ export const Signup = () => {
         <div className={styles.signupCard}>
           <div className={styles.logoContainer}>
             <img
-                src="https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/logo.png"
+                src="https://new-sportsmatch-user-pictures-2025.s3.us-east-1.amazonaws.com/logo.png"
                 alt="SportsMatch Logo"
                 className={styles.logoImage}
             />
